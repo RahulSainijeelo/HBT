@@ -93,7 +93,7 @@ export const ProfileScreen = ({ navigation }: any) => {
                 <TouchableOpacity onPress={() => navigation.goBack()}>
                     <NothingText color={theme.colors.textSecondary}>BACK</NothingText>
                 </TouchableOpacity>
-                <NothingText variant="dot" size={32}>SYSTEM</NothingText>
+                {/* <NothingText variant="dot" size={32}>SYSTEM</NothingText> */}
             </View>
 
             <ScrollView contentContainerStyle={styles.content}>
