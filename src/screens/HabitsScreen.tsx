@@ -1,112 +1,138 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, FlatList, SafeAreaView, TouchableOpacity, Modal } from 'react-native';
+import { View, StyleSheet, FlatList, SafeAreaView, TouchableOpacity, Modal, ScrollView } from 'react-native';
 import { theme } from '../theme';
 import { NothingText } from '../components/NothingText';
 import { NothingCard } from '../components/NothingCard';
 import { NothingInput } from '../components/NothingInput';
 import { NothingButton } from '../components/NothingButton';
-import { useAppStore } from '../store/useAppStore';
-import { CheckCircle2, Circle, Plus, Trash2, Flame } from 'lucide-react-native';
+import { useAppStore, Habit } from '../store/useAppStore';
+import { Plus, Check, Flame, Calendar, Bell, ChevronRight, X } from 'lucide-react-native';
 import dayjs from 'dayjs';
 
 export const HabitsScreen = () => {
     const { habits, addHabit, toggleHabit, deleteHabit } = useAppStore();
-    const [modalVisible, setModalVisible] = useState(false);
-    const [newHabitTitle, setNewHabitTitle] = useState('');
-
-    const today = dayjs().format('YYYY-MM-DD');
+    const [isAddModalVisible, setIsAddModalVisible] = useState(false);
+    const [newTitle, setNewTitle] = useState('');
+    const [newDesc, setNewDesc] = useState('');
+    const [newFreq, setNewFreq] = useState<'daily' | 'weekly' | 'monthly'>('daily');
 
     const handleAddHabit = () => {
-        if (newHabitTitle.trim()) {
-            addHabit({ title: newHabitTitle, frequency: 'daily' });
-            setNewHabitTitle('');
-            setModalVisible(false);
+        if (newTitle.trim()) {
+            addHabit({
+                title: newTitle,
+                description: newDesc,
+                frequency: newFreq,
+                reminders: [],
+            });
+            setNewTitle('');
+            setNewDesc('');
+            setIsAddModalVisible(false);
         }
     };
 
-    const renderItem = ({ item }: { item: any }) => {
-        const isCompletedToday = item.completedDates.includes(today);
+    const todayStr = dayjs().format('YYYY-MM-DD');
 
-        return (
-            <NothingCard margin="sm" style={styles.habitCard}>
-                <View style={styles.row}>
-                    <TouchableOpacity onPress={() => toggleHabit(item.id, today)}>
-                        <View style={[
-                            styles.checkCircle,
-                            isCompletedToday && { backgroundColor: theme.colors.text }
-                        ]}>
-                            {isCompletedToday ? (
-                                <CheckCircle2 size={24} color={theme.colors.background} />
-                            ) : (
-                                <Circle size={24} color={theme.colors.textSecondary} />
-                            )}
-                        </View>
-                    </TouchableOpacity>
-
-                    <View style={styles.titleContainer}>
-                        <NothingText variant="bold" size={18}>{item.title}</NothingText>
-                        <View style={styles.streakRow}>
-                            <Flame size={14} color={theme.colors.primary} />
-                            <NothingText size={12} color={theme.colors.textSecondary} style={{ marginLeft: 4 }}>
-                                {item.streak} day streak
-                            </NothingText>
-                        </View>
+    const renderHabit = ({ item }: { item: Habit }) => (
+        <NothingCard margin="xs" style={styles.habitCard}>
+            <View style={styles.habitMain}>
+                <View style={styles.habitInfo}>
+                    <NothingText variant="bold" size={18}>{item.title}</NothingText>
+                    <View style={styles.streakContainer}>
+                        <Flame size={14} color={theme.colors.primary} />
+                        <NothingText size={12} color={theme.colors.textSecondary} style={styles.streakText}>
+                            {item.streak} DAY STREAK
+                        </NothingText>
                     </View>
-
-                    <TouchableOpacity onPress={() => deleteHabit(item.id)}>
-                        <Trash2 size={20} color={theme.colors.error} />
-                    </TouchableOpacity>
                 </View>
-            </NothingCard>
-        );
-    };
+
+                <TouchableOpacity
+                    onPress={() => toggleHabit(item.id, todayStr)}
+                    style={[
+                        styles.checkBtn,
+                        item.completedDates.includes(todayStr) && styles.checkBtnActive
+                    ]}
+                >
+                    <Check
+                        color={item.completedDates.includes(todayStr) ? theme.colors.background : theme.colors.textSecondary}
+                        size={24}
+                    />
+                </TouchableOpacity>
+            </View>
+        </NothingCard>
+    );
 
     return (
         <SafeAreaView style={styles.container}>
             <View style={styles.header}>
-                <NothingText variant="dot" size={32}>HABITS</NothingText>
-                <NothingText color={theme.colors.textSecondary}>Consistency is everything</NothingText>
+                <NothingText variant="dot" size={32}>TRACKER</NothingText>
             </View>
 
             <FlatList
                 data={habits}
+                renderItem={renderHabit}
                 keyExtractor={(item) => item.id}
-                renderItem={renderItem}
-                contentContainerStyle={styles.listContent}
+                contentContainerStyle={styles.listContainer}
                 ListEmptyComponent={
-                    <NothingText align="center" color={theme.colors.textSecondary} style={{ marginTop: 40 }}>
-                        No habits yet. Dot by dot, you build yourself.
-                    </NothingText>
+                    <View style={styles.emptyContainer}>
+                        <NothingText color={theme.colors.textSecondary}>No habits being tracked</NothingText>
+                    </View>
                 }
             />
 
             <TouchableOpacity
                 style={styles.fab}
-                onPress={() => setModalVisible(true)}
+                onPress={() => setIsAddModalVisible(true)}
             >
-                <Plus size={32} color={theme.colors.background} />
+                <Plus color={theme.colors.background} size={32} />
             </TouchableOpacity>
 
             <Modal
                 animationType="slide"
                 transparent={true}
-                visible={modalVisible}
-                onRequestClose={() => setModalVisible(false)}
+                visible={isAddModalVisible}
+                onRequestClose={() => setIsAddModalVisible(false)}
             >
                 <View style={styles.modalOverlay}>
                     <NothingCard style={styles.modalContent} padding="lg">
-                        <NothingText variant="bold" size={24} style={{ marginBottom: 20 }}>New Habit</NothingText>
+                        <View style={styles.modalHeader}>
+                            <NothingText variant="bold" size={20}>NEW HABIT</NothingText>
+                            <TouchableOpacity onPress={() => setIsAddModalVisible(false)}>
+                                <X color={theme.colors.text} size={24} />
+                            </TouchableOpacity>
+                        </View>
+
                         <NothingInput
-                            placeholder="What do you want to start?"
-                            value={newHabitTitle}
-                            onChangeText={setNewHabitTitle}
-                            autoFocus
+                            placeholder="Habit Name"
+                            value={newTitle}
+                            onChangeText={setNewTitle}
                         />
 
-                        <View style={styles.modalActions}>
-                            <NothingButton label="Cancel" variant="ghost" onPress={() => setModalVisible(false)} />
-                            <NothingButton label="Create" onPress={handleAddHabit} />
+                        <NothingInput
+                            placeholder="Description (Optional)"
+                            value={newDesc}
+                            onChangeText={setNewDesc}
+                            multiline
+                        />
+
+                        <View style={styles.freqRow}>
+                            {(['daily', 'weekly', 'monthly'] as const).map(f => (
+                                <TouchableOpacity
+                                    key={f}
+                                    onPress={() => setNewFreq(f)}
+                                    style={[styles.freqChip, newFreq === f && styles.freqChipActive]}
+                                >
+                                    <NothingText size={12} color={newFreq === f ? theme.colors.background : theme.colors.text}>
+                                        {f.toUpperCase()}
+                                    </NothingText>
+                                </TouchableOpacity>
+                            ))}
                         </View>
+
+                        <NothingButton
+                            label="Start Tracking"
+                            onPress={handleAddHabit}
+                            style={styles.submitBtn}
+                        />
                     </NothingCard>
                 </View>
             </Modal>
@@ -120,37 +146,44 @@ const styles = StyleSheet.create({
         backgroundColor: theme.colors.background,
     },
     header: {
-        padding: 20,
-        marginTop: 20,
+        padding: 24,
     },
-    listContent: {
-        paddingHorizontal: 16,
+    listContainer: {
+        padding: 16,
         paddingBottom: 100,
     },
     habitCard: {
-        marginBottom: 8,
+        paddingVertical: 16,
     },
-    row: {
+    habitMain: {
         flexDirection: 'row',
+        justifyContent: 'space-between',
         alignItems: 'center',
     },
-    checkCircle: {
-        width: 44,
-        height: 44,
-        borderRadius: 22,
-        justifyContent: 'center',
-        alignItems: 'center',
-        borderWidth: 1,
-        borderColor: theme.colors.border,
-    },
-    titleContainer: {
+    habitInfo: {
         flex: 1,
-        marginLeft: 16,
     },
-    streakRow: {
+    streakContainer: {
         flexDirection: 'row',
         alignItems: 'center',
         marginTop: 4,
+    },
+    streakText: {
+        marginLeft: 6,
+        letterSpacing: 1,
+    },
+    checkBtn: {
+        width: 48,
+        height: 48,
+        borderRadius: 24,
+        borderWidth: 1,
+        borderColor: theme.colors.border,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    checkBtnActive: {
+        backgroundColor: theme.colors.text,
+        borderColor: theme.colors.text,
     },
     fab: {
         position: 'absolute',
@@ -159,24 +192,48 @@ const styles = StyleSheet.create({
         width: 64,
         height: 64,
         borderRadius: 32,
-        backgroundColor: theme.colors.text,
+        backgroundColor: theme.colors.primary,
         justifyContent: 'center',
         alignItems: 'center',
+        elevation: 8,
+    },
+    emptyContainer: {
+        alignItems: 'center',
+        marginTop: 100,
     },
     modalOverlay: {
         flex: 1,
-        backgroundColor: 'rgba(0,0,0,0.8)',
-        justifyContent: 'flex-end',
+        backgroundColor: 'rgba(0,0,0,0.85)',
+        justifyContent: 'center',
+        padding: 20,
     },
     modalContent: {
-        borderBottomLeftRadius: 0,
-        borderBottomRightRadius: 0,
-        paddingBottom: 40,
+        backgroundColor: theme.colors.surface,
     },
-    modalActions: {
+    modalHeader: {
         flexDirection: 'row',
-        justifyContent: 'flex-end',
-        marginTop: 20,
-        gap: 12,
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 24,
+    },
+    freqRow: {
+        flexDirection: 'row',
+        marginTop: 16,
+        marginBottom: 24,
+    },
+    freqChip: {
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        borderRadius: 20,
+        borderWidth: 1,
+        borderColor: theme.colors.border,
+        marginRight: 8,
+    },
+    freqChipActive: {
+        backgroundColor: theme.colors.text,
+        borderColor: theme.colors.text,
+    },
+    submitBtn: {
+        marginTop: 8,
     }
 });
