@@ -9,7 +9,7 @@ import { NothingButton } from '../components/NothingButton';
 import { useAppStore } from '../store/useAppStore';
 import { StorageService } from '../services/StorageService';
 import { User, FileInput, ArrowRight } from 'lucide-react-native';
-import DocumentPicker from 'react-native-document-picker';
+import { pick, types, isErrorWithCode, errorCodes } from '@react-native-documents/picker';
 import { NothingLogo } from '../components/NothingLogo';
 
 export const LoginScreen = () => {
@@ -40,8 +40,8 @@ export const LoginScreen = () => {
 
     const handleImportProfile = async () => {
         try {
-            const res = await DocumentPicker.pickSingle({
-                type: [DocumentPicker.types.allFiles],
+            const [res] = await pick({
+                type: [types.allFiles],
             });
             if (res.uri) {
                 const importedName = await StorageService.importProfile(res.uri);
@@ -49,7 +49,9 @@ export const LoginScreen = () => {
                 Alert.alert('Success', `Imported profile: ${importedName}`);
             }
         } catch (err) {
-            if (!DocumentPicker.isCancel(err)) {
+            if (isErrorWithCode(err) && err.code === errorCodes.OPERATION_CANCELED) {
+                // Ignore cancel
+            } else {
                 console.error(err);
             }
         }

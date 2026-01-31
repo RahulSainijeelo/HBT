@@ -8,18 +8,34 @@ const BASE_PATH = Platform.OS === 'android'
 
 export class StorageService {
     static async init() {
-        const exists = await RNFS.exists(BASE_PATH);
-        if (!exists) {
-            await RNFS.mkdir(BASE_PATH);
+        if (!RNFS || !RNFS.exists) {
+            console.warn('RNFS native module is not ready. Storage will be disabled.');
+            return false;
+        }
+        try {
+            const exists = await RNFS.exists(BASE_PATH);
+            if (!exists) {
+                await RNFS.mkdir(BASE_PATH);
+            }
+            return true;
+        } catch (e) {
+            console.warn('Failed to init storage:', e);
+            return false;
         }
     }
 
     static async getUserFiles() {
-        await this.init();
-        const files = await RNFS.readDir(BASE_PATH);
-        return files
-            .filter(f => f.isFile() && f.name.endsWith('.json'))
-            .map(f => f.name.replace('.json', ''));
+        const ready = await this.init();
+        if (!ready) return [];
+        try {
+            const files = await RNFS.readDir(BASE_PATH);
+            return files
+                .filter(f => f.isFile() && f.name.endsWith('.json'))
+                .map(f => f.name.replace('.json', ''));
+        } catch (e) {
+            console.error('Failed to read profiles:', e);
+            return [];
+        }
     }
 
     static async saveUserData(username: string, data: any) {
