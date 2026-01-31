@@ -2,9 +2,7 @@ import RNFS from 'react-native-fs';
 import { Platform } from 'react-native';
 
 const APP_FOLDER_NAME = 'HBT_Data';
-const BASE_PATH = Platform.OS === 'android'
-    ? `${RNFS.DownloadDirectoryPath}/${APP_FOLDER_NAME}`
-    : `${RNFS.DocumentDirectoryPath}/${APP_FOLDER_NAME}`;
+const BASE_PATH = `${RNFS.DocumentDirectoryPath}/${APP_FOLDER_NAME}`;
 
 export class StorageService {
     static async init() {
@@ -61,10 +59,26 @@ export class StorageService {
         return sourcePath;
     }
 
-    static async importProfile(sourcePath: string) {
-        const fileName = sourcePath.split('/').pop() || 'imported_user.json';
-        const destPath = `${BASE_PATH}/${fileName}`;
-        await RNFS.copyFile(sourcePath, destPath);
-        return fileName.replace('.json', '');
+    static async importProfile(sourceUri: string) {
+        await this.init();
+        let fileName = 'imported_profile.json';
+
+        // Simple heuristic to try and get a name, though with content:// logic it's harder
+        // Ideally we would read the content and get the name from the JSON
+
+        try {
+            const content = await RNFS.readFile(sourceUri, 'utf8');
+            // Try to parse to validate and get username if possible?
+            // For now, let's just make sure we don't overwrite blindly or fail on existing
+            const timestamp = new Date().getTime();
+            fileName = `imported_${timestamp}.json`;
+            const destPath = `${BASE_PATH}/${fileName}`;
+
+            await RNFS.writeFile(destPath, content, 'utf8');
+            return fileName.replace('.json', '');
+        } catch (e) {
+            console.error('Import failed', e);
+            throw e;
+        }
     }
 }

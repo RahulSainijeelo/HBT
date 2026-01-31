@@ -12,7 +12,7 @@ import { User, FileInput, ArrowRight } from 'lucide-react-native';
 import { pick, types, isErrorWithCode, errorCodes } from '@react-native-documents/picker';
 import { NothingLogo } from '../components/NothingLogo';
 
-export const LoginScreen = () => {
+export const LoginScreen = ({ navigation }: any) => {
     const [username, setUsername] = useState('');
     const [existingProfiles, setExistingProfiles] = useState<string[]>([]);
     const { setCurrentUser } = useAppStore();
@@ -30,6 +30,8 @@ export const LoginScreen = () => {
     const handleCreateProfile = async () => {
         if (username.trim()) {
             await setCurrentUser(username.trim());
+            await loadProfiles();
+            navigation.replace('Main');
         } else {
             Alert.alert('Error', 'Please enter a username');
         }
@@ -37,6 +39,7 @@ export const LoginScreen = () => {
 
     const handleSelectProfile = async (name: string) => {
         await setCurrentUser(name);
+        navigation.replace('Main');
     };
 
     const handleImportProfile = async () => {
@@ -46,21 +49,23 @@ export const LoginScreen = () => {
             });
             if (res.uri) {
                 const importedName = await StorageService.importProfile(res.uri);
-                await loadProfiles();
-                Alert.alert('Success', `Imported profile: ${importedName}`);
+                await setCurrentUser(importedName); // Auto-login imported user
+                navigation.replace('Main');
+                // Alert.alert('Success', `Imported profile: ${importedName}`);
             }
         } catch (err) {
             if (isErrorWithCode(err) && err.code === errorCodes.OPERATION_CANCELED) {
                 // Ignore cancel
             } else {
                 console.error(err);
+                Alert.alert('Import Failed', 'Could not import the selected file.');
             }
         }
     };
 
     return (
-        <SafeAreaView style={styles.container}>
-            <ScrollView contentContainerStyle={styles.scrollContent}>
+        <SafeAreaView style={styles.container} >
+            <ScrollView style={{ backgroundColor: theme.colors.background }} contentContainerStyle={styles.scrollContent}>
                 <View style={styles.header}>
                     <NothingLogo size={80} />
                     <NothingText variant="dot" size={32} style={styles.title}>IDENTITY</NothingText>
@@ -113,7 +118,7 @@ export const LoginScreen = () => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: theme.colors.background,
+        // backgroundColor: theme.colors.background,
     },
     scrollContent: {
         padding: 24,
@@ -123,17 +128,17 @@ const styles = StyleSheet.create({
         marginBottom: 40,
         alignItems: 'center',
     },
-    dotIcon: {
-        width: 80,
-        height: 80,
-        borderRadius: 40,
-        borderWidth: 1,
-        borderColor: theme.colors.border,
-        borderStyle: 'dashed',
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginBottom: 24,
-    },
+    // dotIcon: {
+    //     width: 80,
+    //     height: 80,
+    //     borderRadius: 40,
+    //     borderWidth: 1,
+    //     // borderColor: theme.colors.border,
+    //     borderStyle: 'dashed',
+    //     justifyContent: 'center',
+    //     alignItems: 'center',
+    //     marginBottom: 24,
+    // },
     title: {
         marginBottom: 8,
     },
