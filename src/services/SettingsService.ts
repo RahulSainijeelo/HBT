@@ -3,9 +3,7 @@ import { Platform } from 'react-native';
 
 const APP_FOLDER_NAME = 'HBT_Data';
 const SETTINGS_FILE = 'system_settings.json';
-const BASE_PATH = Platform.OS === 'android'
-    ? `${RNFS.DownloadDirectoryPath}/${APP_FOLDER_NAME}`
-    : `${RNFS.DocumentDirectoryPath}/${APP_FOLDER_NAME}`;
+const BASE_PATH = `${RNFS.DocumentDirectoryPath}/${APP_FOLDER_NAME}`;
 
 export interface AppSettings {
     defaultProfile?: string;

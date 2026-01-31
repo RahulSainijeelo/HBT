@@ -2,11 +2,15 @@ import React, { useEffect, useRef } from 'react';
 import { View, Animated, StyleSheet, Dimensions } from 'react-native';
 import { useTheme } from '../theme';
 import { NothingText } from '../components/NothingText';
+import { useAppStore } from '../store/useAppStore';
+import { SettingsService } from '../services/SettingsService';
+import { StorageService } from '../services/StorageService';
 
 const { width } = Dimensions.get('window');
 
 export const SplashScreen = ({ navigation }: any) => {
     const { theme } = useTheme();
+    const { login } = useAppStore();
 
     // Animation Values
     const scale = useRef(new Animated.Value(0.8)).current;
@@ -39,11 +43,26 @@ export const SplashScreen = ({ navigation }: any) => {
 
         // 3. Navigation Logic after animation
         const init = async () => {
-            // Simulate minimum splash time
-            await new Promise(resolve => setTimeout(resolve, 2000));
+            const minWait = new Promise(resolve => setTimeout(resolve, 2000));
+            const settings = await SettingsService.getSettings();
 
-            // Logic to auto-login could go here later (Phase 7)
-            // For now, just go to Login
+            await minWait;
+
+            if (settings.defaultProfile) {
+                // Try to load the profile data to get the name if we only have ID
+                const userData = await StorageService.loadUserData(settings.defaultProfile);
+
+                if (userData) {
+                    const profile = {
+                        id: settings.defaultProfile,
+                        name: userData.name || settings.defaultProfile
+                    };
+                    await login(profile);
+                    navigation.replace('Main');
+                    return;
+                }
+            }
+
             navigation.replace('Login');
         };
 
