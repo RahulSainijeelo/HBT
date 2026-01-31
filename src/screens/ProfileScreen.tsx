@@ -96,7 +96,7 @@ export const ProfileScreen = ({ navigation }: any) => {
                 {/* <NothingText variant="dot" size={32}>SYSTEM</NothingText> */}
             </View>
 
-            <ScrollView contentContainerStyle={styles.content}>
+            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
                 <NothingCard padding="lg" bordered={false} style={[styles.profileCard, { backgroundColor: theme.colors.surface1 }]}>
                     <View style={[styles.avatar, { borderColor: theme.colors.border }]}>
                         <User size={48} color={theme.colors.text} />
