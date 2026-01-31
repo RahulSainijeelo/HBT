@@ -1,13 +1,13 @@
 import React from 'react';
 import { View, StyleSheet, ViewProps } from 'react-native';
-import { theme } from '../theme';
+import { useTheme } from '../theme';
 
 interface NothingCardProps extends ViewProps {
-    padding?: keyof typeof theme.spacing;
-    margin?: keyof typeof theme.spacing;
+    padding?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+    margin?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
     bordered?: boolean;
     backgroundColor?: string;
-    borderRadius?: keyof typeof theme.borderRadius;
+    borderRadius?: 'sm' | 'md' | 'lg' | 'full';
 }
 
 export const NothingCard: React.FC<NothingCardProps> = ({
@@ -15,11 +15,14 @@ export const NothingCard: React.FC<NothingCardProps> = ({
     padding = 'md',
     margin,
     bordered = true,
-    backgroundColor = theme.colors.surface,
+    backgroundColor,
     borderRadius = 'lg',
     style,
     ...props
 }) => {
+    const { theme } = useTheme();
+    const finalBg = backgroundColor || theme.colors.surface;
+
     return (
         <View
             style={[
@@ -28,7 +31,8 @@ export const NothingCard: React.FC<NothingCardProps> = ({
                     padding: theme.spacing[padding],
                     margin: margin ? theme.spacing[margin] : 0,
                     borderWidth: bordered ? 1 : 0,
-                    backgroundColor,
+                    borderColor: theme.colors.border,
+                    backgroundColor: finalBg,
                     borderRadius: theme.borderRadius[borderRadius],
                 },
                 style,
@@ -42,7 +46,6 @@ export const NothingCard: React.FC<NothingCardProps> = ({
 
 const styles = StyleSheet.create({
     card: {
-        borderColor: theme.colors.border,
         overflow: 'hidden',
     },
 });

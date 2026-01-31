@@ -1,6 +1,6 @@
 import React from 'react';
 import { Text, TextProps, StyleSheet } from 'react-native';
-import { theme } from '../theme';
+import { useTheme } from '../theme';
 
 interface NothingTextProps extends TextProps {
     variant?: 'dot' | 'regular' | 'medium' | 'bold';
@@ -13,39 +13,42 @@ export const NothingText: React.FC<NothingTextProps> = ({
     children,
     variant = 'regular',
     size = 16,
-    color = theme.colors.text,
+    color,
     align = 'left',
     style,
     ...props
 }) => {
+    const { theme } = useTheme();
+    const finalColor = color || theme.colors.text;
+
     const getFontFamily = () => {
         switch (variant) {
             case 'dot':
-                // If we install NDot, we would put it here.
-                // For now, using a clean monospace fallback often gives a similar technical feel.
-                return 'Courier';
+                return 'Courier'; // Fallback for dot matrix
             case 'medium':
-                return theme.fonts.medium;
+                // Assuming theme.fonts is defined, but if not, fallback to default system font
+                return 'System';
             case 'bold':
-                return theme.fonts.bold;
+                return 'System';
             default:
-                return theme.fonts.regular;
+                return 'System';
         }
     };
 
     const textStyle = [
         {
             fontSize: size,
-            color,
+            color: finalColor,
             textAlign: align,
             fontFamily: getFontFamily(),
             letterSpacing: variant === 'dot' ? 2 : 0,
+            fontWeight: variant === 'bold' ? 'bold' : variant === 'medium' ? '500' : 'normal'
         },
         style,
     ];
 
     return (
-        <Text style={textStyle} {...props}>
+        <Text style={textStyle as any} {...props}>
             {children}
         </Text>
     );

@@ -1,6 +1,6 @@
 import React from 'react';
 import { TextInput, StyleSheet, TextInputProps, View } from 'react-native';
-import { theme } from '../theme';
+import { useTheme } from '../theme';
 import { NothingText } from './NothingText';
 
 interface NothingInputProps extends TextInputProps {
@@ -14,6 +14,8 @@ export const NothingInput: React.FC<NothingInputProps> = ({
     style,
     ...props
 }) => {
+    const { theme } = useTheme();
+
     return (
         <View style={styles.container}>
             {label && (

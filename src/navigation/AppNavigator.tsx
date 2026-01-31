@@ -1,18 +1,42 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { NavigationContainer } from '@react-navigation/native';
-import { DashboardScreen } from '../screens/DashboardScreen';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { HomeScreen } from '../screens/HomeScreen';
 import { TasksScreen } from '../screens/TasksScreen';
 import { HabitsScreen } from '../screens/HabitsScreen';
-import { theme } from '../theme';
-import { LayoutDashboard, CheckSquare, RotateCcw } from 'lucide-react-native';
-import { Platform } from 'react-native';
+import { LoginScreen } from '../screens/LoginScreen';
+import { ProfileScreen } from '../screens/ProfileScreen';
+import { SplashScreen } from '../screens/SplashScreen';
+import { useTheme } from '../theme';
+import { Home, CheckSquare, RotateCcw, User } from 'lucide-react-native';
+import { View, TouchableOpacity, StyleSheet, Platform } from 'react-native';
+import { useAppStore } from '../store/useAppStore';
+import { NothingLogo } from '../components/NothingLogo';
 
 const Tab = createBottomTabNavigator();
+const Stack = createNativeStackNavigator();
 
-export const AppNavigator = () => {
+const GlobalHeader = ({ navigation }: any) => {
+    const { theme } = useTheme();
+
     return (
-        <NavigationContainer>
+        <View style={[styles.header, { backgroundColor: theme.colors.background, paddingTop: Platform.OS === 'ios' ? 50 : 20 }]}>
+            <NothingLogo size={36} />
+            <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
+                <View style={[styles.profileBtn, { backgroundColor: theme.colors.surface1, borderColor: theme.colors.border }]}>
+                    <User size={18} color={theme.colors.text} />
+                </View>
+            </TouchableOpacity>
+        </View>
+    );
+};
+
+const TabNavigator = ({ navigation }: any) => {
+    const { theme } = useTheme();
+    return (
+        <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
+            <GlobalHeader navigation={navigation} />
             <Tab.Navigator
                 screenOptions={{
                     headerShown: false,
@@ -25,13 +49,14 @@ export const AppNavigator = () => {
                     },
                     tabBarActiveTintColor: theme.colors.text,
                     tabBarInactiveTintColor: theme.colors.textSecondary,
+                    tabBarShowLabel: false,
                 }}
             >
                 <Tab.Screen
-                    name="Dashboard"
-                    component={DashboardScreen}
+                    name="Home"
+                    component={HomeScreen}
                     options={{
-                        tabBarIcon: ({ color, size }) => <LayoutDashboard size={size} color={color} />,
+                        tabBarIcon: ({ color, size }) => <Home size={size} color={color} />,
                     }}
                 />
                 <Tab.Screen
@@ -49,6 +74,36 @@ export const AppNavigator = () => {
                     }}
                 />
             </Tab.Navigator>
+        </View>
+    );
+};
+
+export const AppNavigator = () => {
+    return (
+        <NavigationContainer>
+            <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName="Splash">
+                <Stack.Screen name="Splash" component={SplashScreen} />
+                <Stack.Screen name="Login" component={LoginScreen} />
+                <Stack.Screen name="Main" component={TabNavigator} />
+                <Stack.Screen name="Profile" component={ProfileScreen} />
+            </Stack.Navigator>
         </NavigationContainer>
     );
 };
+
+const styles = StyleSheet.create({
+    header: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingHorizontal: 24,
+    },
+    profileBtn: {
+        width: 36,
+        height: 36,
+        borderRadius: 18,
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderWidth: 1,
+    }
+});

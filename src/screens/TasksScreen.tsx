@@ -1,131 +1,164 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, FlatList, SafeAreaView, TouchableOpacity, Modal } from 'react-native';
-import { theme } from '../theme';
+import { View, StyleSheet, FlatList, TouchableOpacity, Modal, ScrollView } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useTheme } from '../theme';
 import { NothingText } from '../components/NothingText';
 import { NothingCard } from '../components/NothingCard';
 import { NothingInput } from '../components/NothingInput';
 import { NothingButton } from '../components/NothingButton';
-import { useAppStore } from '../store/useAppStore';
-import { CheckCircle2, Circle, Plus, Trash2 } from 'lucide-react-native';
+import { useAppStore, Task } from '../store/useAppStore';
+import { Plus, CheckCircle2, Circle, Calendar, Clock, Flag, Bell, Tag, X } from 'lucide-react-native';
+import dayjs from 'dayjs';
+
+type SubTab = 'today' | 'upcoming' | 'browse';
 
 export const TasksScreen = () => {
-    const { tasks, addTask, toggleTask, deleteTask } = useAppStore();
-    const [modalVisible, setModalVisible] = useState(false);
-    const [newTaskTitle, setNewTaskTitle] = useState('');
-    const [priority, setPriority] = useState<1 | 2 | 3 | 4>(4);
+    const [activeTab, setActiveTab] = useState<SubTab>('today');
+    const [isAddModalVisible, setIsAddModalVisible] = useState(false);
+    const { tasks, toggleTask, labels, addTask } = useAppStore();
+    const { theme } = useTheme();
+    // New task state
+    const [newTitle, setNewTitle] = useState('');
+    const [newDate, setNewDate] = useState(dayjs().format('YYYY-MM-DD'));
+    const [newPriority, setNewPriority] = useState<1 | 2 | 3 | 4>(4);
+    const [newLabel, setNewLabel] = useState('Inbox');
+
+    const filteredTasks = tasks.filter(t => {
+        if (activeTab === 'today') return t.dueDate === dayjs().format('YYYY-MM-DD');
+        if (activeTab === 'upcoming') return t.dueDate && dayjs(t.dueDate).isAfter(dayjs(), 'day');
+        return true; // Browse shows all for now
+    });
 
     const handleAddTask = () => {
-        if (newTaskTitle.trim()) {
-            addTask({ title: newTaskTitle, priority, category: 'General' });
-            setNewTaskTitle('');
-            setPriority(4);
-            setModalVisible(false);
+        if (newTitle.trim()) {
+            addTask({
+                title: newTitle,
+                dueDate: newDate,
+                priority: newPriority,
+                category: newLabel,
+                reminders: [],
+                subtasks: []
+            });
+            setNewTitle('');
+            setIsAddModalVisible(false);
         }
     };
 
-    const renderItem = ({ item }: { item: any }) => (
-        <NothingCard margin="sm" style={styles.taskCard}>
-            <View style={styles.row}>
-                <TouchableOpacity onPress={() => toggleTask(item.id)}>
-                    {item.completed ? (
-                        <CheckCircle2 size={24} color={theme.colors.success} />
-                    ) : (
+    const renderTask = ({ item }: { item: Task }) => (
+        <NothingCard margin="xs" style={styles.taskCard}>
+            <TouchableOpacity onPress={() => toggleTask(item.id)} style={styles.taskMain}>
+                <View style={styles.taskLeft}>
+                    {item.completed ?
+                        <CheckCircle2 size={24} color={theme.colors.success} /> :
                         <Circle size={24} color={theme.colors.textSecondary} />
-                    )}
-                </TouchableOpacity>
-                <View style={styles.titleContainer}>
-                    <NothingText
-                        style={[
-                            styles.taskTitle,
-                            item.completed && { textDecorationLine: 'line-through', color: theme.colors.textSecondary }
-                        ]}
-                    >
-                        {item.title}
-                    </NothingText>
-                    <View style={[styles.priorityBadge, { backgroundColor: getPriorityColor(item.priority) }]} />
+                    }
+                    <View style={styles.taskTextContainer}>
+                        <NothingText style={[styles.taskTitle, item.completed && { textDecorationLine: 'line-through', color: theme.colors.textSecondary }]}>
+                            {item.title}
+                        </NothingText>
+                        {item.dueDate && (
+                            <NothingText size={12} color={theme.colors.textSecondary}>
+                                {dayjs(item.dueDate).format('DD MMM')}
+                            </NothingText>
+                        )}
+                    </View>
                 </View>
-                <TouchableOpacity onPress={() => deleteTask(item.id)}>
-                    <Trash2 size={20} color={theme.colors.error} />
-                </TouchableOpacity>
-            </View>
+                <View style={[styles.priorityDot, { backgroundColor: getPriorityColor(item.priority) }]} />
+            </TouchableOpacity>
         </NothingCard>
     );
 
-    const getPriorityColor = (p: number) => {
-        switch (p) {
-            case 1: return theme.colors.primary;
-            case 2: return '#FFA500';
-            case 3: return '#FFFF00';
-            default: return theme.colors.surface2;
-        }
-    };
-
     return (
-        <SafeAreaView style={styles.container}>
-            <View style={styles.header}>
-                <NothingText variant="dot" size={32}>TASKS</NothingText>
-                <NothingText color={theme.colors.textSecondary}>{tasks.filter(t => !t.completed).length} items remaining</NothingText>
+        <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
+            <View style={[styles.subTabs, { borderBottomColor: theme.colors.border }]}>
+                {(['today', 'upcoming', 'browse'] as SubTab[]).map(tab => (
+                    <TouchableOpacity key={tab} onPress={() => setActiveTab(tab)} style={styles.tabItem}>
+                        <NothingText
+                            variant={activeTab === tab ? 'bold' : 'regular'}
+                            color={activeTab === tab ? theme.colors.text : theme.colors.textSecondary}
+                            style={styles.tabText}
+                        >
+                            {tab.toUpperCase()}
+                        </NothingText>
+                        {activeTab === tab && <View style={[styles.activeIndicator, { backgroundColor: theme.colors.primary }]} />}
+                    </TouchableOpacity>
+                ))}
             </View>
 
             <FlatList
-                data={tasks}
+                data={filteredTasks}
+                renderItem={renderTask}
                 keyExtractor={(item) => item.id}
-                renderItem={renderItem}
-                contentContainerStyle={styles.listContent}
+                contentContainerStyle={styles.listContainer}
                 ListEmptyComponent={
-                    <NothingText align="center" color={theme.colors.textSecondary} style={{ marginTop: 40 }}>
-                        Your list is empty. Reach for the dots.
-                    </NothingText>
+                    <View style={styles.emptyContainer}>
+                        <NothingText color={theme.colors.textSecondary}>No tasks found</NothingText>
+                    </View>
                 }
             />
 
             <TouchableOpacity
-                style={styles.fab}
-                onPress={() => setModalVisible(true)}
+                style={[styles.fab, { backgroundColor: theme.colors.primary }]}
+                onPress={() => setIsAddModalVisible(true)}
             >
-                <Plus size={32} color={theme.colors.background} />
+                <Plus color={theme.colors.background} size={32} />
             </TouchableOpacity>
 
             <Modal
                 animationType="slide"
                 transparent={true}
-                visible={modalVisible}
-                onRequestClose={() => setModalVisible(false)}
+                visible={isAddModalVisible}
+                onRequestClose={() => setIsAddModalVisible(false)}
             >
                 <View style={styles.modalOverlay}>
-                    <NothingCard style={styles.modalContent} padding="lg">
-                        <NothingText variant="bold" size={24} style={{ marginBottom: 20 }}>New Task</NothingText>
+                    <NothingCard style={[styles.addModalContent, { backgroundColor: theme.colors.surface }]} padding="lg">
+                        <View style={styles.modalHeader}>
+                            <NothingText variant="bold" size={20}>NEW TASK</NothingText>
+                            <TouchableOpacity onPress={() => setIsAddModalVisible(false)}>
+                                <X color={theme.colors.text} size={24} />
+                            </TouchableOpacity>
+                        </View>
+
                         <NothingInput
                             placeholder="What needs to be done?"
-                            value={newTaskTitle}
-                            onChangeText={setNewTaskTitle}
                             autoFocus
+                            value={newTitle}
+                            onChangeText={setNewTitle}
+                            style={[styles.mainInput, { borderColor: theme.colors.border }]}
                         />
 
-                        <NothingText variant="medium" style={{ marginVertical: 12 }}>Priority</NothingText>
-                        <View style={styles.priorityRow}>
-                            {[1, 2, 3, 4].map((p) => (
-                                <TouchableOpacity
-                                    key={p}
-                                    onPress={() => setPriority(p as any)}
-                                    style={[
-                                        styles.priorityButton,
-                                        {
-                                            borderColor: priority === p ? theme.colors.text : theme.colors.border,
-                                            backgroundColor: priority === p ? theme.colors.text : 'transparent'
-                                        }
-                                    ]}
-                                >
-                                    <View style={[styles.priorityDot, { backgroundColor: getPriorityColor(p) }]} />
-                                    <NothingText color={priority === p ? theme.colors.background : theme.colors.text}>P{p}</NothingText>
-                                </TouchableOpacity>
-                            ))}
+                        <View style={styles.quickOptions}>
+                            <TouchableOpacity style={[styles.optionBtn, { backgroundColor: theme.colors.surface1 }]} onPress={() => setNewDate(dayjs().format('YYYY-MM-DD'))}>
+                                <Calendar size={18} color={newDate === dayjs().format('YYYY-MM-DD') ? theme.colors.primary : theme.colors.text} />
+                                <NothingText style={{ fontSize: 10, marginTop: 4, color: theme.colors.textSecondary }}>Date</NothingText>
+                            </TouchableOpacity>
+
+                            <TouchableOpacity style={[styles.optionBtn, { backgroundColor: theme.colors.surface1 }]}>
+                                <Clock size={18} color={theme.colors.text} />
+                                <NothingText style={{ fontSize: 10, marginTop: 4, color: theme.colors.textSecondary }}>Time</NothingText>
+                            </TouchableOpacity>
+
+                            <TouchableOpacity style={[styles.optionBtn, { backgroundColor: theme.colors.surface1 }]} onPress={() => setNewPriority(newPriority === 1 ? 4 : (newPriority - 1) as any)}>
+                                <Flag size={18} color={getPriorityColor(newPriority)} />
+                                <NothingText style={{ fontSize: 10, marginTop: 4, color: theme.colors.textSecondary }}>P{newPriority}</NothingText>
+                            </TouchableOpacity>
+
+                            <TouchableOpacity style={[styles.optionBtn, { backgroundColor: theme.colors.surface1 }]}>
+                                <Bell size={18} color={theme.colors.text} />
+                                <NothingText style={{ fontSize: 10, marginTop: 4, color: theme.colors.textSecondary }}>Alert</NothingText>
+                            </TouchableOpacity>
+
+                            <TouchableOpacity style={[styles.optionBtn, { backgroundColor: theme.colors.surface1 }]}>
+                                <Tag size={18} color={theme.colors.text} />
+                                <NothingText style={{ fontSize: 10, marginTop: 4, color: theme.colors.textSecondary }}>Label</NothingText>
+                            </TouchableOpacity>
                         </View>
 
-                        <View style={styles.modalActions}>
-                            <NothingButton label="Cancel" variant="ghost" onPress={() => setModalVisible(false)} />
-                            <NothingButton label="Add Task" onPress={handleAddTask} />
-                        </View>
+                        <NothingButton
+                            label="Add Task"
+                            onPress={handleAddTask}
+                            style={styles.submitBtn}
+                        />
                     </NothingCard>
                 </View>
             </Modal>
@@ -133,40 +166,66 @@ export const TasksScreen = () => {
     );
 };
 
+const getPriorityColor = (p: number) => {
+    switch (p) {
+        case 1: return '#FF0000';
+        case 2: return '#FFAB00';
+        case 3: return '#0052CC';
+        default: return '#333';
+    }
+};
+
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: theme.colors.background,
     },
-    header: {
-        padding: 20,
-        marginTop: 20,
+    subTabs: {
+        flexDirection: 'row',
+        paddingHorizontal: 24,
+        marginTop: 8,
+        borderBottomWidth: 1,
     },
-    listContent: {
-        paddingHorizontal: 16,
+    tabItem: {
+        paddingVertical: 12,
+        marginRight: 24,
+        alignItems: 'center',
+    },
+    tabText: {
+        fontSize: 13,
+        letterSpacing: 1.5,
+    },
+    activeIndicator: {
+        position: 'absolute',
+        bottom: 0,
+        width: '100%',
+        height: 2,
+    },
+    listContainer: {
+        padding: 16,
         paddingBottom: 100,
     },
     taskCard: {
-        marginBottom: 8,
+        paddingVertical: 12,
     },
-    row: {
+    taskMain: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+    },
+    taskLeft: {
         flexDirection: 'row',
         alignItems: 'center',
     },
-    titleContainer: {
-        flex: 1,
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginLeft: 12,
+    taskTextContainer: {
+        marginLeft: 16,
     },
     taskTitle: {
         fontSize: 16,
     },
-    priorityBadge: {
+    priorityDot: {
         width: 8,
         height: 8,
         borderRadius: 4,
-        marginLeft: 8,
     },
     fab: {
         position: 'absolute',
@@ -175,43 +234,51 @@ const styles = StyleSheet.create({
         width: 64,
         height: 64,
         borderRadius: 32,
-        backgroundColor: theme.colors.text,
         justifyContent: 'center',
         alignItems: 'center',
         elevation: 8,
+        shadowColor: '#FF0000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 8,
+    },
+    emptyContainer: {
+        alignItems: 'center',
+        marginTop: 100,
     },
     modalOverlay: {
         flex: 1,
-        backgroundColor: 'rgba(0,0,0,0.8)',
-        justifyContent: 'flex-end',
+        backgroundColor: 'rgba(0,0,0,0.85)',
+        justifyContent: 'center',
+        padding: 20,
     },
-    modalContent: {
-        borderBottomLeftRadius: 0,
-        borderBottomRightRadius: 0,
-        paddingBottom: 40,
+    addModalContent: {
+        // dynamic bg
     },
-    priorityRow: {
+    modalHeader: {
         flexDirection: 'row',
         justifyContent: 'space-between',
+        alignItems: 'center',
         marginBottom: 24,
     },
-    priorityButton: {
+    mainInput: {
+        fontSize: 20,
+        borderBottomWidth: 1,
+        paddingBottom: 12,
+        marginBottom: 24,
+    },
+    quickOptions: {
         flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginBottom: 32,
+    },
+    optionBtn: {
         alignItems: 'center',
-        borderWidth: 1,
-        paddingHorizontal: 12,
-        paddingVertical: 8,
-        borderRadius: 20,
+        padding: 8,
+        borderRadius: 12,
+        width: '18%',
     },
-    priorityDot: {
-        width: 8,
-        height: 8,
-        borderRadius: 4,
-        marginRight: 6,
-    },
-    modalActions: {
-        flexDirection: 'row',
-        justifyContent: 'flex-end',
-        gap: 12,
+    submitBtn: {
+        marginTop: 8,
     }
 });
