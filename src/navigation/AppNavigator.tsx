@@ -13,6 +13,7 @@ import { Home, CheckSquare, RotateCcw, User } from 'lucide-react-native';
 import { View, TouchableOpacity, StyleSheet, Platform } from 'react-native';
 import { useAppStore } from '../store/useAppStore';
 import { NothingLogo } from '../components/NothingLogo';
+import { HabitDetailScreen } from '../screens/HabitDetailScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -86,6 +87,7 @@ export const AppNavigator = () => {
                 <Stack.Screen name="Login" component={LoginScreen} />
                 <Stack.Screen name="Main" component={TabNavigator} />
                 <Stack.Screen name="Profile" component={ProfileScreen} />
+                <Stack.Screen name="HabitDetail" component={HabitDetailScreen} />
             </Stack.Navigator>
         </NavigationContainer>
     );

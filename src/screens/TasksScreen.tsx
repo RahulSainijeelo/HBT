@@ -304,7 +304,7 @@ export const TasksScreen = () => {
                             style={[
                                 styles.addModalContent,
                                 {
-                                    backgroundColor: theme.colors.surface,
+                                    backgroundColor: theme.colors.surface1,
                                     paddingBottom: (insets.bottom || 20) + 24,
                                     width: '100%',
                                     borderColor: theme.colors.border
@@ -313,6 +313,7 @@ export const TasksScreen = () => {
                             onStartShouldSetResponder={() => true} // Prevent touch pass-through
                             onResponderTerminationRequest={() => false}
                         >
+                            <View style={styles.modalHandle} />
                             <View style={styles.modalHeader}>
                                 <NothingText variant="bold" size={20}>NEW TASK</NothingText>
                                 <TouchableOpacity onPress={() => setIsAddModalVisible(false)}>
@@ -404,7 +405,7 @@ export const TasksScreen = () => {
                         style={[
                             styles.addModalContent,
                             {
-                                backgroundColor: theme.colors.surface,
+                                backgroundColor: theme.colors.surface1,
                                 height: 'auto',
                                 marginBottom: 0,
                                 paddingBottom: (insets.bottom || 20) + 24,
@@ -416,6 +417,7 @@ export const TasksScreen = () => {
                         ]}
                         onStartShouldSetResponder={() => true}
                     >
+                        <View style={styles.modalHandle} />
                         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
                             <NothingText variant="bold" size={20}>DUE DATE</NothingText>
                             <TouchableOpacity onPress={() => setShowAdvDateModal(false)}>
@@ -541,7 +543,7 @@ export const TasksScreen = () => {
                         style={[
                             styles.addModalContent,
                             {
-                                backgroundColor: theme.colors.surface,
+                                backgroundColor: theme.colors.surface1,
                                 alignItems: 'center',
                                 paddingBottom: (insets.bottom || 20) + 24,
                                 width: '100%',
@@ -552,6 +554,7 @@ export const TasksScreen = () => {
                         ]}
                         onStartShouldSetResponder={() => true}
                     >
+                        <View style={styles.modalHandle} />
                         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginBottom: 32 }}>
                             <TouchableOpacity
                                 onPress={() => setTimeMode('hour')}
@@ -738,7 +741,7 @@ export const TasksScreen = () => {
                         style={[
                             styles.addModalContent,
                             {
-                                backgroundColor: theme.colors.surface,
+                                backgroundColor: theme.colors.surface1,
                                 paddingBottom: (insets.bottom || 20) + 24,
                                 width: '100%',
                                 paddingHorizontal: 24,
@@ -748,6 +751,7 @@ export const TasksScreen = () => {
                         ]}
                         onStartShouldSetResponder={() => true}
                     >
+                        <View style={styles.modalHandle} />
                         <NothingText variant="bold" size={18} style={{ marginBottom: 16 }}>DURATION</NothingText>
 
                         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 24 }}>
@@ -789,7 +793,7 @@ export const TasksScreen = () => {
                         style={[
                             styles.addModalContent,
                             {
-                                backgroundColor: theme.colors.surface,
+                                backgroundColor: theme.colors.surface1,
                                 paddingBottom: (insets.bottom || 20) + 24,
                                 width: '100%',
                                 paddingHorizontal: 24,
@@ -799,6 +803,7 @@ export const TasksScreen = () => {
                         ]}
                         onStartShouldSetResponder={() => true}
                     >
+                        <View style={styles.modalHandle} />
                         <NothingText variant="bold" size={18} style={{ marginBottom: 16 }}>REMINDERS</NothingText>
 
                         {['At time of event', '10 minutes before', '30 minutes before', '1 hour before', '1 day before'].map(r => (
@@ -848,13 +853,13 @@ export const TasksScreen = () => {
                 >
                     <KeyboardAvoidingView
                         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-                        style={[styles.addModKey, { borderColor: theme.colors.border }]}
+                        style={[styles.addModKey]}
                     >
                         <View
                             style={[
                                 styles.addModalContent,
                                 {
-                                    backgroundColor: theme.colors.surface,
+                                    backgroundColor: theme.colors.surface1,
                                     paddingBottom: (insets.bottom || 20) + 24,
                                     width: '100%',
                                     paddingHorizontal: 24,
@@ -864,6 +869,7 @@ export const TasksScreen = () => {
                             ]}
                             onStartShouldSetResponder={() => true}
                         >
+                            <View style={styles.modalHandle} />
                             <NothingText variant="bold" size={18} style={{ marginBottom: 16 }}>SELECT LABEL</NothingText>
 
                             <ScrollView style={{ maxHeight: 200 }} showsVerticalScrollIndicator={false}>
@@ -880,7 +886,7 @@ export const TasksScreen = () => {
                                 ))}
                             </ScrollView>
 
-                            <View style={{ marginTop: 16, borderTopWidth: 1, borderTopColor: theme.colors.border, paddingTop: 16 }}>
+                            <View style={{ marginTop: 16, paddingTop: 16 }}>
                                 <NothingInput
                                     placeholder="Create new label..."
                                     value={customLabel}
@@ -1001,6 +1007,7 @@ const styles = StyleSheet.create({
         backgroundColor: 'rgba(0,0,0,0.85)',
         justifyContent: 'flex-end',
         padding: 0,
+        paddingHorizontal: 1,
         margin: 0,
     },
     addModKey: {
@@ -1019,19 +1026,26 @@ const styles = StyleSheet.create({
     },
     addModalContent: {
         // dynamic bg
-        paddingTop: 20,
         paddingHorizontal: 15,
         borderTopLeftRadius: 24,
         borderTopRightRadius: 24,
         borderBottomLeftRadius: 0,
         borderBottomRightRadius: 0,
         borderBottomWidth: 0,
-        borderTopWidth: 2, // Added top border
-        elevation: 20, // Android shadow
+        borderWidth: 1, // Reduced width for subtler look
+        // elevation: 20, // Android shadow
         shadowColor: '#000', // iOS shadow
         shadowOffset: { width: 0, height: -10 },
         shadowOpacity: 0.3,
         shadowRadius: 15,
+    },
+    modalHandle: {
+        width: 36,
+        height: 4,
+        borderRadius: 2,
+        backgroundColor: 'rgba(255,255,255,0.1)',
+        alignSelf: 'center',
+        marginVertical: 10,
     },
     modalHeader: {
         flexDirection: 'row',
@@ -1063,7 +1077,7 @@ const styles = StyleSheet.create({
         display: 'flex',
         gap: 4,
         flexDirection: 'row',
-        marginRight: 2,
+        marginRight: 1,
     },
     submitBtn: {
         marginTop: 8,
@@ -1116,12 +1130,13 @@ const styles = StyleSheet.create({
         borderRadius: 20,
         minWidth: 60,
         alignItems: 'center',
+        backgroundColor: 'rgba(255,255,255,0.05)',
     },
     dateChip: {
         paddingHorizontal: 12,
         paddingVertical: 6,
         borderRadius: 16,
-        backgroundColor: 'rgba(0,0,0,0.05)',
+        backgroundColor: 'rgba(255,255,255,0.08)',
         marginRight: 8,
     },
     addTimeBtn: {
@@ -1129,7 +1144,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         paddingVertical: 12,
         paddingHorizontal: 16,
-        backgroundColor: 'rgba(0,0,0,0.03)',
+        backgroundColor: 'rgba(255,255,255,0.05)',
         borderRadius: 12,
         marginBottom: 16
     }

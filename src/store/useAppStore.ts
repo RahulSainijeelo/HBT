@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import dayjs from 'dayjs';
 import { StorageService } from '../services/StorageService';
 
 export interface Task {
@@ -24,7 +25,12 @@ export interface Habit {
     targetDays?: number;
     completedDates: string[];
     streak: number;
+    bestStreak: number;
     reminders: string[];
+    type: 'check' | 'timer';
+    timerGoal?: number; // in seconds
+    accumulatedTimeToday?: number; // for the current day
+    color?: string;
 }
 
 interface AppState {
@@ -56,8 +62,9 @@ interface AppState {
     addLabel: (label: string) => void;
 
     // Habit Actions
-    addHabit: (habit: Omit<Habit, 'id' | 'completedDates' | 'streak'>) => void;
+    addHabit: (habit: Omit<Habit, 'id' | 'completedDates' | 'streak' | 'bestStreak' | 'accumulatedTimeToday'>) => void;
     toggleHabit: (id: string, date: string) => void;
+    updateHabit: (id: string, updates: Partial<Habit>) => void;
     deleteHabit: (id: string) => void;
 }
 
@@ -161,7 +168,14 @@ export const useAppStore = create<AppState>((set, get) => ({
 
     addHabit: (habit) => {
         set((state) => ({
-            habits: [...state.habits, { ...habit, id: Math.random().toString(36).substr(2, 9), completedDates: [], streak: 0 }]
+            habits: [...state.habits, {
+                ...habit,
+                id: Math.random().toString(36).substr(2, 9),
+                completedDates: [],
+                streak: 0,
+                bestStreak: 0,
+                accumulatedTimeToday: 0
+            }]
         }));
         get().saveData();
     },
@@ -175,14 +189,44 @@ export const useAppStore = create<AppState>((set, get) => ({
                         ? h.completedDates.filter((d) => d !== date)
                         : [...h.completedDates, date];
 
-                    const streak = newCompletedDates.length;
+                    // Recalculate streak correctly (contiguous days)
+                    // This is a simple version: sort and count back from today
+                    const sortedDates = [...newCompletedDates].sort((a, b) => b.localeCompare(a));
+                    let streak = 0;
+                    if (sortedDates.length > 0) {
+                        const today = dayjs().format('YYYY-MM-DD');
+                        const yesterday = dayjs().subtract(1, 'day').format('YYYY-MM-DD');
 
-                    return { ...h, completedDates: newCompletedDates, streak };
+                        // If not completed today or yesterday, streak is broken (unless it's currently today)
+                        if (sortedDates[0] === today || sortedDates[0] === yesterday) {
+                            streak = 1;
+                            for (let i = 0; i < sortedDates.length - 1; i++) {
+                                const curr = dayjs(sortedDates[i]);
+                                const next = dayjs(sortedDates[i + 1]);
+                                if (curr.subtract(1, 'day').format('YYYY-MM-DD') === next.format('YYYY-MM-DD')) {
+                                    streak++;
+                                } else {
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
+                    const bestStreak = Math.max(h.bestStreak || 0, streak);
+
+                    return { ...h, completedDates: newCompletedDates, streak, bestStreak };
                 }
                 return h;
             });
             return { habits };
         });
+        get().saveData();
+    },
+
+    updateHabit: (id, updates) => {
+        set((state) => ({
+            habits: state.habits.map(h => h.id === id ? { ...h, ...updates } : h)
+        }));
         get().saveData();
     },
 

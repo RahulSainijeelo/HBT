@@ -7,7 +7,7 @@ export const palette = {
     red: '#D71921', // Nothing Red
     surfaceDark: '#000000',
     surfaceLight: '#F5F5F5',
-    surface1Dark: '#1C1C1C',
+    surface1Dark: '#000000ff',
     surface1Light: '#E8E8E8',
     surface2Dark: '#2C2C2C',
     surface2Light: '#DBDBDB',
