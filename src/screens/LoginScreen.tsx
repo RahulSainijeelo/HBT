@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { theme } from '../theme';
+import { useTheme } from '../theme';
 import { NothingText } from '../components/NothingText';
 import { NothingCard } from '../components/NothingCard';
 import { NothingInput } from '../components/NothingInput';
@@ -16,6 +16,7 @@ export const LoginScreen = () => {
     const [username, setUsername] = useState('');
     const [existingProfiles, setExistingProfiles] = useState<string[]>([]);
     const { setCurrentUser } = useAppStore();
+    const { theme } = useTheme();
 
     useEffect(() => {
         loadProfiles();

@@ -1,17 +1,18 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, FlatList, TouchableOpacity, Modal, ScrollView } from 'react-native';
+import { View, StyleSheet, FlatList, TouchableOpacity, Modal } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { theme } from '../theme';
+import { useTheme } from '../theme';
 import { NothingText } from '../components/NothingText';
 import { NothingCard } from '../components/NothingCard';
 import { NothingInput } from '../components/NothingInput';
 import { NothingButton } from '../components/NothingButton';
 import { useAppStore, Habit } from '../store/useAppStore';
-import { Plus, Check, Flame, Calendar, Bell, ChevronRight, X } from 'lucide-react-native';
+import { Plus, Check, Flame, X } from 'lucide-react-native';
 import dayjs from 'dayjs';
 
 export const HabitsScreen = () => {
-    const { habits, addHabit, toggleHabit, deleteHabit } = useAppStore();
+    const { habits, addHabit, toggleHabit } = useAppStore();
+    const { theme } = useTheme();
     const [isAddModalVisible, setIsAddModalVisible] = useState(false);
     const [newTitle, setNewTitle] = useState('');
     const [newDesc, setNewDesc] = useState('');
@@ -50,7 +51,8 @@ export const HabitsScreen = () => {
                     onPress={() => toggleHabit(item.id, todayStr)}
                     style={[
                         styles.checkBtn,
-                        item.completedDates.includes(todayStr) && styles.checkBtnActive
+                        { borderColor: theme.colors.border },
+                        item.completedDates.includes(todayStr) && { backgroundColor: theme.colors.text, borderColor: theme.colors.text }
                     ]}
                 >
                     <Check
@@ -63,7 +65,7 @@ export const HabitsScreen = () => {
     );
 
     return (
-        <SafeAreaView style={styles.container}>
+        <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
             <View style={styles.header}>
                 <NothingText variant="dot" size={32}>TRACKER</NothingText>
             </View>
@@ -81,7 +83,7 @@ export const HabitsScreen = () => {
             />
 
             <TouchableOpacity
-                style={styles.fab}
+                style={[styles.fab, { backgroundColor: theme.colors.primary }]}
                 onPress={() => setIsAddModalVisible(true)}
             >
                 <Plus color={theme.colors.background} size={32} />
@@ -94,7 +96,7 @@ export const HabitsScreen = () => {
                 onRequestClose={() => setIsAddModalVisible(false)}
             >
                 <View style={styles.modalOverlay}>
-                    <NothingCard style={styles.modalContent} padding="lg">
+                    <NothingCard style={[styles.modalContent, { backgroundColor: theme.colors.surface }]} padding="lg">
                         <View style={styles.modalHeader}>
                             <NothingText variant="bold" size={20}>NEW HABIT</NothingText>
                             <TouchableOpacity onPress={() => setIsAddModalVisible(false)}>
@@ -120,7 +122,11 @@ export const HabitsScreen = () => {
                                 <TouchableOpacity
                                     key={f}
                                     onPress={() => setNewFreq(f)}
-                                    style={[styles.freqChip, newFreq === f && styles.freqChipActive]}
+                                    style={[
+                                        styles.freqChip,
+                                        { borderColor: theme.colors.border },
+                                        newFreq === f && { backgroundColor: theme.colors.text, borderColor: theme.colors.text }
+                                    ]}
                                 >
                                     <NothingText size={12} color={newFreq === f ? theme.colors.background : theme.colors.text}>
                                         {f.toUpperCase()}
@@ -144,7 +150,6 @@ export const HabitsScreen = () => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: theme.colors.background,
     },
     header: {
         padding: 24,
@@ -178,13 +183,8 @@ const styles = StyleSheet.create({
         height: 48,
         borderRadius: 24,
         borderWidth: 1,
-        borderColor: theme.colors.border,
         justifyContent: 'center',
         alignItems: 'center',
-    },
-    checkBtnActive: {
-        backgroundColor: theme.colors.text,
-        borderColor: theme.colors.text,
     },
     fab: {
         position: 'absolute',
@@ -193,7 +193,6 @@ const styles = StyleSheet.create({
         width: 64,
         height: 64,
         borderRadius: 32,
-        backgroundColor: theme.colors.primary,
         justifyContent: 'center',
         alignItems: 'center',
         elevation: 8,
@@ -209,7 +208,7 @@ const styles = StyleSheet.create({
         padding: 20,
     },
     modalContent: {
-        backgroundColor: theme.colors.surface,
+        // dynamic
     },
     modalHeader: {
         flexDirection: 'row',
@@ -227,12 +226,7 @@ const styles = StyleSheet.create({
         paddingVertical: 6,
         borderRadius: 20,
         borderWidth: 1,
-        borderColor: theme.colors.border,
         marginRight: 8,
-    },
-    freqChipActive: {
-        backgroundColor: theme.colors.text,
-        borderColor: theme.colors.text,
     },
     submitBtn: {
         marginTop: 8,

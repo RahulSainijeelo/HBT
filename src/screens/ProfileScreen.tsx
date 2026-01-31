@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { theme } from '../theme';
+import { useTheme } from '../theme';
 import { NothingText } from '../components/NothingText';
 import { NothingCard } from '../components/NothingCard';
 import { NothingButton } from '../components/NothingButton';
@@ -11,6 +11,7 @@ import { Download, LogOut, User, ShieldCheck } from 'lucide-react-native';
 
 export const ProfileScreen = ({ navigation }: any) => {
     const { currentUser, logout, tasks, habits } = useAppStore();
+    const { theme } = useTheme();
 
     const handleDownload = async () => {
         if (currentUser) {
@@ -31,7 +32,7 @@ export const ProfileScreen = ({ navigation }: any) => {
     };
 
     return (
-        <SafeAreaView style={styles.container}>
+        <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
             <View style={styles.header}>
                 <TouchableOpacity onPress={() => navigation.goBack()}>
                     <NothingText color={theme.colors.textSecondary}>BACK</NothingText>
@@ -40,8 +41,8 @@ export const ProfileScreen = ({ navigation }: any) => {
             </View>
 
             <View style={styles.content}>
-                <NothingCard padding="lg" bordered={false} style={styles.profileCard}>
-                    <View style={styles.avatar}>
+                <NothingCard padding="lg" bordered={false} style={[styles.profileCard, { backgroundColor: theme.colors.surface1 }]}>
+                    <View style={[styles.avatar, { borderColor: theme.colors.border }]}>
                         <User size={48} color={theme.colors.text} />
                     </View>
                     <NothingText variant="bold" size={24}>{currentUser}</NothingText>
@@ -94,7 +95,6 @@ export const ProfileScreen = ({ navigation }: any) => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: theme.colors.background,
     },
     header: {
         padding: 24,
@@ -108,14 +108,12 @@ const styles = StyleSheet.create({
     profileCard: {
         alignItems: 'center',
         marginBottom: 24,
-        backgroundColor: theme.colors.surface1,
     },
     avatar: {
         width: 100,
         height: 100,
         borderRadius: 50,
         borderWidth: 1,
-        borderColor: theme.colors.border,
         justifyContent: 'center',
         alignItems: 'center',
         marginBottom: 16,

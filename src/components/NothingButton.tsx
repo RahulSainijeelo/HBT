@@ -1,6 +1,6 @@
 import React from 'react';
 import { TouchableOpacity, StyleSheet, TouchableOpacityProps, View } from 'react-native';
-import { theme } from '../theme';
+import { useTheme } from '../theme';
 import { NothingText } from './NothingText';
 
 interface NothingButtonProps extends TouchableOpacityProps {
@@ -18,6 +18,8 @@ export const NothingButton: React.FC<NothingButtonProps> = ({
     style,
     ...props
 }) => {
+    const { theme } = useTheme();
+
     const getColors = () => {
         switch (variant) {
             case 'primary':
@@ -66,6 +68,7 @@ export const NothingButton: React.FC<NothingButtonProps> = ({
                     borderWidth: variant === 'outline' ? 1 : 0,
                     paddingVertical: size === 'sm' ? 8 : size === 'lg' ? 16 : 12,
                     paddingHorizontal: size === 'sm' ? 16 : size === 'lg' ? 32 : 24,
+                    borderRadius: theme.borderRadius.full,
                 },
                 style,
             ]}
@@ -87,7 +90,6 @@ export const NothingButton: React.FC<NothingButtonProps> = ({
 
 const styles = StyleSheet.create({
     button: {
-        borderRadius: theme.borderRadius.full,
         alignItems: 'center',
         justifyContent: 'center',
     },

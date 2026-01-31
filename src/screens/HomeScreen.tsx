@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, Modal, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { theme } from '../theme';
+import { useTheme } from '../theme';
 import { NothingText } from '../components/NothingText';
 import { NothingCard } from '../components/NothingCard';
 import { Calendar } from 'react-native-calendars';
@@ -13,6 +13,7 @@ export const HomeScreen = () => {
     const [selectedDate, setSelectedDate] = useState(dayjs().format('YYYY-MM-DD'));
     const [modalVisible, setModalVisible] = useState(false);
     const { tasks, habits } = useAppStore();
+    const { theme } = useTheme();
 
     const dayTasks = tasks.filter(t => t.dueDate === selectedDate);
     const dayHabits = habits.filter(h => h.completedDates.includes(selectedDate));
@@ -40,7 +41,7 @@ export const HomeScreen = () => {
     };
 
     return (
-        <SafeAreaView style={styles.container}>
+        <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
             <View style={styles.header}>
                 <NothingText variant="dot" size={32}>GLYPH</NothingText>
                 <NothingText color={theme.colors.textSecondary}>{dayjs().format('MMMM YYYY')}</NothingText>
@@ -93,7 +94,7 @@ export const HomeScreen = () => {
                         </View>
 
                         <ScrollView>
-                            <NothingText variant="medium" style={styles.sectionTitle}>TASKS</NothingText>
+                            <NothingText variant="medium" style={[styles.sectionTitle, { color: theme.colors.textSecondary }]}>TASKS</NothingText>
                             {dayTasks.length > 0 ? dayTasks.map(t => (
                                 <NothingCard key={t.id} margin="xs" bordered={false} backgroundColor={theme.colors.surface1}>
                                     <View style={styles.row}>
@@ -103,7 +104,7 @@ export const HomeScreen = () => {
                                 </NothingCard>
                             )) : <NothingText color={theme.colors.textSecondary} style={styles.emptyText}>No tasks for this day.</NothingText>}
 
-                            <NothingText variant="medium" style={[styles.sectionTitle, { marginTop: 24 }]}>HABITS</NothingText>
+                            <NothingText variant="medium" style={[styles.sectionTitle, { marginTop: 24, color: theme.colors.textSecondary }]}>HABITS</NothingText>
                             {dayHabits.length > 0 ? dayHabits.map(h => (
                                 <NothingCard key={h.id} margin="xs" bordered={false} backgroundColor={theme.colors.surface1}>
                                     <View style={styles.row}>
@@ -123,7 +124,6 @@ export const HomeScreen = () => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: theme.colors.background,
     },
     header: {
         padding: 24,
@@ -151,7 +151,6 @@ const styles = StyleSheet.create({
     },
     sectionTitle: {
         fontSize: 14,
-        color: theme.colors.textSecondary,
         marginBottom: 12,
         letterSpacing: 2,
     },

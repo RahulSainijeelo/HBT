@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, FlatList, TouchableOpacity, Modal, ScrollView, Animated } from 'react-native';
+import { View, StyleSheet, FlatList, TouchableOpacity, Modal, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { theme } from '../theme';
+import { useTheme } from '../theme';
 import { NothingText } from '../components/NothingText';
 import { NothingCard } from '../components/NothingCard';
 import { NothingInput } from '../components/NothingInput';
 import { NothingButton } from '../components/NothingButton';
 import { useAppStore, Task } from '../store/useAppStore';
-import { Plus, CheckCircle2, Circle, Calendar, Clock, Flag, Bell, Tag, ChevronRight, X } from 'lucide-react-native';
+import { Plus, CheckCircle2, Circle, Calendar, Clock, Flag, Bell, Tag, X } from 'lucide-react-native';
 import dayjs from 'dayjs';
 
 type SubTab = 'today' | 'upcoming' | 'browse';
@@ -15,8 +15,8 @@ type SubTab = 'today' | 'upcoming' | 'browse';
 export const TasksScreen = () => {
     const [activeTab, setActiveTab] = useState<SubTab>('today');
     const [isAddModalVisible, setIsAddModalVisible] = useState(false);
-    const { tasks, toggleTask, deleteTask, labels, addTask } = useAppStore();
-
+    const { tasks, toggleTask, labels, addTask } = useAppStore();
+    const { theme } = useTheme();
     // New task state
     const [newTitle, setNewTitle] = useState('');
     const [newDate, setNewDate] = useState(dayjs().format('YYYY-MM-DD'));
@@ -53,7 +53,7 @@ export const TasksScreen = () => {
                         <Circle size={24} color={theme.colors.textSecondary} />
                     }
                     <View style={styles.taskTextContainer}>
-                        <NothingText style={[styles.taskTitle, item.completed && styles.completedText]}>
+                        <NothingText style={[styles.taskTitle, item.completed && { textDecorationLine: 'line-through', color: theme.colors.textSecondary }]}>
                             {item.title}
                         </NothingText>
                         {item.dueDate && (
@@ -69,8 +69,8 @@ export const TasksScreen = () => {
     );
 
     return (
-        <SafeAreaView style={styles.container}>
-            <View style={styles.subTabs}>
+        <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
+            <View style={[styles.subTabs, { borderBottomColor: theme.colors.border }]}>
                 {(['today', 'upcoming', 'browse'] as SubTab[]).map(tab => (
                     <TouchableOpacity key={tab} onPress={() => setActiveTab(tab)} style={styles.tabItem}>
                         <NothingText
@@ -80,7 +80,7 @@ export const TasksScreen = () => {
                         >
                             {tab.toUpperCase()}
                         </NothingText>
-                        {activeTab === tab && <View style={styles.activeIndicator} />}
+                        {activeTab === tab && <View style={[styles.activeIndicator, { backgroundColor: theme.colors.primary }]} />}
                     </TouchableOpacity>
                 ))}
             </View>
@@ -98,7 +98,7 @@ export const TasksScreen = () => {
             />
 
             <TouchableOpacity
-                style={styles.fab}
+                style={[styles.fab, { backgroundColor: theme.colors.primary }]}
                 onPress={() => setIsAddModalVisible(true)}
             >
                 <Plus color={theme.colors.background} size={32} />
@@ -111,7 +111,7 @@ export const TasksScreen = () => {
                 onRequestClose={() => setIsAddModalVisible(false)}
             >
                 <View style={styles.modalOverlay}>
-                    <NothingCard style={styles.addModalContent} padding="lg">
+                    <NothingCard style={[styles.addModalContent, { backgroundColor: theme.colors.surface }]} padding="lg">
                         <View style={styles.modalHeader}>
                             <NothingText variant="bold" size={20}>NEW TASK</NothingText>
                             <TouchableOpacity onPress={() => setIsAddModalVisible(false)}>
@@ -124,33 +124,33 @@ export const TasksScreen = () => {
                             autoFocus
                             value={newTitle}
                             onChangeText={setNewTitle}
-                            style={styles.mainInput}
+                            style={[styles.mainInput, { borderColor: theme.colors.border }]}
                         />
 
                         <View style={styles.quickOptions}>
-                            <TouchableOpacity style={styles.optionBtn} onPress={() => setNewDate(dayjs().format('YYYY-MM-DD'))}>
+                            <TouchableOpacity style={[styles.optionBtn, { backgroundColor: theme.colors.surface1 }]} onPress={() => setNewDate(dayjs().format('YYYY-MM-DD'))}>
                                 <Calendar size={18} color={newDate === dayjs().format('YYYY-MM-DD') ? theme.colors.primary : theme.colors.text} />
-                                <NothingText style={styles.optionLabel}>Date</NothingText>
+                                <NothingText style={{ fontSize: 10, marginTop: 4, color: theme.colors.textSecondary }}>Date</NothingText>
                             </TouchableOpacity>
 
-                            <TouchableOpacity style={styles.optionBtn}>
+                            <TouchableOpacity style={[styles.optionBtn, { backgroundColor: theme.colors.surface1 }]}>
                                 <Clock size={18} color={theme.colors.text} />
-                                <NothingText style={styles.optionLabel}>Time</NothingText>
+                                <NothingText style={{ fontSize: 10, marginTop: 4, color: theme.colors.textSecondary }}>Time</NothingText>
                             </TouchableOpacity>
 
-                            <TouchableOpacity style={styles.optionBtn} onPress={() => setNewPriority(newPriority === 1 ? 4 : (newPriority - 1) as any)}>
+                            <TouchableOpacity style={[styles.optionBtn, { backgroundColor: theme.colors.surface1 }]} onPress={() => setNewPriority(newPriority === 1 ? 4 : (newPriority - 1) as any)}>
                                 <Flag size={18} color={getPriorityColor(newPriority)} />
-                                <NothingText style={styles.optionLabel}>P{newPriority}</NothingText>
+                                <NothingText style={{ fontSize: 10, marginTop: 4, color: theme.colors.textSecondary }}>P{newPriority}</NothingText>
                             </TouchableOpacity>
 
-                            <TouchableOpacity style={styles.optionBtn}>
+                            <TouchableOpacity style={[styles.optionBtn, { backgroundColor: theme.colors.surface1 }]}>
                                 <Bell size={18} color={theme.colors.text} />
-                                <NothingText style={styles.optionLabel}>Alert</NothingText>
+                                <NothingText style={{ fontSize: 10, marginTop: 4, color: theme.colors.textSecondary }}>Alert</NothingText>
                             </TouchableOpacity>
 
-                            <TouchableOpacity style={styles.optionBtn}>
+                            <TouchableOpacity style={[styles.optionBtn, { backgroundColor: theme.colors.surface1 }]}>
                                 <Tag size={18} color={theme.colors.text} />
-                                <NothingText style={styles.optionLabel}>Label</NothingText>
+                                <NothingText style={{ fontSize: 10, marginTop: 4, color: theme.colors.textSecondary }}>Label</NothingText>
                             </TouchableOpacity>
                         </View>
 
@@ -178,14 +178,12 @@ const getPriorityColor = (p: number) => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: theme.colors.background,
     },
     subTabs: {
         flexDirection: 'row',
         paddingHorizontal: 24,
         marginTop: 8,
         borderBottomWidth: 1,
-        borderBottomColor: theme.colors.border,
     },
     tabItem: {
         paddingVertical: 12,
@@ -201,7 +199,6 @@ const styles = StyleSheet.create({
         bottom: 0,
         width: '100%',
         height: 2,
-        backgroundColor: theme.colors.primary,
     },
     listContainer: {
         padding: 16,
@@ -225,10 +222,6 @@ const styles = StyleSheet.create({
     taskTitle: {
         fontSize: 16,
     },
-    completedText: {
-        textDecorationLine: 'line-through',
-        color: theme.colors.textSecondary,
-    },
     priorityDot: {
         width: 8,
         height: 8,
@@ -241,7 +234,6 @@ const styles = StyleSheet.create({
         width: 64,
         height: 64,
         borderRadius: 32,
-        backgroundColor: theme.colors.primary,
         justifyContent: 'center',
         alignItems: 'center',
         elevation: 8,
@@ -261,7 +253,7 @@ const styles = StyleSheet.create({
         padding: 20,
     },
     addModalContent: {
-        backgroundColor: theme.colors.surface,
+        // dynamic bg
     },
     modalHeader: {
         flexDirection: 'row',
@@ -272,7 +264,6 @@ const styles = StyleSheet.create({
     mainInput: {
         fontSize: 20,
         borderBottomWidth: 1,
-        borderColor: theme.colors.border,
         paddingBottom: 12,
         marginBottom: 24,
     },
@@ -285,13 +276,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         padding: 8,
         borderRadius: 12,
-        backgroundColor: theme.colors.surface1,
         width: '18%',
-    },
-    optionLabel: {
-        fontSize: 10,
-        marginTop: 4,
-        color: theme.colors.textSecondary,
     },
     submitBtn: {
         marginTop: 8,
