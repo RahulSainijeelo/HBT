@@ -12,6 +12,7 @@ import { Home, CheckSquare, RotateCcw, User } from 'lucide-react-native';
 import { View, TouchableOpacity, StyleSheet, Platform } from 'react-native';
 import { useAppStore } from '../store/useAppStore';
 import { NothingText } from '../components/NothingText';
+import { NothingLogo } from '../components/NothingLogo';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -20,9 +21,7 @@ const GlobalHeader = ({ navigation }: any) => {
     const { currentUser } = useAppStore();
     return (
         <View style={styles.header}>
-            <View style={styles.dotIcon}>
-                <View style={styles.tinyDot} />
-            </View>
+            <NothingLogo size={36} />
             <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
                 <View style={styles.profileBtn}>
                     <User size={18} color={theme.colors.text} />

@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, StyleSheet, SafeAreaView, TouchableOpacity, Alert } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { theme } from '../theme';
 import { NothingText } from '../components/NothingText';
 import { NothingCard } from '../components/NothingCard';

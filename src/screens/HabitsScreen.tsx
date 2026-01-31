@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, FlatList, SafeAreaView, TouchableOpacity, Modal, ScrollView } from 'react-native';
+import { View, StyleSheet, FlatList, TouchableOpacity, Modal, ScrollView } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { theme } from '../theme';
 import { NothingText } from '../components/NothingText';
 import { NothingCard } from '../components/NothingCard';

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import { View, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { theme } from '../theme';
 import { NothingText } from '../components/NothingText';
 import { NothingCard } from '../components/NothingCard';
@@ -7,8 +8,9 @@ import { NothingInput } from '../components/NothingInput';
 import { NothingButton } from '../components/NothingButton';
 import { useAppStore } from '../store/useAppStore';
 import { StorageService } from '../services/StorageService';
-import { User, FileInput, Users, ArrowRight } from 'lucide-react-native';
+import { User, FileInput, ArrowRight } from 'lucide-react-native';
 import DocumentPicker from 'react-native-document-picker';
+import { NothingLogo } from '../components/NothingLogo';
 
 export const LoginScreen = () => {
     const [username, setUsername] = useState('');
@@ -57,9 +59,7 @@ export const LoginScreen = () => {
         <SafeAreaView style={styles.container}>
             <ScrollView contentContainerStyle={styles.scrollContent}>
                 <View style={styles.header}>
-                    <View style={styles.dotIcon}>
-                        <Users size={32} color={theme.colors.text} />
-                    </View>
+                    <NothingLogo size={80} />
                     <NothingText variant="dot" size={32} style={styles.title}>IDENTITY</NothingText>
                     <NothingText color={theme.colors.textSecondary}>Choose your profile to begin</NothingText>
                 </View>
