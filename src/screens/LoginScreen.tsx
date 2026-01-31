@@ -57,7 +57,7 @@ export const LoginScreen = ({ navigation }: any) => {
                 // Ignore cancel
             } else {
                 console.error(err);
-                Alert.alert('Import Failed', 'Could not import the selected file. Ensure it is a valid HBT profile.');
+                Alert.alert('Import Failed', 'Could not import the selected file. Ensure it is a valid Rise profile.');
             }
         }
     };

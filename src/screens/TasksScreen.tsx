@@ -55,33 +55,47 @@ export const TasksScreen = () => {
     newTimeRef.current = newTime;
 
     const handleTimeDrag = (x: number, y: number) => {
-        if (timeModeRef.current !== 'minute') return;
-
         // Center is 130, 130 (based on width 260 height 260)
         const centerX = 130;
         const centerY = 130;
+        const dx = x - centerX;
+        const dy = y - centerY;
+        const distance = Math.sqrt(dx * dx + dy * dy);
 
         // Calculate angle
-        let angle = Math.atan2(y - centerY, x - centerX) * (180 / Math.PI);
-        // atan2 returns -180 to 180. 0 is 3 o'clock.
-        // We want 0 at 12 o'clock (-90 degrees).
-        // Adjust angle to be 0 at 12 o'clock and go clockwise 0-360.
-
+        let angle = Math.atan2(dy, dx) * (180 / Math.PI);
         angle = angle + 90;
         if (angle < 0) angle += 360;
 
-        // Minute: 6 degrees per minute
-        let minute = Math.round(angle / 6);
-        if (minute === 60) minute = 0;
+        if (timeModeRef.current === 'minute') {
+            let minute = Math.round(angle / 6);
+            if (minute === 60) minute = 0;
+            const h = newTimeRef.current ? newTimeRef.current.split(':')[0] : '12';
+            setNewTime(`${h}:${minute.toString().padStart(2, '0')}`);
+        } else {
+            // Hour mode
+            let hourIndex = Math.round(angle / 30) % 12;
+            let hour = 0;
 
-        const h = newTimeRef.current ? newTimeRef.current.split(':')[0] : '12';
-        setNewTime(`${h}:${minute.toString().padStart(2, '0')}`);
+            if (distance < 82.5) {
+                // Inner Ring (0, 13-23)
+                const innerHours = [0, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23];
+                hour = innerHours[hourIndex];
+            } else {
+                // Outer Ring (1-12)
+                const outerHours = [12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
+                hour = outerHours[hourIndex];
+            }
+
+            const m = newTimeRef.current ? newTimeRef.current.split(':')[1] : '00';
+            setNewTime(`${hour.toString().padStart(2, '0')}:${m}`);
+        }
     };
 
     const panResponder = useRef(
         PanResponder.create({
-            onStartShouldSetPanResponder: () => timeModeRef.current === 'minute',
-            onMoveShouldSetPanResponder: () => timeModeRef.current === 'minute',
+            onStartShouldSetPanResponder: () => true,
+            onMoveShouldSetPanResponder: () => true,
             onPanResponderGrant: (evt) => {
                 handleTimeDrag(evt.nativeEvent.locationX, evt.nativeEvent.locationY);
             },
@@ -292,7 +306,8 @@ export const TasksScreen = () => {
                                 {
                                     backgroundColor: theme.colors.surface,
                                     paddingBottom: (insets.bottom || 20) + 24,
-                                    width: '100%' // Ensure full width
+                                    width: '100%',
+                                    borderColor: theme.colors.border
                                 }
                             ]}
                             onStartShouldSetResponder={() => true} // Prevent touch pass-through
@@ -395,7 +410,8 @@ export const TasksScreen = () => {
                                 paddingBottom: (insets.bottom || 20) + 24,
                                 width: '100%',
                                 paddingHorizontal: 24,
-                                paddingTop: 24
+                                paddingTop: 24,
+                                borderColor: theme.colors.border
                             }
                         ]}
                         onStartShouldSetResponder={() => true}
@@ -530,7 +546,8 @@ export const TasksScreen = () => {
                                 paddingBottom: (insets.bottom || 20) + 24,
                                 width: '100%',
                                 paddingHorizontal: 24,
-                                paddingTop: 24
+                                paddingTop: 24,
+                                borderColor: theme.colors.border,
                             }
                         ]}
                         onStartShouldSetResponder={() => true}
@@ -580,18 +597,16 @@ export const TasksScreen = () => {
                             style={{ width: 260, height: 260, borderRadius: 130, backgroundColor: theme.colors.surface1, position: 'relative', marginBottom: 24 }}
                         >
                             {/* Overlay for PanResponder - ensures stable coordinates */}
-                            {timeMode === 'minute' && (
-                                <View
-                                    {...panResponder.panHandlers}
-                                    style={{
-                                        position: 'absolute',
-                                        width: '100%',
-                                        height: '100%',
-                                        zIndex: 20,
-                                        elevation: 20
-                                    }}
-                                />
-                            )}
+                            <View
+                                {...panResponder.panHandlers}
+                                style={{
+                                    position: 'absolute',
+                                    width: '100%',
+                                    height: '100%',
+                                    zIndex: 20,
+                                    elevation: 20
+                                }}
+                            />
 
                             {/* Central Dot */}
                             <View style={{ position: 'absolute', top: 127, left: 127, width: 6, height: 6, borderRadius: 3, backgroundColor: theme.colors.primary, zIndex: 10 }} />
@@ -650,18 +665,30 @@ export const TasksScreen = () => {
                                         const radius = 65;
                                         const x = 130 + radius * Math.cos(angle);
                                         const y = 130 + radius * Math.sin(angle);
+                                        const currentHour = newTime ? parseInt(newTime.split(':')[0]) : null;
+                                        const isSelected = currentHour === h;
 
                                         return (
                                             <TouchableOpacity
                                                 key={h}
-                                                style={{ position: 'absolute', left: x - 12, top: y - 12, width: 24, height: 24, justifyContent: 'center', alignItems: 'center', borderRadius: 12 }}
+                                                style={{
+                                                    position: 'absolute',
+                                                    left: x - 12,
+                                                    top: y - 12,
+                                                    width: 24,
+                                                    height: 24,
+                                                    justifyContent: 'center',
+                                                    alignItems: 'center',
+                                                    borderRadius: 12,
+                                                    backgroundColor: isSelected ? theme.colors.primary : 'transparent'
+                                                }}
                                                 onPress={() => {
                                                     const m = newTime ? newTime.split(':')[1] : '00';
                                                     setNewTime(`${h.toString().padStart(2, '0')}:${m}`);
                                                     setTimeMode('minute');
                                                 }}
                                             >
-                                                <NothingText size={12} color={theme.colors.textSecondary}>{h === 0 ? '00' : h}</NothingText>
+                                                <NothingText size={12} color={isSelected ? theme.colors.background : theme.colors.textSecondary}>{h === 0 ? '00' : h}</NothingText>
                                             </TouchableOpacity>
                                         )
                                     })}
@@ -715,7 +742,8 @@ export const TasksScreen = () => {
                                 paddingBottom: (insets.bottom || 20) + 24,
                                 width: '100%',
                                 paddingHorizontal: 24,
-                                paddingTop: 24
+                                paddingTop: 24,
+                                borderColor: theme.colors.border
                             }
                         ]}
                         onStartShouldSetResponder={() => true}
@@ -765,7 +793,8 @@ export const TasksScreen = () => {
                                 paddingBottom: (insets.bottom || 20) + 24,
                                 width: '100%',
                                 paddingHorizontal: 24,
-                                paddingTop: 24
+                                paddingTop: 24,
+                                borderColor: theme.colors.border
                             }
                         ]}
                         onStartShouldSetResponder={() => true}
@@ -804,11 +833,18 @@ export const TasksScreen = () => {
                 animationType="fade"
                 onRequestClose={() => setShowLabelPicker(false)}
                 statusBarTranslucent
+                style={{
+                    borderTopLeftRadius: 24,
+                    borderTopRightRadius: 24,
+                    borderBottomLeftRadius: 0,
+                    borderBottomRightRadius: 0,
+                }}
             >
                 <TouchableOpacity
                     style={styles.modalOverlay}
                     activeOpacity={1}
                     onPress={() => setShowLabelPicker(false)}
+
                 >
                     <KeyboardAvoidingView
                         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -822,7 +858,8 @@ export const TasksScreen = () => {
                                     paddingBottom: (insets.bottom || 20) + 24,
                                     width: '100%',
                                     paddingHorizontal: 24,
-                                    paddingTop: 24
+                                    paddingTop: 24,
+                                    borderColor: theme.colors.border,
                                 }
                             ]}
                             onStartShouldSetResponder={() => true}
@@ -956,8 +993,12 @@ const styles = StyleSheet.create({
         marginTop: 100,
     },
     modalOverlay: {
+        borderTopLeftRadius: 24,
+        borderTopRightRadius: 24,
+        borderBottomLeftRadius: 0,
+        borderBottomRightRadius: 0,
         flex: 1,
-        // backgroundColor: 'rgba(0,0,0,0.85)',
+        backgroundColor: 'rgba(0,0,0,0.85)',
         justifyContent: 'flex-end',
         padding: 0,
         margin: 0,
@@ -969,6 +1010,12 @@ const styles = StyleSheet.create({
         borderTopRightRadius: 24,
         borderBottomLeftRadius: 0,
         borderBottomRightRadius: 0,
+        backgroundColor: '#000', // Ensure background for shadow
+        elevation: 20, // Android shadow
+        shadowColor: '#000', // iOS shadow
+        shadowOffset: { width: 0, height: -10 },
+        shadowOpacity: 0.3,
+        shadowRadius: 15,
     },
     addModalContent: {
         // dynamic bg
@@ -979,6 +1026,12 @@ const styles = StyleSheet.create({
         borderBottomLeftRadius: 0,
         borderBottomRightRadius: 0,
         borderBottomWidth: 0,
+        borderTopWidth: 2, // Added top border
+        elevation: 20, // Android shadow
+        shadowColor: '#000', // iOS shadow
+        shadowOffset: { width: 0, height: -10 },
+        shadowOpacity: 0.3,
+        shadowRadius: 15,
     },
     modalHeader: {
         flexDirection: 'row',

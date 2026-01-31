@@ -1,6 +1,6 @@
 import RNFS from 'react-native-fs';
 
-const APP_FOLDER_NAME = 'HBT_Data';
+const APP_FOLDER_NAME = 'Rise_Data';
 const BASE_PATH = `${RNFS.DocumentDirectoryPath}/${APP_FOLDER_NAME}`;
 
 export interface UserProfile {

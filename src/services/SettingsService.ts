@@ -1,7 +1,7 @@
 import RNFS from 'react-native-fs';
 import { Platform } from 'react-native';
 
-const APP_FOLDER_NAME = 'HBT_Data';
+const APP_FOLDER_NAME = 'Rise_Data';
 const SETTINGS_FILE = 'system_settings.json';
 const BASE_PATH = `${RNFS.DocumentDirectoryPath}/${APP_FOLDER_NAME}`;
 
