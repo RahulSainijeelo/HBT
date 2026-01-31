@@ -101,25 +101,33 @@ export const TasksScreen = () => {
 
     const renderTask = ({ item }: { item: Task }) => (
         <NothingCard margin="xs" style={styles.taskCard}>
-            <TouchableOpacity onPress={() => toggleTask(item.id)} style={styles.taskMain}>
-                <View style={styles.taskLeft}>
+            <View style={styles.taskMain}>
+                <TouchableOpacity onPress={() => toggleTask(item.id)} style={{ marginRight: 12 }}>
                     {item.completed ?
                         <CheckCircle2 size={24} color={theme.colors.success} /> :
                         <Circle size={24} color={theme.colors.textSecondary} />
                     }
-                    <View style={styles.taskTextContainer}>
-                        <NothingText style={[styles.taskTitle, item.completed && { textDecorationLine: 'line-through', color: theme.colors.textSecondary }]}>
-                            {item.title}
+                </TouchableOpacity>
+                <TouchableOpacity
+                    style={styles.taskTextContainer}
+                    onPress={() => {
+                        // Placeholder for details view - can be replaced with a modal later
+                        console.log("Show details for", item.id);
+                    }}
+                >
+                    <NothingText style={[styles.taskTitle, item.completed && { textDecorationLine: 'line-through', color: theme.colors.textSecondary }]}>
+                        {item.title}
+                    </NothingText>
+                    {(item.dueDate || item.dueTime) && (
+                        <NothingText size={12} color={theme.colors.textSecondary}>
+                            {item.dueDate ? dayjs(item.dueDate).format('DD MMM') : ''}
+                            {item.dueDate && item.dueTime ? ' • ' : ''}
+                            {item.dueTime}
                         </NothingText>
-                        {item.dueDate && (
-                            <NothingText size={12} color={theme.colors.textSecondary}>
-                                {dayjs(item.dueDate).format('DD MMM')}
-                            </NothingText>
-                        )}
-                    </View>
-                </View>
+                    )}
+                </TouchableOpacity>
                 <View style={[styles.priorityDot, { backgroundColor: getPriorityColor(item.priority) }]} />
-            </TouchableOpacity>
+            </View>
         </NothingCard>
     );
 
@@ -228,12 +236,15 @@ export const TasksScreen = () => {
                 statusBarTranslucent
             >
                 <TouchableOpacity
-                    style={styles.modalOverlay}
+                    style={[
+                        styles.modalOverlay,
+                        (showAdvDateModal || showAdvTimeModal || showDurationModal || showRemindersModal || showLabelPicker) && { opacity: 0 }
+                    ]}
                     activeOpacity={1}
                     onPress={() => setIsAddModalVisible(false)}
                 >
                     <KeyboardAvoidingView
-                        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+                        behavior="padding"
                         style={{ width: '100%' }}
                     >
                         <View
@@ -506,6 +517,27 @@ export const TasksScreen = () => {
                             {/* Central Dot */}
                             <View style={{ position: 'absolute', top: 127, left: 127, width: 6, height: 6, borderRadius: 3, backgroundColor: theme.colors.primary, zIndex: 10 }} />
 
+                            {/* Connecting Line (Hand) */}
+                            {newTime && (
+                                <View style={{
+                                    position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+                                    justifyContent: 'center', alignItems: 'center',
+                                    zIndex: 5,
+                                    transform: [{
+                                        rotate: timeMode === 'hour'
+                                            ? `${(parseInt(newTime.split(':')[0]) % 12) * 30 - 90}deg`
+                                            : `${parseInt(newTime.split(':')[1]) * 6 - 90}deg`
+                                    }]
+                                }}>
+                                    <View style={{
+                                        width: timeMode === 'hour' && (parseInt(newTime.split(':')[0]) >= 13 || parseInt(newTime.split(':')[0]) === 0) ? 65 : 100, // Inner ring (13-23 + 00) vs Outer
+                                        height: 2,
+                                        backgroundColor: theme.colors.primary,
+                                        transform: [{ translateX: (timeMode === 'hour' && (parseInt(newTime.split(':')[0]) >= 13 || parseInt(newTime.split(':')[0]) === 0) ? 65 : 100) / 2 }]
+                                    }} />
+                                </View>
+                            )}
+
                             {/* Clock Face Numbers */}
                             {timeMode === 'hour' ? (
                                 <>
@@ -580,222 +612,189 @@ export const TasksScreen = () => {
                                 })
                             )}
                         </View>
-                                            const isPM = newTime ? parseInt(newTime.split(':')[0]) >= 12 : false;
-                        const hour = isPM && h !== 12 ? h + 12 : (h === 12 && !isPM ? 0 : h);
-                        setNewTime(`${hour.toString().padStart(2, '0')}:${m}`);
-                                        }}
-                                    >
-                        <NothingText variant={isSelected ? 'bold' : 'regular'} color={isSelected ? theme.colors.background : theme.colors.text}>{h}</NothingText>
-                </TouchableOpacity>
-                );
-                            })}
-            </View>
-
-            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 24 }}>
-                <NothingText size={32} variant="bold">{newTime || '--:--'}</NothingText>
-                <TouchableOpacity
-                    style={{ marginLeft: 16, paddingHorizontal: 12, paddingVertical: 4, backgroundColor: theme.colors.surface1, borderRadius: 8 }}
-                    onPress={() => {
-                        if (newTime) {
-                            const [h, m] = newTime.split(':').map(Number);
-                            const isPM = h >= 12;
-                            const newH = isPM ? h - 12 : h + 12;
-                            setNewTime(`${newH.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`);
-                        }
-                    }}
-                >
-                    <NothingText variant="bold" color={theme.colors.primary}>{newTime ? (parseInt(newTime.split(':')[0]) >= 12 ? 'PM' : 'AM') : '--'}</NothingText>
-                </TouchableOpacity>
-            </View>
-
-            <View style={{ flexDirection: 'row', width: '100%', justifyContent: 'space-between' }}>
-                <TouchableOpacity onPress={() => setShowAdvTimeModal(false)}>
-                    <NothingText color={theme.colors.textSecondary}>CANCEL</NothingText>
-                </TouchableOpacity>
-                <TouchableOpacity onPress={() => setShowAdvTimeModal(false)}>
-                    <NothingText color={theme.colors.primary} variant="bold">DONE</NothingText>
-                </TouchableOpacity>
-            </View>
-        </View >
-                </TouchableOpacity >
-            </Modal >
-
-    {/* Duration Modal */ }
-    < Modal
-transparent = { true}
-visible = { showDurationModal }
-animationType = "fade"
-onRequestClose = {() => setShowDurationModal(false)}
-statusBarTranslucent
-    >
-    <TouchableOpacity
-        style={styles.modalOverlay}
-        activeOpacity={1}
-        onPress={() => setShowDurationModal(false)}
-    >
-        <View
-            style={[
-                styles.addModalContent,
-                {
-                    backgroundColor: theme.colors.surface,
-                    paddingBottom: (insets.bottom || 20) + 24,
-                    width: '100%',
-                    paddingHorizontal: 24,
-                    paddingTop: 24
-                }
-            ]}
-            onStartShouldSetResponder={() => true}
-        >
-            <NothingText variant="bold" size={18} style={{ marginBottom: 16 }}>DURATION</NothingText>
-
-            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 24 }}>
-                {[5, 15, 30, 45, 60, 90, 120].map(m => (
-                    <TouchableOpacity
-                        key={m}
-                        style={[styles.durationChip, duration === m && { backgroundColor: theme.colors.primary }]}
-                        onPress={() => setDuration(m)}
-                    >
-                        <NothingText color={duration === m ? theme.colors.background : theme.colors.text}>
-                            {m < 60 ? `${m}m` : `${m / 60}h`}
-                        </NothingText>
-                    </TouchableOpacity>
-                ))}
-            </View>
-
-            <NothingButton
-                label="Set Duration"
-                onPress={() => setShowDurationModal(false)}
-            />
-        </View>
-    </TouchableOpacity>
-            </Modal >
-
-    {/* Reminders Modal */ }
-    < Modal
-transparent = { true}
-visible = { showRemindersModal }
-animationType = "fade"
-onRequestClose = {() => setShowRemindersModal(false)}
-statusBarTranslucent
-    >
-    <TouchableOpacity
-        style={styles.modalOverlay}
-        activeOpacity={1}
-        onPress={() => setShowRemindersModal(false)}
-    >
-        <View
-            style={[
-                styles.addModalContent,
-                {
-                    backgroundColor: theme.colors.surface,
-                    paddingBottom: (insets.bottom || 20) + 24,
-                    width: '100%',
-                    paddingHorizontal: 24,
-                    paddingTop: 24
-                }
-            ]}
-            onStartShouldSetResponder={() => true}
-        >
-            <NothingText variant="bold" size={18} style={{ marginBottom: 16 }}>REMINDERS</NothingText>
-
-            {['At time of event', '10 minutes before', '30 minutes before', '1 hour before', '1 day before'].map(r => (
-                <TouchableOpacity
-                    key={r}
-                    style={styles.dateOption}
-                    onPress={() => {
-                        if (selectedReminders.includes(r)) {
-                            setSelectedReminders(selectedReminders.filter(item => item !== r));
-                        } else {
-                            setSelectedReminders([...selectedReminders, r]);
-                        }
-                    }}
-                >
-                    <Bell size={20} color={selectedReminders.includes(r) ? theme.colors.primary : theme.colors.text} />
-                    <NothingText style={styles.dateOptionText}>{r}</NothingText>
-                    {selectedReminders.includes(r) && <CheckCircle2 size={20} color={theme.colors.primary} />}
-                </TouchableOpacity>
-            ))}
-
-            <TouchableOpacity style={{ marginTop: 24, alignSelf: 'center' }} onPress={() => setShowRemindersModal(false)}>
-                <NothingText color={theme.colors.primary} variant="bold">DONE</NothingText>
-            </TouchableOpacity>
-        </View>
-    </TouchableOpacity>
-            </Modal >
-
-    {/* Label Picker Modal */ }
-    < Modal
-transparent = { true}
-visible = { showLabelPicker }
-animationType = "fade"
-onRequestClose = {() => setShowLabelPicker(false)}
-statusBarTranslucent
-    >
-    <TouchableOpacity
-        style={styles.modalOverlay}
-        activeOpacity={1}
-        onPress={() => setShowLabelPicker(false)}
-    >
-        <KeyboardAvoidingView
-            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-            style={{ width: '100%' }}
-        >
-            <View
-                style={[
-                    styles.addModalContent,
-                    {
-                        backgroundColor: theme.colors.surface,
-                        paddingBottom: (insets.bottom || 20) + 24,
-                        width: '100%',
-                        paddingHorizontal: 24,
-                        paddingTop: 24
-                    }
-                ]}
-                onStartShouldSetResponder={() => true}
-            >
-                <NothingText variant="bold" size={18} style={{ marginBottom: 16 }}>SELECT LABEL</NothingText>
-
-                <ScrollView style={{ maxHeight: 200 }} showsVerticalScrollIndicator={false}>
-                    {labels.map(label => (
-                        <TouchableOpacity
-                            key={label}
-                            style={styles.labelItem}
-                            onPress={() => { setNewLabel(label); setShowLabelPicker(false); }}
-                        >
-                            <Tag size={16} color={theme.colors.textSecondary} />
-                            <NothingText style={{ marginLeft: 12 }}>{label}</NothingText>
-                            {newLabel === label && <CheckCircle2 size={16} color={theme.colors.primary} style={{ marginLeft: 'auto' }} />}
+                        <TouchableOpacity style={{ marginTop: 24, alignSelf: 'center' }} onPress={() => setShowAdvTimeModal(false)}>
+                            <NothingText color={theme.colors.primary} variant="bold">DONE</NothingText>
                         </TouchableOpacity>
-                    ))}
-                </ScrollView>
-
-                <View style={{ marginTop: 16, borderTopWidth: 1, borderTopColor: theme.colors.border, paddingTop: 16 }}>
-                    <NothingInput
-                        placeholder="Create new label..."
-                        value={customLabel}
-                        onChangeText={setCustomLabel}
-                    />
-                    <NothingButton
-                        label="Create Label"
-                        size="sm"
-                        variant="secondary"
-                        onPress={() => {
-                            if (customLabel.trim()) {
-                                addLabel(customLabel.trim());
-                                setNewLabel(customLabel.trim());
-                                setCustomLabel('');
-                                setShowLabelPicker(false);
-                            }
-                        }}
-                    />
-                </View>
-
-                <TouchableOpacity style={{ marginTop: 16, alignSelf: 'center' }} onPress={() => setShowLabelPicker(false)}>
-                    <NothingText color={theme.colors.textSecondary}>CLOSE</NothingText>
+                    </View>
                 </TouchableOpacity>
-            </View>
-        </KeyboardAvoidingView>
-    </TouchableOpacity>
+            </Modal>
+
+            {/* Duration Modal */}
+            <Modal
+                transparent={true}
+                visible={showDurationModal}
+                animationType="fade"
+                onRequestClose={() => setShowDurationModal(false)}
+                statusBarTranslucent
+            >
+                <TouchableOpacity
+                    style={styles.modalOverlay}
+                    activeOpacity={1}
+                    onPress={() => setShowDurationModal(false)}
+                >
+                    <View
+                        style={[
+                            styles.addModalContent,
+                            {
+                                backgroundColor: theme.colors.surface,
+                                paddingBottom: (insets.bottom || 20) + 24,
+                                width: '100%',
+                                paddingHorizontal: 24,
+                                paddingTop: 24
+                            }
+                        ]}
+                        onStartShouldSetResponder={() => true}
+                    >
+                        <NothingText variant="bold" size={18} style={{ marginBottom: 16 }}>DURATION</NothingText>
+
+                        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 24 }}>
+                            {[5, 15, 30, 45, 60, 90, 120].map(m => (
+                                <TouchableOpacity
+                                    key={m}
+                                    style={[styles.durationChip, duration === m && { backgroundColor: theme.colors.primary }]}
+                                    onPress={() => setDuration(m)}
+                                >
+                                    <NothingText color={duration === m ? theme.colors.background : theme.colors.text}>
+                                        {m < 60 ? `${m}m` : `${m / 60}h`}
+                                    </NothingText>
+                                </TouchableOpacity>
+                            ))}
+                        </View>
+
+                        <NothingButton
+                            label="Set Duration"
+                            onPress={() => setShowDurationModal(false)}
+                        />
+                    </View>
+                </TouchableOpacity>
+            </Modal >
+
+            {/* Reminders Modal */}
+            <Modal
+                transparent={true}
+                visible={showRemindersModal}
+                animationType="fade"
+                onRequestClose={() => setShowRemindersModal(false)}
+                statusBarTranslucent
+            >
+                <TouchableOpacity
+                    style={styles.modalOverlay}
+                    activeOpacity={1}
+                    onPress={() => setShowRemindersModal(false)}
+                >
+                    <View
+                        style={[
+                            styles.addModalContent,
+                            {
+                                backgroundColor: theme.colors.surface,
+                                paddingBottom: (insets.bottom || 20) + 24,
+                                width: '100%',
+                                paddingHorizontal: 24,
+                                paddingTop: 24
+                            }
+                        ]}
+                        onStartShouldSetResponder={() => true}
+                    >
+                        <NothingText variant="bold" size={18} style={{ marginBottom: 16 }}>REMINDERS</NothingText>
+
+                        {['At time of event', '10 minutes before', '30 minutes before', '1 hour before', '1 day before'].map(r => (
+                            <TouchableOpacity
+                                key={r}
+                                style={styles.dateOption}
+                                onPress={() => {
+                                    if (selectedReminders.includes(r)) {
+                                        setSelectedReminders(selectedReminders.filter(item => item !== r));
+                                    } else {
+                                        setSelectedReminders([...selectedReminders, r]);
+                                    }
+                                }}
+                            >
+                                <Bell size={20} color={selectedReminders.includes(r) ? theme.colors.primary : theme.colors.text} />
+                                <NothingText style={styles.dateOptionText}>{r}</NothingText>
+                                {selectedReminders.includes(r) && <CheckCircle2 size={20} color={theme.colors.primary} />}
+                            </TouchableOpacity>
+                        ))}
+
+                        <TouchableOpacity style={{ marginTop: 24, alignSelf: 'center' }} onPress={() => setShowRemindersModal(false)}>
+                            <NothingText color={theme.colors.primary} variant="bold">DONE</NothingText>
+                        </TouchableOpacity>
+                    </View>
+                </TouchableOpacity>
+            </Modal >
+
+            {/* Label Picker Modal */}
+            < Modal
+                transparent={true}
+                visible={showLabelPicker}
+                animationType="fade"
+                onRequestClose={() => setShowLabelPicker(false)}
+                statusBarTranslucent
+            >
+                <TouchableOpacity
+                    style={styles.modalOverlay}
+                    activeOpacity={1}
+                    onPress={() => setShowLabelPicker(false)}
+                >
+                    <KeyboardAvoidingView
+                        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+                        style={{ width: '100%' }}
+                    >
+                        <View
+                            style={[
+                                styles.addModalContent,
+                                {
+                                    backgroundColor: theme.colors.surface,
+                                    paddingBottom: (insets.bottom || 20) + 24,
+                                    width: '100%',
+                                    paddingHorizontal: 24,
+                                    paddingTop: 24
+                                }
+                            ]}
+                            onStartShouldSetResponder={() => true}
+                        >
+                            <NothingText variant="bold" size={18} style={{ marginBottom: 16 }}>SELECT LABEL</NothingText>
+
+                            <ScrollView style={{ maxHeight: 200 }} showsVerticalScrollIndicator={false}>
+                                {labels.map(label => (
+                                    <TouchableOpacity
+                                        key={label}
+                                        style={styles.labelItem}
+                                        onPress={() => { setNewLabel(label); setShowLabelPicker(false); }}
+                                    >
+                                        <Tag size={16} color={theme.colors.textSecondary} />
+                                        <NothingText style={{ marginLeft: 12 }}>{label}</NothingText>
+                                        {newLabel === label && <CheckCircle2 size={16} color={theme.colors.primary} style={{ marginLeft: 'auto' }} />}
+                                    </TouchableOpacity>
+                                ))}
+                            </ScrollView>
+
+                            <View style={{ marginTop: 16, borderTopWidth: 1, borderTopColor: theme.colors.border, paddingTop: 16 }}>
+                                <NothingInput
+                                    placeholder="Create new label..."
+                                    value={customLabel}
+                                    onChangeText={setCustomLabel}
+                                />
+                                <NothingButton
+                                    label="Create Label"
+                                    size="sm"
+                                    variant="secondary"
+                                    onPress={() => {
+                                        if (customLabel.trim()) {
+                                            addLabel(customLabel.trim());
+                                            setNewLabel(customLabel.trim());
+                                            setCustomLabel('');
+                                            setShowLabelPicker(false);
+                                        }
+                                    }}
+                                />
+                            </View>
+
+                            <TouchableOpacity style={{ marginTop: 16, alignSelf: 'center' }} onPress={() => setShowLabelPicker(false)}>
+                                <NothingText color={theme.colors.textSecondary}>CLOSE</NothingText>
+                            </TouchableOpacity>
+                        </View>
+                    </KeyboardAvoidingView>
+                </TouchableOpacity>
             </Modal >
         </>
     );
