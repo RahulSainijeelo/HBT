@@ -9,10 +9,10 @@ const App = () => {
   const RootView = GestureHandlerRootView || View;
 
   return (
-    <RootView style={{ flex: 1 }}>
+    <View style={{ flex: 1 }}>
       <StatusBar barStyle="light-content" backgroundColor={theme?.colors?.background || '#000'} />
       <AppNavigator />
-    </RootView>
+    </View>
   );
 };
 
