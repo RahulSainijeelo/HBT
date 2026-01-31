@@ -5,7 +5,7 @@ export const palette = {
     black: '#000000',
     white: '#FFFFFF',
     red: '#D71921', // Nothing Red
-    surfaceDark: '#121212',
+    surfaceDark: '#000000',
     surfaceLight: '#F5F5F5',
     surface1Dark: '#1C1C1C',
     surface1Light: '#E8E8E8',

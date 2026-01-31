@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, StyleSheet, FlatList, TouchableOpacity, Modal, ScrollView, Platform, Switch, KeyboardAvoidingView } from 'react-native';
+import React, { useState, useRef } from 'react';
+import { View, StyleSheet, FlatList, TouchableOpacity, Modal, ScrollView, Platform, Switch, KeyboardAvoidingView, PanResponder } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../theme';
 import { NothingText } from '../components/NothingText';
@@ -49,6 +49,48 @@ export const TasksScreen = () => {
     const [isRepeatEnabled, setIsRepeatEnabled] = useState(false);
     const [timeMode, setTimeMode] = useState<'hour' | 'minute'>('hour');
 
+    const timeModeRef = useRef(timeMode);
+    timeModeRef.current = timeMode;
+    const newTimeRef = useRef(newTime);
+    newTimeRef.current = newTime;
+
+    const handleTimeDrag = (x: number, y: number) => {
+        if (timeModeRef.current !== 'minute') return;
+
+        // Center is 130, 130 (based on width 260 height 260)
+        const centerX = 130;
+        const centerY = 130;
+
+        // Calculate angle
+        let angle = Math.atan2(y - centerY, x - centerX) * (180 / Math.PI);
+        // atan2 returns -180 to 180. 0 is 3 o'clock.
+        // We want 0 at 12 o'clock (-90 degrees).
+        // Adjust angle to be 0 at 12 o'clock and go clockwise 0-360.
+
+        angle = angle + 90;
+        if (angle < 0) angle += 360;
+
+        // Minute: 6 degrees per minute
+        let minute = Math.round(angle / 6);
+        if (minute === 60) minute = 0;
+
+        const h = newTimeRef.current ? newTimeRef.current.split(':')[0] : '12';
+        setNewTime(`${h}:${minute.toString().padStart(2, '0')}`);
+    };
+
+    const panResponder = useRef(
+        PanResponder.create({
+            onStartShouldSetPanResponder: () => timeModeRef.current === 'minute',
+            onMoveShouldSetPanResponder: () => timeModeRef.current === 'minute',
+            onPanResponderGrant: (evt) => {
+                handleTimeDrag(evt.nativeEvent.locationX, evt.nativeEvent.locationY);
+            },
+            onPanResponderMove: (evt) => {
+                handleTimeDrag(evt.nativeEvent.locationX, evt.nativeEvent.locationY);
+            },
+        })
+    ).current;
+
     const allFilteredTasks = tasks.filter(t => {
         if (activeTab === 'today') {
             // Updated: Today includes tasks for today AND tasks with no due date
@@ -92,46 +134,6 @@ export const TasksScreen = () => {
         }
     };
 
-    const handleTimeGesture = (evt: any) => {
-        const { locationX, locationY } = evt.nativeEvent;
-        // Dial is 260x260, center 130,130
-        const dx = locationX - 130;
-        const dy = locationY - 130;
-        let angle = Math.atan2(dy, dx) * 180 / Math.PI; // -180 to 180
-
-        let adjustedAngle = angle + 90;
-        if (adjustedAngle < 0) adjustedAngle += 360;
-
-        if (timeMode === 'hour') {
-            const radius = Math.sqrt(dx * dx + dy * dy);
-            let hour = Math.round(adjustedAngle / 30);
-            if (hour === 0) hour = 12;
-
-            // Check inner ring (radius < 85 is inner)
-            // Outer ring radius is ~100, inner is ~65. Cutoff at 85 seems right.
-            if (radius < 85) {
-                if (hour === 12) hour = 0; // 00 hours
-                else hour += 12; // 13-23
-            }
-
-            const currentM = newTime ? newTime.split(':')[1] : '00';
-            setNewTime(`${hour.toString().padStart(2, '0')}:${currentM}`);
-        } else {
-            // Minute mode
-            let minute = Math.round(adjustedAngle / 6);
-            if (minute === 60) minute = 0;
-
-            const currentH = newTime ? newTime.split(':')[0] : '12';
-            setNewTime(`${currentH}:${minute.toString().padStart(2, '0')}`);
-        }
-    };
-
-    const panResponder = useMemo(() => PanResponder.create({
-        onStartShouldSetPanResponder: () => true,
-        onMoveShouldSetPanResponder: () => true,
-        onPanResponderGrant: (evt) => handleTimeGesture(evt),
-        onPanResponderMove: (evt) => handleTimeGesture(evt),
-    }), [timeMode, newTime]);
 
     const onTimeChange = (event: any, selectedDate?: Date) => {
         setShowTimePicker(false);
@@ -193,12 +195,11 @@ export const TasksScreen = () => {
                 {activeTab === 'browse' && (
                     <View style={[styles.browseContainer, { borderBottomColor: theme.colors.border }]}>
                         <View style={[styles.searchBar, { backgroundColor: theme.colors.surface1 }]}>
-                            <Search size={20} color={theme.colors.textSecondary} />
                             <NothingInput
                                 placeholder="Search tasks..."
                                 value={searchQuery}
                                 onChangeText={setSearchQuery}
-                                style={styles.searchInput}
+
                             />
                         </View>
                         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.labelList}>
@@ -272,15 +273,12 @@ export const TasksScreen = () => {
             <Modal
                 animationType="slide"
                 transparent={true}
-                visible={isAddModalVisible}
+                visible={isAddModalVisible && !showAdvDateModal && !showAdvTimeModal && !showDurationModal && !showRemindersModal && !showLabelPicker}
                 onRequestClose={() => setIsAddModalVisible(false)}
                 statusBarTranslucent
             >
                 <TouchableOpacity
-                    style={[
-                        styles.modalOverlay,
-                        (showAdvDateModal || showAdvTimeModal || showDurationModal || showRemindersModal || showLabelPicker) && { opacity: 0 }
-                    ]}
+                    style={styles.modalOverlay}
                     activeOpacity={1}
                     onPress={() => setIsAddModalVisible(false)}
                 >
@@ -482,7 +480,11 @@ export const TasksScreen = () => {
                         </View>
 
                         {/* Add Time Button */}
-                        <TouchableOpacity style={styles.addTimeBtn} onPress={() => { setShowAdvDateModal(false); setShowAdvTimeModal(true); }}>
+                        <TouchableOpacity style={styles.addTimeBtn} onPress={() => {
+                            if (!newTime) setNewTime(dayjs().format('HH:mm'));
+                            setShowAdvDateModal(false);
+                            setShowAdvTimeModal(true);
+                        }}>
                             <Clock size={20} color={newTime ? theme.colors.primary : theme.colors.text} />
                             <NothingText style={{ marginLeft: 12, flex: 1 }}>{newTime ? newTime : 'Add Time'}</NothingText>
                             <ChevronRight size={16} color={theme.colors.textSecondary} />
@@ -533,31 +535,64 @@ export const TasksScreen = () => {
                         ]}
                         onStartShouldSetResponder={() => true}
                     >
-                        <NothingText variant="bold" size={18} style={{ marginBottom: 24 }}>
-                            {newTime || '--:--'}
-                        </NothingText>
-
-                        {/* Time Mode Toggles */}
-                        <View style={{ flexDirection: 'row', marginBottom: 24, backgroundColor: theme.colors.surface2, borderRadius: 12, padding: 4 }}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginBottom: 32 }}>
                             <TouchableOpacity
-                                style={{ paddingVertical: 8, paddingHorizontal: 16, borderRadius: 8, backgroundColor: timeMode === 'hour' ? theme.colors.surface : 'transparent' }}
                                 onPress={() => setTimeMode('hour')}
+                                style={{
+                                    backgroundColor: timeMode === 'hour' ? theme.colors.primary + '20' : 'transparent',
+                                    paddingHorizontal: 12,
+                                    paddingVertical: 4,
+                                    borderRadius: 8
+                                }}
                             >
-                                <NothingText variant="bold" color={timeMode === 'hour' ? theme.colors.text : theme.colors.textSecondary}>Hour</NothingText>
+                                <NothingText
+                                    variant="bold"
+                                    size={48}
+                                    color={timeMode === 'hour' ? theme.colors.primary : theme.colors.textSecondary}
+                                >
+                                    {newTime ? newTime.split(':')[0] : '--'}
+                                </NothingText>
                             </TouchableOpacity>
+
+                            <NothingText variant="bold" size={48} color={theme.colors.textSecondary} style={{ marginHorizontal: 4, paddingBottom: 8 }}>:</NothingText>
+
                             <TouchableOpacity
-                                style={{ paddingVertical: 8, paddingHorizontal: 16, borderRadius: 8, backgroundColor: timeMode === 'minute' ? theme.colors.surface : 'transparent' }}
                                 onPress={() => setTimeMode('minute')}
+                                style={{
+                                    backgroundColor: timeMode === 'minute' ? theme.colors.primary + '20' : 'transparent',
+                                    paddingHorizontal: 12,
+                                    paddingVertical: 4,
+                                    borderRadius: 8
+                                }}
                             >
-                                <NothingText variant="bold" color={timeMode === 'minute' ? theme.colors.text : theme.colors.textSecondary}>Minute</NothingText>
+                                <NothingText
+                                    variant="bold"
+                                    size={48}
+                                    color={timeMode === 'minute' ? theme.colors.primary : theme.colors.textSecondary}
+                                >
+                                    {newTime ? newTime.split(':')[1] : '--'}
+                                </NothingText>
                             </TouchableOpacity>
                         </View>
 
                         {/* Custom Dial Container */}
                         <View
-                            {...panResponder.panHandlers}
                             style={{ width: 260, height: 260, borderRadius: 130, backgroundColor: theme.colors.surface1, position: 'relative', marginBottom: 24 }}
                         >
+                            {/* Overlay for PanResponder - ensures stable coordinates */}
+                            {timeMode === 'minute' && (
+                                <View
+                                    {...panResponder.panHandlers}
+                                    style={{
+                                        position: 'absolute',
+                                        width: '100%',
+                                        height: '100%',
+                                        zIndex: 20,
+                                        elevation: 20
+                                    }}
+                                />
+                            )}
+
                             {/* Central Dot */}
                             <View style={{ position: 'absolute', top: 127, left: 127, width: 6, height: 6, borderRadius: 3, backgroundColor: theme.colors.primary, zIndex: 10 }} />
 
@@ -642,16 +677,12 @@ export const TasksScreen = () => {
                                     const isSelected = currentMinute === m;
 
                                     return (
-                                        <TouchableOpacity
+                                        <View
                                             key={m}
                                             style={{ position: 'absolute', left: x - 15, top: y - 15, width: 30, height: 30, justifyContent: 'center', alignItems: 'center', borderRadius: 15, backgroundColor: isSelected ? theme.colors.primary : 'transparent' }}
-                                            onPress={() => {
-                                                const h = newTime ? newTime.split(':')[0] : '12';
-                                                setNewTime(`${h}:${m.toString().padStart(2, '0')}`);
-                                            }}
                                         >
                                             <NothingText size={16} color={isSelected ? theme.colors.background : theme.colors.text}>{m.toString().padStart(2, '0')}</NothingText>
-                                        </TouchableOpacity>
+                                        </View>
                                     )
                                 })
                             )}
@@ -781,7 +812,7 @@ export const TasksScreen = () => {
                 >
                     <KeyboardAvoidingView
                         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-                        style={{ width: '100%' }}
+                        style={[styles.addModKey, { borderColor: theme.colors.border }]}
                     >
                         <View
                             style={[
@@ -930,6 +961,14 @@ const styles = StyleSheet.create({
         justifyContent: 'flex-end',
         padding: 0,
         margin: 0,
+    },
+    addModKey: {
+        width: '100%',
+        borderTopWidth: 2,
+        borderTopLeftRadius: 24,
+        borderTopRightRadius: 24,
+        borderBottomLeftRadius: 0,
+        borderBottomRightRadius: 0,
     },
     addModalContent: {
         // dynamic bg
