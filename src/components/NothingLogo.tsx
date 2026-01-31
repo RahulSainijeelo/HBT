@@ -1,10 +1,17 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
-import { theme } from '../theme';
+import { useTheme } from '../theme';
 
 export const NothingLogo = ({ size = 60 }: { size?: number }) => {
+    const { theme } = useTheme();
+
     return (
-        <View style={[styles.container, { width: size, height: size, borderRadius: size / 2 }]}>
+        <View style={[styles.container, {
+            width: size,
+            height: size,
+            borderRadius: size / 2,
+            borderColor: theme.colors.border
+        }]}>
             <View style={styles.grid}>
                 {[...Array(9)].map((_, i) => (
                     <View
@@ -26,7 +33,6 @@ export const NothingLogo = ({ size = 60 }: { size?: number }) => {
 const styles = StyleSheet.create({
     container: {
         borderWidth: 1,
-        borderColor: theme.colors.border,
         justifyContent: 'center',
         alignItems: 'center',
         borderStyle: 'dashed',

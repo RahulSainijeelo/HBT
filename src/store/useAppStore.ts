@@ -7,12 +7,12 @@ export interface Task {
     description?: string;
     completed: boolean;
     priority: 1 | 2 | 3 | 4;
-    category: string; // Used for Labels
-    dueDate?: string; // YYYY-MM-DD
-    dueTime?: string; // HH:mm
-    duration?: number; // in minutes
+    category: string;
+    dueDate?: string;
+    dueTime?: string;
+    duration?: number;
     repeat?: 'none' | 'daily' | 'weekly' | 'monthly';
-    reminders: string[]; // ISO strings
+    reminders: string[];
     subtasks: { id: string; title: string; completed: boolean }[];
 }
 
@@ -21,22 +21,31 @@ export interface Habit {
     title: string;
     description?: string;
     frequency: 'daily' | 'weekly' | 'monthly';
-    targetDays?: number; // e.g. 3 times a week
-    completedDates: string[]; // Format: YYYY-MM-DD
+    targetDays?: number;
+    completedDates: string[];
     streak: number;
     reminders: string[];
 }
 
 interface AppState {
+    activeProfile: { id: string; name: string } | null;
+
+    // Deprecated, use activeProfile
     currentUser: string | null;
+
     tasks: Task[];
     habits: Habit[];
     labels: string[];
 
     // Auth/Profile Actions
+    login: (profile: { id: string; name: string }) => Promise<void>;
+    createProfile: (name: string) => Promise<void>; // New action
+
+    // Legacy support wrapper
     setCurrentUser: (username: string) => Promise<void>;
+
     logout: () => void;
-    loadData: (username: string) => Promise<void>;
+    loadData: (id: string) => Promise<void>;
     saveData: () => Promise<void>;
 
     // Task Actions
@@ -53,22 +62,42 @@ interface AppState {
 }
 
 export const useAppStore = create<AppState>((set, get) => ({
-    currentUser: null,
+    activeProfile: null,
+    currentUser: null, // Computed getter ideally, but for now duplicate sync
     tasks: [],
     habits: [],
     labels: ['Inbox', 'Work', 'Personal'],
 
-    setCurrentUser: async (username) => {
-        set({ currentUser: username });
-        await get().loadData(username);
+    login: async (profile) => {
+        set({ activeProfile: profile, currentUser: profile.name });
+        await get().loadData(profile.id);
     },
 
-    logout: () => set({ currentUser: null, tasks: [], habits: [] }),
+    createProfile: async (name) => {
+        const id = Math.random().toString(36).substr(2, 9);
+        const newProfile = { id, name };
+        set({ activeProfile: newProfile, currentUser: name, tasks: [], habits: [], labels: ['Inbox', 'Work', 'Personal'] });
+        await get().saveData();
+    },
 
-    loadData: async (username) => {
-        const data = await StorageService.loadUserData(username);
+    // Legacy Support (Try to find ID by name or treat as legacy ID)
+    setCurrentUser: async (usernameOrId) => {
+        // This is a bit ambiguous now. If called from old code, it expects a username.
+        // We will assume it might be a legacy ID.
+        // Ideally we shouldn't use this anymore.
+        set({ currentUser: usernameOrId, activeProfile: { id: usernameOrId, name: usernameOrId } });
+        await get().loadData(usernameOrId);
+    },
+
+    logout: () => set({ activeProfile: null, currentUser: null, tasks: [], habits: [] }),
+
+    loadData: async (id) => {
+        const data = await StorageService.loadUserData(id);
         if (data) {
             set({
+                // If the loaded data has a name, update our state
+                activeProfile: { id: id, name: data.name || get().activeProfile?.name || id },
+                currentUser: data.name || get().currentUser,
                 tasks: data.tasks || [],
                 habits: data.habits || [],
                 labels: data.labels || ['Inbox', 'Work', 'Personal']
@@ -79,9 +108,16 @@ export const useAppStore = create<AppState>((set, get) => ({
     },
 
     saveData: async () => {
-        const { currentUser, tasks, habits, labels } = get();
-        if (currentUser) {
-            await StorageService.saveUserData(currentUser, { tasks, habits, labels });
+        const { activeProfile, tasks, habits, labels } = get();
+        if (activeProfile) {
+            const dataToSave = {
+                id: activeProfile.id,
+                name: activeProfile.name,
+                tasks,
+                habits,
+                labels
+            };
+            await StorageService.saveUserData(activeProfile.id, dataToSave);
         }
     },
 
@@ -139,7 +175,6 @@ export const useAppStore = create<AppState>((set, get) => ({
                         ? h.completedDates.filter((d) => d !== date)
                         : [...h.completedDates, date];
 
-                    // Simple streak calculation (can be improved)
                     const streak = newCompletedDates.length;
 
                     return { ...h, completedDates: newCompletedDates, streak };

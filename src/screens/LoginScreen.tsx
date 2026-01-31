@@ -7,15 +7,15 @@ import { NothingCard } from '../components/NothingCard';
 import { NothingInput } from '../components/NothingInput';
 import { NothingButton } from '../components/NothingButton';
 import { useAppStore } from '../store/useAppStore';
-import { StorageService } from '../services/StorageService';
+import { StorageService, UserProfile } from '../services/StorageService';
 import { User, FileInput, ArrowRight } from 'lucide-react-native';
 import { pick, types, isErrorWithCode, errorCodes } from '@react-native-documents/picker';
 import { NothingLogo } from '../components/NothingLogo';
 
 export const LoginScreen = ({ navigation }: any) => {
     const [username, setUsername] = useState('');
-    const [existingProfiles, setExistingProfiles] = useState<string[]>([]);
-    const { setCurrentUser } = useAppStore();
+    const [existingProfiles, setExistingProfiles] = useState<UserProfile[]>([]);
+    const { login, createProfile } = useAppStore();
     const { theme } = useTheme();
 
     useEffect(() => {
@@ -23,22 +23,22 @@ export const LoginScreen = ({ navigation }: any) => {
     }, []);
 
     const loadProfiles = async () => {
-        const profiles = await StorageService.getUserFiles();
+        const profiles = await StorageService.getProfiles();
         setExistingProfiles(profiles);
     };
 
     const handleCreateProfile = async () => {
         if (username.trim()) {
-            await setCurrentUser(username.trim());
-            await loadProfiles();
+            await createProfile(username.trim());
+            // No need to reload profiles, we are logging in immediately
             navigation.replace('Main');
         } else {
             Alert.alert('Error', 'Please enter a username');
         }
     };
 
-    const handleSelectProfile = async (name: string) => {
-        await setCurrentUser(name);
+    const handleSelectProfile = async (profile: UserProfile) => {
+        await login(profile);
         navigation.replace('Main');
     };
 
@@ -48,17 +48,16 @@ export const LoginScreen = ({ navigation }: any) => {
                 type: [types.allFiles],
             });
             if (res.uri) {
-                const importedName = await StorageService.importProfile(res.uri);
-                await setCurrentUser(importedName); // Auto-login imported user
+                const importedProfile = await StorageService.importProfile(res.uri);
+                await login(importedProfile); // Auto-login imported user
                 navigation.replace('Main');
-                // Alert.alert('Success', `Imported profile: ${importedName}`);
             }
         } catch (err) {
             if (isErrorWithCode(err) && err.code === errorCodes.OPERATION_CANCELED) {
                 // Ignore cancel
             } else {
                 console.error(err);
-                Alert.alert('Import Failed', 'Could not import the selected file.');
+                Alert.alert('Import Failed', 'Could not import the selected file. Ensure it is a valid HBT profile.');
             }
         }
     };
@@ -90,11 +89,14 @@ export const LoginScreen = ({ navigation }: any) => {
                     <View style={styles.profilesSection}>
                         <NothingText variant="bold" size={20} style={styles.sectionTitle}>Switch Profile</NothingText>
                         {existingProfiles.map((profile) => (
-                            <TouchableOpacity key={profile} onPress={() => handleSelectProfile(profile)}>
+                            <TouchableOpacity key={profile.id} onPress={() => handleSelectProfile(profile)}>
                                 <NothingCard margin="xs" style={styles.profileItem}>
                                     <View style={styles.row}>
                                         <User size={20} color={theme.colors.text} />
-                                        <NothingText style={styles.profileName}>{profile}</NothingText>
+                                        <NothingText style={styles.profileName}>{profile.name}</NothingText>
+                                        <NothingText size={10} color={theme.colors.textSecondary} style={{ marginLeft: 'auto' }}>
+                                            ID: {profile.id.substring(0, 5)}...
+                                        </NothingText>
                                     </View>
                                 </NothingCard>
                             </TouchableOpacity>
@@ -118,7 +120,6 @@ export const LoginScreen = ({ navigation }: any) => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        // backgroundColor: theme.colors.background,
     },
     scrollContent: {
         padding: 24,
@@ -128,17 +129,6 @@ const styles = StyleSheet.create({
         marginBottom: 40,
         alignItems: 'center',
     },
-    // dotIcon: {
-    //     width: 80,
-    //     height: 80,
-    //     borderRadius: 40,
-    //     borderWidth: 1,
-    //     // borderColor: theme.colors.border,
-    //     borderStyle: 'dashed',
-    //     justifyContent: 'center',
-    //     alignItems: 'center',
-    //     marginBottom: 24,
-    // },
     title: {
         marginBottom: 8,
     },

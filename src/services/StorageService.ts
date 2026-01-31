@@ -1,8 +1,12 @@
 import RNFS from 'react-native-fs';
-import { Platform } from 'react-native';
 
 const APP_FOLDER_NAME = 'HBT_Data';
 const BASE_PATH = `${RNFS.DocumentDirectoryPath}/${APP_FOLDER_NAME}`;
+
+export interface UserProfile {
+    id: string;
+    name: string;
+}
 
 export class StorageService {
     static async init() {
@@ -22,29 +26,61 @@ export class StorageService {
         }
     }
 
-    static async getUserFiles() {
+    // Scans all JSON files and returns basic identity info
+    static async getProfiles(): Promise<UserProfile[]> {
         const ready = await this.init();
         if (!ready) return [];
         try {
             const files = await RNFS.readDir(BASE_PATH);
-            return files
-                .filter(f => f.isFile() && f.name.endsWith('.json'))
-                .map(f => f.name.replace('.json', ''));
+            const jsonFiles = files.filter(f => f.isFile() && f.name.endsWith('.json') && f.name !== 'system_settings.json');
+
+            const profiles: UserProfile[] = [];
+
+            for (const file of jsonFiles) {
+                try {
+                    const content = await RNFS.readFile(file.path, 'utf8');
+                    const data = JSON.parse(content);
+
+                    if (data.id && data.name) {
+                        profiles.push({ id: data.id, name: data.name });
+                    } else {
+                        // Migration/Legacy fallback: use filename as ID and Name
+                        const legacyName = file.name.replace('.json', '');
+                        profiles.push({ id: legacyName, name: legacyName });
+                    }
+                } catch (readErr) {
+                    console.warn(`Failed to read/parse profile ${file.name}`, readErr);
+                }
+            }
+            return profiles;
         } catch (e) {
-            console.error('Failed to read profiles:', e);
+            console.error('Failed to read profiles directory:', e);
             return [];
         }
     }
 
-    static async saveUserData(username: string, data: any) {
+    // Backward compatibility for LoginScreen until fully refactored
+    static async getUserFiles() {
+        const profiles = await this.getProfiles();
+        return profiles.map(p => p.name);
+    }
+
+    static async saveUserData(userId: string, data: any) {
         await this.init();
-        const filePath = `${BASE_PATH}/${username}.json`;
+        const filePath = `${BASE_PATH}/${userId}.json`;
         await RNFS.writeFile(filePath, JSON.stringify(data, null, 2), 'utf8');
     }
 
-    static async loadUserData(username: string) {
-        const filePath = `${BASE_PATH}/${username}.json`;
-        const exists = await RNFS.exists(filePath);
+    // Load full data by ID
+    static async loadUserData(userId: string) {
+        // Fallback for legacy filenames that might not match an ID structure yet
+        let filePath = `${BASE_PATH}/${userId}.json`;
+
+        let exists = await RNFS.exists(filePath);
+        if (!exists) {
+            // Try treating logic: maybe userId IS the filename (legacy)
+        }
+
         if (exists) {
             const content = await RNFS.readFile(filePath, 'utf8');
             return JSON.parse(content);
@@ -52,30 +88,27 @@ export class StorageService {
         return null;
     }
 
-    static async exportProfile(username: string) {
-        const sourcePath = `${BASE_PATH}/${username}.json`;
-        // On Android, we can just point the user to the Downloads/HBT_Data folder
-        // but for "downloading" from profile, we might use a Share tool or copy to a specific location.
+    static async exportProfile(userId: string) {
+        const sourcePath = `${BASE_PATH}/${userId}.json`;
         return sourcePath;
     }
 
     static async importProfile(sourceUri: string) {
         await this.init();
-        let fileName = 'imported_profile.json';
-
-        // Simple heuristic to try and get a name, though with content:// logic it's harder
-        // Ideally we would read the content and get the name from the JSON
-
         try {
             const content = await RNFS.readFile(sourceUri, 'utf8');
-            // Try to parse to validate and get username if possible?
-            // For now, let's just make sure we don't overwrite blindly or fail on existing
-            const timestamp = new Date().getTime();
-            fileName = `imported_${timestamp}.json`;
-            const destPath = `${BASE_PATH}/${fileName}`;
+            const data = JSON.parse(content);
 
+            // Validate basic structure
+            if (!data.id || !data.name) {
+                throw new Error("Invalid profile format: missing id or name");
+            }
+
+            const fileName = `${data.id}.json`;
+            const destPath = `${BASE_PATH}/${fileName}`;
             await RNFS.writeFile(destPath, content, 'utf8');
-            return fileName.replace('.json', '');
+
+            return { id: data.id, name: data.name };
         } catch (e) {
             console.error('Import failed', e);
             throw e;

@@ -4,12 +4,13 @@ import { useTheme } from '../theme';
 import { NothingText } from '../components/NothingText';
 import { useAppStore } from '../store/useAppStore';
 import { SettingsService } from '../services/SettingsService';
+import { StorageService } from '../services/StorageService';
 
 const { width } = Dimensions.get('window');
 
 export const SplashScreen = ({ navigation }: any) => {
     const { theme } = useTheme();
-    const { setCurrentUser } = useAppStore();
+    const { login } = useAppStore();
 
     // Animation Values
     const scale = useRef(new Animated.Value(0.8)).current;
@@ -48,12 +49,21 @@ export const SplashScreen = ({ navigation }: any) => {
             await minWait;
 
             if (settings.defaultProfile) {
-                // Auto-login
-                await setCurrentUser(settings.defaultProfile);
-                navigation.replace('Main');
-            } else {
-                navigation.replace('Login');
+                // Try to load the profile data to get the name if we only have ID
+                const userData = await StorageService.loadUserData(settings.defaultProfile);
+
+                if (userData) {
+                    const profile = {
+                        id: settings.defaultProfile,
+                        name: userData.name || settings.defaultProfile
+                    };
+                    await login(profile);
+                    navigation.replace('Main');
+                    return;
+                }
             }
+
+            navigation.replace('Login');
         };
 
         init();

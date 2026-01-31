@@ -6,56 +6,58 @@ import { NothingText } from '../components/NothingText';
 import { NothingCard } from '../components/NothingCard';
 import { NothingButton } from '../components/NothingButton';
 import { useAppStore } from '../store/useAppStore';
-import { StorageService } from '../services/StorageService';
+import { StorageService, UserProfile } from '../services/StorageService';
 import { SettingsService } from '../services/SettingsService';
 import { Download, LogOut, User, ShieldCheck, Check, Users } from 'lucide-react-native';
 
 export const ProfileScreen = ({ navigation }: any) => {
-    const { currentUser, logout, tasks, habits, setCurrentUser } = useAppStore();
+    const { activeProfile, currentUser, logout, tasks, habits, login } = useAppStore();
     const { theme } = useTheme();
     const [isDefault, setIsDefault] = useState(false);
-    const [allProfiles, setAllProfiles] = useState<string[]>([]);
+    const [allProfiles, setAllProfiles] = useState<UserProfile[]>([]);
 
     useEffect(() => {
         checkDefaultStatus();
         loadProfiles();
-    }, [currentUser]);
+    }, [activeProfile]);
 
     const checkDefaultStatus = async () => {
+        if (!activeProfile) return;
         const settings = await SettingsService.getSettings();
-        setIsDefault(settings.defaultProfile === currentUser);
+        // Check both ID (new) and Name (legacy fallback)
+        setIsDefault(settings.defaultProfile === activeProfile.id || settings.defaultProfile === activeProfile.name);
     };
 
     const loadProfiles = async () => {
-        const files = await StorageService.getUserFiles();
-        // Filter out current user
-        setAllProfiles(files.filter(p => p !== currentUser));
+        const files = await StorageService.getProfiles();
+        // Filter out current user by ID
+        setAllProfiles(files.filter(p => p.id !== activeProfile?.id));
     };
 
     const toggleDefault = async (value: boolean) => {
-        if (!currentUser) return;
+        if (!activeProfile) return;
 
         if (value) {
-            await SettingsService.updateSettings({ defaultProfile: currentUser });
+            await SettingsService.updateSettings({ defaultProfile: activeProfile.id });
             setIsDefault(true);
-            Alert.alert('Default Profile', `${currentUser} is now the default profile.`);
+            Alert.alert('Default Profile', `${activeProfile.name} is now the default profile.`);
         } else {
             await SettingsService.updateSettings({ defaultProfile: undefined });
             setIsDefault(false);
         }
     };
 
-    const handleSwitchProfile = async (profileName: string) => {
+    const handleSwitchProfile = async (profile: UserProfile) => {
         Alert.alert(
             'Switch Profile',
-            `Switch to ${profileName}?`,
+            `Switch to ${profile.name}?`,
             [
                 { text: 'Cancel', style: 'cancel' },
                 {
                     text: 'Switch',
                     onPress: async () => {
-                        await setCurrentUser(profileName);
-                        navigation.navigate('Main'); // Reset navigation to main
+                        await login(profile);
+                        navigation.navigate('Main');
                     }
                 }
             ]
@@ -63,8 +65,8 @@ export const ProfileScreen = ({ navigation }: any) => {
     };
 
     const handleDownload = async () => {
-        if (currentUser) {
-            const path = await StorageService.exportProfile(currentUser);
+        if (activeProfile) {
+            const path = await StorageService.exportProfile(activeProfile.id);
             Alert.alert('Download Ready', `Your data is saved at:\n${path}`);
         }
     };
@@ -99,8 +101,8 @@ export const ProfileScreen = ({ navigation }: any) => {
                     <View style={[styles.avatar, { borderColor: theme.colors.border }]}>
                         <User size={48} color={theme.colors.text} />
                     </View>
-                    <NothingText variant="bold" size={24}>{currentUser}</NothingText>
-                    <NothingText color={theme.colors.textSecondary}>Active Profile</NothingText>
+                    <NothingText variant="bold" size={24}>{activeProfile?.name || currentUser}</NothingText>
+                    <NothingText color={theme.colors.textSecondary} size={12}>ID: {activeProfile?.id}</NothingText>
                 </NothingCard>
 
                 <View style={styles.statsRow}>
@@ -120,12 +122,12 @@ export const ProfileScreen = ({ navigation }: any) => {
                             OTHER PROFILES
                         </NothingText>
                         {allProfiles.map(profile => (
-                            <TouchableOpacity key={profile} onPress={() => handleSwitchProfile(profile)}>
+                            <TouchableOpacity key={profile.id} onPress={() => handleSwitchProfile(profile)}>
                                 <NothingCard margin="xs" style={styles.profileRow}>
                                     <View style={styles.row}>
                                         <View style={styles.rowLeft}>
                                             <Users size={18} color={theme.colors.textSecondary} />
-                                            <NothingText style={styles.actionText}>{profile}</NothingText>
+                                            <NothingText style={styles.actionText}>{profile.name}</NothingText>
                                         </View>
                                         <NothingText color={theme.colors.primary} size={12}>SWITCH</NothingText>
                                     </View>
