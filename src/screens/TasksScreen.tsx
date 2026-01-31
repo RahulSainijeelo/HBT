@@ -92,6 +92,47 @@ export const TasksScreen = () => {
         }
     };
 
+    const handleTimeGesture = (evt: any) => {
+        const { locationX, locationY } = evt.nativeEvent;
+        // Dial is 260x260, center 130,130
+        const dx = locationX - 130;
+        const dy = locationY - 130;
+        let angle = Math.atan2(dy, dx) * 180 / Math.PI; // -180 to 180
+
+        let adjustedAngle = angle + 90;
+        if (adjustedAngle < 0) adjustedAngle += 360;
+
+        if (timeMode === 'hour') {
+            const radius = Math.sqrt(dx * dx + dy * dy);
+            let hour = Math.round(adjustedAngle / 30);
+            if (hour === 0) hour = 12;
+
+            // Check inner ring (radius < 85 is inner)
+            // Outer ring radius is ~100, inner is ~65. Cutoff at 85 seems right.
+            if (radius < 85) {
+                if (hour === 12) hour = 0; // 00 hours
+                else hour += 12; // 13-23
+            }
+
+            const currentM = newTime ? newTime.split(':')[1] : '00';
+            setNewTime(`${hour.toString().padStart(2, '0')}:${currentM}`);
+        } else {
+            // Minute mode
+            let minute = Math.round(adjustedAngle / 6);
+            if (minute === 60) minute = 0;
+
+            const currentH = newTime ? newTime.split(':')[0] : '12';
+            setNewTime(`${currentH}:${minute.toString().padStart(2, '0')}`);
+        }
+    };
+
+    const panResponder = useMemo(() => PanResponder.create({
+        onStartShouldSetPanResponder: () => true,
+        onMoveShouldSetPanResponder: () => true,
+        onPanResponderGrant: (evt) => handleTimeGesture(evt),
+        onPanResponderMove: (evt) => handleTimeGesture(evt),
+    }), [timeMode, newTime]);
+
     const onTimeChange = (event: any, selectedDate?: Date) => {
         setShowTimePicker(false);
         if (selectedDate) {
@@ -513,7 +554,10 @@ export const TasksScreen = () => {
                         </View>
 
                         {/* Custom Dial Container */}
-                        <View style={{ width: 260, height: 260, borderRadius: 130, backgroundColor: theme.colors.surface1, position: 'relative', marginBottom: 24 }}>
+                        <View
+                            {...panResponder.panHandlers}
+                            style={{ width: 260, height: 260, borderRadius: 130, backgroundColor: theme.colors.surface1, position: 'relative', marginBottom: 24 }}
+                        >
                             {/* Central Dot */}
                             <View style={{ position: 'absolute', top: 127, left: 127, width: 6, height: 6, borderRadius: 3, backgroundColor: theme.colors.primary, zIndex: 10 }} />
 
