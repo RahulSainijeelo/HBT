@@ -12,3 +12,4 @@ Ok now create a quick login screen. this screen will ask user name and then crea
 
 
 adb install android/app/build/outputs/apk/release/app-release.apk
+./gradlew assembleRelease

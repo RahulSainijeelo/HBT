@@ -32,7 +32,7 @@
             android:textSize="14sp"
             android:textStyle="bold" />
 
-        <!-- Add Button (hidden when not logged in) -->
+        <!-- Add Button -->
         <TextView
             android:id="@+id/widget_add"
             android:layout_width="wrap_content"
