@@ -5,7 +5,7 @@ import dayjs from 'dayjs';
 import { NothingText } from '../NothingText';
 import { NothingCard } from '../NothingCard';
 import { TaskItemProps } from '../../utils/TaskScreen.utils';
-import { TaskItemStyle as styles } from './styles';
+import { TaskItemStyle as styles } from '../../styles/styles';
 
 export const TaskItem: React.FC<TaskItemProps> = ({ item, theme, toggleTask, getPriorityColor }) => (
     <NothingCard margin="xs" style={styles.taskCard}>

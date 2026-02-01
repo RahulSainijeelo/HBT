@@ -3,7 +3,7 @@ import { View, Modal, TouchableOpacity } from 'react-native';
 import { Bell, CheckCircle2 } from 'lucide-react-native';
 import { NothingText } from '../NothingText';
 import { RemindersModalProps } from '../../utils/TaskScreen.utils';
-import { RemindersModalStyle as styles } from './styles';
+import { RemindersModalStyle as styles } from '../../styles/styles';
 
 export const RemindersModal: React.FC<RemindersModalProps> = ({
     visible, onClose, theme, insets, selectedReminders, setSelectedReminders

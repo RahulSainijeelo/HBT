@@ -6,7 +6,7 @@ import { NothingText } from '../NothingText';
 import { NothingInput } from '../NothingInput';
 import { NothingButton } from '../NothingButton';
 import { AddTaskModalProps } from '../../utils/TaskScreen.utils';
-import { AddTaskModalStyle as styles } from './styles';
+import { AddTaskModalStyle as styles } from '../../styles/styles';
 
 export const AddTaskModal: React.FC<AddTaskModalProps> = ({
     visible, onClose, theme, insets, newTitle, setNewTitle, newDate, newPriority, setNewPriority,

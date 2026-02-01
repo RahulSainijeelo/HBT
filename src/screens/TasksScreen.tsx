@@ -14,7 +14,7 @@ import { TimeDialModal } from '../components/tasks/TimeDialModal';
 import { DurationModal } from '../components/tasks/DurationModal';
 import { RemindersModal } from '../components/tasks/RemindersModal';
 import { LabelPickerModal } from '../components/tasks/LabelPickerModal';
-import { styles } from './TaskScreen.style';
+import { styles } from '../styles/TaskScreen.style';
 
 export const TasksScreen = () => {
     const {
