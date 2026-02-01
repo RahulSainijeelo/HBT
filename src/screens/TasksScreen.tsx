@@ -17,6 +17,7 @@ import { LabelPickerModal } from '../components/tasks/LabelPickerModal';
 import { TaskDetailModal } from '../components/tasks/TaskDetailModal';
 import { styles } from '../styles/TaskScreen.style';
 import { getPriorityColor } from '../utils/TaskScreen.utils';
+import { useAppStore } from '../store/useAppStore';
 export const TasksScreen = () => {
     const {
         activeTab, setActiveTab,
@@ -49,13 +50,20 @@ export const TasksScreen = () => {
         handleAddTask,
         onDateChange,
         onTimeChange,
+        selectedTaskForView, setSelectedTaskForView,
         isDetailModalVisible, setIsDetailModalVisible,
         activeTask,
         handleTaskPress,
         handleAddSubtask,
         handleToggleSubtask,
         handleDeleteSubtask,
-        newLabel, setNewLabel,
+        deleteTask,
+        handleUpdateTaskPriority,
+        handleUpdateTaskLabel,
+        handleUpdateTaskDate,
+        handleUpdateTaskTime,
+        handleOpenAddModal,
+        newLabel, setNewLabel: setNewLabelProp,
         addLabel,
     } = useTasksScreen();
     const insets = useSafeAreaInsets();
@@ -97,6 +105,15 @@ export const TasksScreen = () => {
                             >
                                 <NothingText color={selectedLabelFilter === null ? theme.colors.background : theme.colors.text} size={12}>All</NothingText>
                             </TouchableOpacity>
+                            <TouchableOpacity
+                                onPress={() => setSelectedLabelFilter(selectedLabelFilter === 'Done' ? null : 'Done')}
+                                style={[
+                                    styles.labelChip,
+                                    { backgroundColor: selectedLabelFilter === 'Done' ? theme.colors.primary : theme.colors.surface2 }
+                                ]}
+                            >
+                                <NothingText color={selectedLabelFilter === 'Done' ? theme.colors.background : theme.colors.text} size={12}>Done</NothingText>
+                            </TouchableOpacity>
                             {labels.map(label => (
                                 <TouchableOpacity
                                     key={label}
@@ -120,6 +137,7 @@ export const TasksScreen = () => {
                             item={item}
                             theme={theme}
                             toggleTask={toggleTask}
+                            deleteTask={deleteTask}
                             getPriorityColor={getPriorityColor}
                             onPress={handleTaskPress}
                         />
@@ -149,6 +167,7 @@ export const TasksScreen = () => {
                                         item={item}
                                         theme={theme}
                                         toggleTask={toggleTask}
+                                        deleteTask={deleteTask}
                                         getPriorityColor={getPriorityColor}
                                         onPress={handleTaskPress}
                                     />
@@ -160,7 +179,7 @@ export const TasksScreen = () => {
 
                 <TouchableOpacity
                     style={[styles.fab, { backgroundColor: theme.colors.primary }]}
-                    onPress={() => setIsAddModalVisible(true)}
+                    onPress={handleOpenAddModal}
                 >
                     <Plus color={theme.colors.background} size={32} />
                 </TouchableOpacity>
@@ -192,10 +211,22 @@ export const TasksScreen = () => {
                 onClose={() => setShowAdvDateModal(false)}
                 theme={theme}
                 insets={insets}
-                newDate={newDate}
-                setNewDate={setNewDate}
-                newTime={newTime}
-                setNewTime={setNewTime as any}
+                newDate={isDetailModalVisible && activeTask ? activeTask.dueDate || dayjs().format('YYYY-MM-DD') : newDate}
+                setNewDate={(date) => {
+                    if (isDetailModalVisible && activeTask) {
+                        handleUpdateTaskDate(activeTask.id, date);
+                    } else {
+                        setNewDate(date);
+                    }
+                }}
+                newTime={isDetailModalVisible && activeTask ? activeTask.dueTime : newTime}
+                setNewTime={(time) => {
+                    if (isDetailModalVisible && activeTask) {
+                        handleUpdateTaskTime(activeTask.id, time as any);
+                    } else {
+                        setNewTime(time as any);
+                    }
+                }}
                 currentMonth={currentMonth}
                 setCurrentMonth={setCurrentMonth}
                 isRepeatEnabled={isRepeatEnabled}
@@ -215,7 +246,13 @@ export const TasksScreen = () => {
                 timeMode={timeMode}
                 setTimeMode={setTimeMode}
                 newTime={newTime}
-                setNewTime={setNewTime as any}
+                setNewTime={(time) => {
+                    if (isDetailModalVisible && activeTask) {
+                        handleUpdateTaskTime(activeTask.id, time as any);
+                    } else {
+                        setNewTime(time as any);
+                    }
+                }}
                 panResponder={panResponder}
             />
 
@@ -243,8 +280,14 @@ export const TasksScreen = () => {
                 theme={theme}
                 insets={insets}
                 labels={labels}
-                newLabel={newLabel}
-                setNewLabel={setNewLabel}
+                newLabel={isDetailModalVisible && activeTask ? activeTask.category : newLabel}
+                setNewLabel={(label) => {
+                    if (isDetailModalVisible && activeTask) {
+                        handleUpdateTaskLabel(activeTask.id, label);
+                    } else {
+                        setNewLabelProp(label);
+                    }
+                }}
                 customLabel={customLabel}
                 setCustomLabel={setCustomLabel}
                 addLabel={addLabel}
@@ -268,7 +311,7 @@ export const TasksScreen = () => {
             )}
 
             <TaskDetailModal
-                visible={isDetailModalVisible}
+                visible={isDetailModalVisible && !showAdvDateModal && !showAdvTimeModal && !showLabelPicker}
                 onClose={() => setIsDetailModalVisible(false)}
                 theme={theme}
                 insets={insets}
@@ -276,6 +319,9 @@ export const TasksScreen = () => {
                 onAddSubtask={handleAddSubtask}
                 onToggleSubtask={handleToggleSubtask}
                 onDeleteSubtask={handleDeleteSubtask}
+                onUpdatePriority={handleUpdateTaskPriority}
+                onUpdateLabel={() => setShowLabelPicker(true)}
+                onUpdateDate={() => setShowAdvDateModal(true)}
                 getPriorityColor={getPriorityColor}
             />
         </>

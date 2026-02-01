@@ -256,4 +256,8 @@ export const TaskItemStyle = StyleSheet.create({
         height: 8,
         borderRadius: 4,
     },
+    swipeAction: {
+        borderRadius: 12,
+        marginVertical: 4, // Matches NothingCard margin
+    },
 });
