@@ -30,9 +30,8 @@ export interface NothingButtonProps extends TouchableOpacityProps {
 export const getFontFamily = (variant: 'dot' | 'regular' | 'medium' | 'bold') => {
     switch (variant) {
         case 'dot':
-            return 'Courier'; // Fallback for dot matrix
+            return 'Courier';
         case 'medium':
-            // Assuming theme.fonts is defined, but if not, fallback to default system font
             return 'System';
         case 'bold':
             return 'System';
