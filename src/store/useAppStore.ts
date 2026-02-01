@@ -152,7 +152,7 @@ export const useAppStore = create<AppState>((set, get) => ({
                 labels
             };
             await StorageService.saveUserData(activeProfile.id, dataToSave);
-            WidgetService.updateWidget(tasks, habits);
+            // WidgetService.updateWidget(tasks, habits);
         }
     },
 
