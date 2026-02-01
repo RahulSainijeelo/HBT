@@ -40,13 +40,11 @@ export const TasksScreen = () => {
         showRemindersModal, setShowRemindersModal,
         selectedReminders, setSelectedReminders,
         showLabelPicker, setShowLabelPicker,
-        showCompleted, setShowCompleted,
         currentMonth, setCurrentMonth,
         isRepeatEnabled, setIsRepeatEnabled,
         timeMode, setTimeMode,
         panResponder,
-        activeTasks,
-        completedTasks,
+        allFilteredTasks,
         handleAddTask,
         onDateChange,
         onTimeChange,
@@ -116,14 +114,14 @@ export const TasksScreen = () => {
                             </TouchableOpacity>
                             {labels.map(label => (
                                 <TouchableOpacity
-                                    key={label}
-                                    onPress={() => setSelectedLabelFilter(selectedLabelFilter === label ? null : label)}
+                                    key={label.id}
+                                    onPress={() => setSelectedLabelFilter(selectedLabelFilter === label.name ? null : label.name)}
                                     style={[
                                         styles.labelChip,
-                                        { backgroundColor: selectedLabelFilter === label ? theme.colors.primary : theme.colors.surface2 }
+                                        { backgroundColor: selectedLabelFilter === label.name ? theme.colors.primary : theme.colors.surface2 }
                                     ]}
                                 >
-                                    <NothingText color={selectedLabelFilter === label ? theme.colors.background : theme.colors.text} size={12}>{label}</NothingText>
+                                    <NothingText color={selectedLabelFilter === label.name ? theme.colors.background : theme.colors.text} size={12}>{label.name}</NothingText>
                                 </TouchableOpacity>
                             ))}
                         </ScrollView>
@@ -131,7 +129,7 @@ export const TasksScreen = () => {
                 )}
 
                 <FlatList
-                    data={activeTasks}
+                    data={allFilteredTasks}
                     renderItem={({ item }) => (
                         <TaskItem
                             item={item}
@@ -145,33 +143,9 @@ export const TasksScreen = () => {
                     keyExtractor={(item) => item.id}
                     contentContainerStyle={styles.listContainer}
                     ListEmptyComponent={
-                        activeTasks.length === 0 && completedTasks.length === 0 ? (
+                        allFilteredTasks.length === 0 ? (
                             <View style={styles.emptyContainer}>
                                 <NothingText color={theme.colors.textSecondary}>No tasks found</NothingText>
-                            </View>
-                        ) : null
-                    }
-                    ListFooterComponent={
-                        completedTasks.length > 0 ? (
-                            <View style={{ marginTop: 24 }}>
-                                <TouchableOpacity
-                                    onPress={() => setShowCompleted(!showCompleted)}
-                                    style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 16 }}
-                                >
-                                    <NothingText variant="bold" color={theme.colors.textSecondary}>COMPLETED ({completedTasks.length})</NothingText>
-                                    {showCompleted ? <ChevronUp size={16} color={theme.colors.textSecondary} style={{ marginLeft: 8 }} /> : <ChevronDown size={16} color={theme.colors.textSecondary} style={{ marginLeft: 8 }} />}
-                                </TouchableOpacity>
-                                {showCompleted && completedTasks.map(item => (
-                                    <TaskItem
-                                        key={item.id}
-                                        item={item}
-                                        theme={theme}
-                                        toggleTask={toggleTask}
-                                        deleteTask={deleteTask}
-                                        getPriorityColor={getPriorityColor}
-                                        onPress={handleTaskPress}
-                                    />
-                                ))}
                             </View>
                         ) : null
                     }

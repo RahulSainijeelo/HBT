@@ -33,6 +33,11 @@ export interface Habit {
     color?: string;
 }
 
+export interface Label {
+    id: string;
+    name: string;
+}
+
 interface AppState {
     activeProfile: { id: string; name: string } | null;
 
@@ -41,7 +46,7 @@ interface AppState {
 
     tasks: Task[];
     habits: Habit[];
-    labels: string[];
+    labels: Label[];
 
     // Auth/Profile Actions
     login: (profile: { id: string; name: string }) => Promise<void>;
@@ -59,7 +64,7 @@ interface AppState {
     updateTask: (id: string, updates: Partial<Task>) => void;
     toggleTask: (id: string) => void;
     deleteTask: (id: string) => void;
-    addLabel: (label: string) => void;
+    addLabel: (name: string) => void;
 
     // Habit Actions
     addHabit: (habit: Omit<Habit, 'id' | 'completedDates' | 'streak' | 'bestStreak' | 'accumulatedTimeToday'>) => void;
@@ -68,12 +73,18 @@ interface AppState {
     deleteHabit: (id: string) => void;
 }
 
+const DEFAULT_LABELS: Label[] = [
+    { id: 'l1', name: 'Inbox' },
+    { id: 'l2', name: 'Work' },
+    { id: 'l3', name: 'Personal' }
+];
+
 export const useAppStore = create<AppState>((set, get) => ({
     activeProfile: null,
     currentUser: null, // Computed getter ideally, but for now duplicate sync
     tasks: [],
     habits: [],
-    labels: ['Inbox', 'Work', 'Personal'],
+    labels: DEFAULT_LABELS,
 
     login: async (profile) => {
         set({ activeProfile: profile, currentUser: profile.name });
@@ -83,7 +94,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     createProfile: async (name) => {
         const id = Math.random().toString(36).substr(2, 9);
         const newProfile = { id, name };
-        set({ activeProfile: newProfile, currentUser: name, tasks: [], habits: [], labels: ['Inbox', 'Work', 'Personal'] });
+        set({ activeProfile: newProfile, currentUser: name, tasks: [], habits: [], labels: DEFAULT_LABELS });
         await get().saveData();
     },
 
@@ -107,7 +118,9 @@ export const useAppStore = create<AppState>((set, get) => ({
                 currentUser: data.name || get().currentUser,
                 tasks: data.tasks || [],
                 habits: data.habits || [],
-                labels: data.labels || ['Inbox', 'Work', 'Personal']
+                labels: data.labels && Array.isArray(data.labels) && typeof data.labels[0] === 'object'
+                    ? data.labels
+                    : (data.labels || DEFAULT_LABELS).map((l: any) => typeof l === 'string' ? { id: Math.random().toString(36).substr(2, 9), name: l } : l)
             });
         } else {
             set({ tasks: [], habits: [] });
@@ -161,8 +174,10 @@ export const useAppStore = create<AppState>((set, get) => ({
         get().saveData();
     },
 
-    addLabel: (label) => {
-        set((state) => ({ labels: [...state.labels, label] }));
+    addLabel: (name) => {
+        set((state) => ({
+            labels: [...state.labels, { id: Math.random().toString(36).substr(2, 9), name }]
+        }));
         get().saveData();
     },
 

@@ -45,13 +45,13 @@ export const LabelPickerModal: React.FC<LabelPickerModalProps> = ({
                     <ScrollView style={{ maxHeight: 200 }} showsVerticalScrollIndicator={false}>
                         {labels.map(label => (
                             <TouchableOpacity
-                                key={label}
+                                key={label.id}
                                 style={styles.labelItem}
-                                onPress={() => { setNewLabel(label); onClose(); }}
+                                onPress={() => { setNewLabel(label.name); onClose(); }}
                             >
                                 <Tag size={16} color={theme.colors.textSecondary} />
-                                <NothingText style={{ marginLeft: 12 }}>{label}</NothingText>
-                                {newLabel === label && <CheckCircle2 size={16} color={theme.colors.primary} style={{ marginLeft: 'auto' }} />}
+                                <NothingText style={{ marginLeft: 12 }}>{label.name}</NothingText>
+                                {newLabel === label.name && <CheckCircle2 size={16} color={theme.colors.primary} style={{ marginLeft: 'auto' }} />}
                             </TouchableOpacity>
                         ))}
                     </ScrollView>

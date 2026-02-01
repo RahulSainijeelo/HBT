@@ -34,7 +34,6 @@ export const useTasksScreen = () => {
     const [showRemindersModal, setShowRemindersModal] = useState(false);
     const [selectedReminders, setSelectedReminders] = useState<string[]>([]);
     const [showLabelPicker, setShowLabelPicker] = useState(false);
-    const [showCompleted, setShowCompleted] = useState(false);
     const [selectedTaskForView, setSelectedTaskForView] = useState<string | null>(null);
     const [isDetailModalVisible, setIsDetailModalVisible] = useState(false);
 
@@ -96,9 +95,13 @@ export const useTasksScreen = () => {
 
     const allFilteredTasks = tasks.filter(t => {
         if (activeTab === 'today') {
-            return t.dueDate === dayjs().format('YYYY-MM-DD') || !t.dueDate;
+            const isToday = t.dueDate === dayjs().format('YYYY-MM-DD') || !t.dueDate;
+            return isToday && !t.completed;
         }
-        if (activeTab === 'upcoming') return t.dueDate && dayjs(t.dueDate).isAfter(dayjs(), 'day');
+        if (activeTab === 'upcoming') {
+            const isUpcoming = t.dueDate && dayjs(t.dueDate).isAfter(dayjs(), 'day');
+            return isUpcoming && !t.completed;
+        }
         if (activeTab === 'browse') {
             const matchesSearch = t.title.toLowerCase().includes(searchQuery.toLowerCase());
 
@@ -111,9 +114,6 @@ export const useTasksScreen = () => {
         }
         return true;
     });
-
-    const activeTasks = allFilteredTasks.filter(t => !t.completed);
-    const completedTasks = allFilteredTasks.filter(t => t.completed);
 
     const activeTask = tasks.find(t => t.id === selectedTaskForView);
 
@@ -236,14 +236,12 @@ export const useTasksScreen = () => {
         showRemindersModal, setShowRemindersModal,
         selectedReminders, setSelectedReminders,
         showLabelPicker, setShowLabelPicker,
-        showCompleted, setShowCompleted,
         currentMonth, setCurrentMonth,
         isRepeatEnabled, setIsRepeatEnabled,
         timeMode, setTimeMode,
         handleTimeDrag,
         panResponder,
-        activeTasks,
-        completedTasks,
+        allFilteredTasks,
         handleAddTask,
         handleOpenAddModal,
         onDateChange,

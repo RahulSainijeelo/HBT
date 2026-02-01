@@ -1,5 +1,5 @@
 import dayjs from "dayjs";
-import { Task } from "../store/useAppStore";
+import { Task, Label } from "../store/useAppStore";
 
 export const getPriorityColor = (p: number) => {
     switch (p) {
@@ -21,7 +21,7 @@ export interface LabelPickerModalProps {
     onClose: () => void;
     theme: any;
     insets: any;
-    labels: string[];
+    labels: Label[];
     newLabel: string;
     setNewLabel: (l: string) => void;
     customLabel: string;
