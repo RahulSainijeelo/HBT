@@ -7,6 +7,7 @@ import android.widget.RemoteViews
 import android.widget.RemoteViewsService
 import org.json.JSONArray
 import org.json.JSONObject
+import com.rise.R
 
 class RiseWidgetService : RemoteViewsService() {
     override fun onGetViewFactory(intent: Intent): RemoteViewsFactory {

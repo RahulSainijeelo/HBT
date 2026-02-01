@@ -11,7 +11,7 @@
         android:id="@+id/widget_item_icon"
         android:layout_width="16dp"
         android:layout_height="16dp"
-        android:src="@drawable/rn_edit_text_material"
+        android:src="@android:drawable/ic_menu_edit"
         android:alpha="0.4"
         android:tint="#FFFFFF" />
 
@@ -23,8 +23,7 @@
         android:layout_marginStart="12dp"
         android:text="Item Name"
         android:textColor="#FFFFFF"
-        android:textSize="15sp"
-        android:fontFamily="@font/ndot" />
+        android:textSize="15sp" />
 
     <TextView
         android:id="@+id/widget_item_status"
@@ -33,7 +32,6 @@
         android:text="PENDING"
         android:textColor="#FF3B30"
         android:textSize="11sp"
-        android:textStyle="bold"
-        android:fontFamily="@font/ndot" />
+        android:textStyle="bold" />
 
 </LinearLayout>
