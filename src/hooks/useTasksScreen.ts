@@ -35,6 +35,8 @@ export const useTasksScreen = () => {
     const [selectedReminders, setSelectedReminders] = useState<string[]>([]);
     const [showLabelPicker, setShowLabelPicker] = useState(false);
     const [showCompleted, setShowCompleted] = useState(false);
+    const [selectedTaskForView, setSelectedTaskForView] = useState<string | null>(null);
+    const [isDetailModalVisible, setIsDetailModalVisible] = useState(false);
 
     // Advanced Date Modal State
     const [currentMonth, setCurrentMonth] = useState(dayjs());
@@ -108,6 +110,8 @@ export const useTasksScreen = () => {
     const activeTasks = allFilteredTasks.filter(t => !t.completed);
     const completedTasks = allFilteredTasks.filter(t => t.completed);
 
+    const activeTask = tasks.find(t => t.id === selectedTaskForView);
+
     const handleAddTask = () => {
         if (newTitle.trim()) {
             addTask({
@@ -137,6 +141,42 @@ export const useTasksScreen = () => {
         setShowTimePicker(false);
         if (selectedDate) {
             setNewTime(dayjs(selectedDate).format('HH:mm'));
+        }
+    };
+
+    const handleTaskPress = (taskId: string) => {
+        setSelectedTaskForView(taskId);
+        setIsDetailModalVisible(true);
+    };
+
+    const handleAddSubtask = (taskId: string, title: string) => {
+        const task = tasks.find(t => t.id === taskId);
+        if (task) {
+            const newSubtask = {
+                id: Math.random().toString(36).substr(2, 9),
+                title,
+                completed: false
+            };
+            const updatedSubtasks = [...(task.subtasks || []), newSubtask];
+            useAppStore.getState().updateTask(taskId, { subtasks: updatedSubtasks });
+        }
+    };
+
+    const handleToggleSubtask = (taskId: string, subtaskId: string) => {
+        const task = tasks.find(t => t.id === taskId);
+        if (task) {
+            const updatedSubtasks = task.subtasks.map(st =>
+                st.id === subtaskId ? { ...st, completed: !st.completed } : st
+            );
+            useAppStore.getState().updateTask(taskId, { subtasks: updatedSubtasks });
+        }
+    };
+
+    const handleDeleteSubtask = (taskId: string, subtaskId: string) => {
+        const task = tasks.find(t => t.id === taskId);
+        if (task) {
+            const updatedSubtasks = task.subtasks.filter(st => st.id !== subtaskId);
+            useAppStore.getState().updateTask(taskId, { subtasks: updatedSubtasks });
         }
     };
 
@@ -172,6 +212,13 @@ export const useTasksScreen = () => {
         completedTasks,
         handleAddTask,
         onDateChange,
-        onTimeChange
+        onTimeChange,
+        selectedTaskForView, setSelectedTaskForView,
+        isDetailModalVisible, setIsDetailModalVisible,
+        activeTask,
+        handleTaskPress,
+        handleAddSubtask,
+        handleToggleSubtask,
+        handleDeleteSubtask,
     };
 };

@@ -4,10 +4,14 @@ import { CheckCircle2, Circle } from 'lucide-react-native';
 import dayjs from 'dayjs';
 import { NothingText } from '../NothingText';
 import { NothingCard } from '../NothingCard';
-import { TaskItemProps } from '../../utils/TaskScreen.utils';
+import { TaskItemProps as BaseTaskItemProps } from '../../utils/TaskScreen.utils';
 import { TaskItemStyle as styles } from '../../styles/styles';
 
-export const TaskItem: React.FC<TaskItemProps> = ({ item, theme, toggleTask, getPriorityColor }) => (
+interface TaskItemProps extends BaseTaskItemProps {
+    onPress: (taskId: string) => void;
+}
+
+export const TaskItem: React.FC<TaskItemProps> = ({ item, theme, toggleTask, getPriorityColor, onPress }) => (
     <NothingCard margin="xs" style={styles.taskCard}>
         <View style={styles.taskMain}>
             <TouchableOpacity onPress={() => toggleTask(item.id)} style={{ marginRight: 12 }}>
@@ -18,9 +22,7 @@ export const TaskItem: React.FC<TaskItemProps> = ({ item, theme, toggleTask, get
             </TouchableOpacity>
             <TouchableOpacity
                 style={styles.taskTextContainer}
-                onPress={() => {
-                    console.log("Show details for", item.id);
-                }}
+                onPress={() => onPress(item.id)}
             >
                 <NothingText style={[styles.taskTitle, item.completed && { textDecorationLine: 'line-through', color: theme.colors.textSecondary }]}>
                     {item.title}
