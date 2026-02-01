@@ -4,11 +4,11 @@ import android.appwidget.AppWidgetManager
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
-import android.content.SharedPreferences
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.facebook.react.bridge.ReactMethod
-import com.facebook.react.bridge.ReadableMap
+import android.util.Log
+import com.rise.R
 
 class WidgetBridge(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
 
@@ -18,24 +18,36 @@ class WidgetBridge(reactContext: ReactApplicationContext) : ReactContextBaseJava
 
     @ReactMethod
     fun setWidgetData(data: String) {
-        val sharedPref = reactApplicationContext.getSharedPreferences("RiseWidgetPrefs", Context.MODE_PRIVATE)
-        with(sharedPref.edit()) {
-            putString("widgetData", data)
-            apply()
-        }
+        try {
+            Log.d("WidgetBridge", "Setting widget data: $data")
+            val sharedPref = reactApplicationContext.getSharedPreferences("RiseWidgetPrefs", Context.MODE_PRIVATE)
+            with(sharedPref.edit()) {
+                putString("widgetData", data)
+                apply()
+            }
 
-        // Notify the widget that data has changed
-        val context = reactApplicationContext
-        val intent = Intent(context, RiseWidget::class.java)
-        intent.action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
-        
-        val appWidgetManager = AppWidgetManager.getInstance(context)
-        val ids = appWidgetManager.getAppWidgetIds(ComponentName(context, RiseWidget::class.java))
-        
-        intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, ids)
-        context.sendBroadcast(intent)
-        
-        // Specifically notify the collection view (if we use one)
-        appWidgetManager.notifyAppWidgetViewDataChanged(ids, R.id.widget_list)
+            val context = reactApplicationContext
+            val appWidgetManager = AppWidgetManager.getInstance(context)
+            val componentName = ComponentName(context, RiseWidget::class.java)
+            val ids = appWidgetManager.getAppWidgetIds(componentName)
+
+            if (ids.isNotEmpty()) {
+                Log.d("WidgetBridge", "Notifying ${ids.size} widgets")
+                
+                // Update the collection
+                // appWidgetManager.notifyAppWidgetViewDataChanged(ids, R.id.widget_list)
+                
+                // Trigger a general update
+                val updateIntent = Intent(context, RiseWidget::class.java).apply {
+                    action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
+                    putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, ids)
+                }
+                context.sendBroadcast(updateIntent)
+            } else {
+                Log.d("WidgetBridge", "No widgets found to update")
+            }
+        } catch (e: Exception) {
+            Log.e("WidgetBridge", "Error updating widget data", e)
+        }
     }
 }

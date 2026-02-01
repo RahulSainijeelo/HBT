@@ -43,7 +43,7 @@
             android:resource="@xml/rise_widget_info" />
       </receiver>
       <service
-        android:name=".RiseWidgetService"
+        android:name="com.rise.RiseWidgetService"
         android:permission="android.permission.BIND_REMOTEVIEWS" />
     </application>
 </manifest>
