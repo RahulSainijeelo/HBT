@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet, TouchableOpacity, ScrollView, Dimensions } from 'react-native';
+import { View, TouchableOpacity, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../theme';
 import { NothingText } from '../components/NothingText';
@@ -7,8 +7,7 @@ import { NothingCard } from '../components/NothingCard';
 import { NothingButton } from '../components/NothingButton';
 import { ArrowLeft, BookOpen, Sparkles, Zap, Target, Award } from 'lucide-react-native';
 import { useAppStore } from '../store/useAppStore';
-
-const { width } = Dimensions.get('window');
+import { HabitKnowledgeScreenStyles as styles } from '../styles/Habit.styles';
 
 export const HabitKnowledgeScreen = ({ route, navigation }: any) => {
     const { template } = route.params;
@@ -105,61 +104,3 @@ export const HabitKnowledgeScreen = ({ route, navigation }: any) => {
         </SafeAreaView>
     );
 };
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-    },
-    header: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingHorizontal: 16,
-        paddingVertical: 12,
-    },
-    backBtn: {
-        padding: 8,
-    },
-    scrollContent: {
-        padding: 24,
-    },
-    introSection: {
-        marginBottom: 32,
-    },
-    title: {
-        marginBottom: 8,
-    },
-    sectionCard: {
-        padding: 20,
-        marginBottom: 32,
-    },
-    sectionHeader: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginBottom: 12,
-    },
-    subTitle: {
-        letterSpacing: 1.5,
-        marginBottom: 20,
-    },
-    lawRow: {
-        flexDirection: 'row',
-        alignItems: 'flex-start',
-        marginBottom: 24,
-    },
-    lawIcon: {
-        width: 44,
-        height: 44,
-        borderRadius: 22,
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginRight: 16,
-    },
-    lawText: {
-        flex: 1,
-    },
-    commitBtn: {
-        marginTop: 20,
-        marginBottom: 40,
-    }
-});

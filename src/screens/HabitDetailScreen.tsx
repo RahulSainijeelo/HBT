@@ -1,15 +1,15 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, StyleSheet, TouchableOpacity, ScrollView, Animated, Dimensions, Vibration, Modal } from 'react-native';
+import { View, TouchableOpacity, ScrollView, Animated, Dimensions, Vibration, Modal } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { ArrowLeft, Play, Pause, RotateCcw, Flame, Trophy, Settings, Trash2, Check, X } from 'lucide-react-native';
+import { HabitDetailScreenStyles as styles } from '../styles/Habit.styles';
+import dayjs from 'dayjs';
 import { useTheme } from '../theme';
 import { NothingText } from '../components/NothingText';
 import { NothingCard } from '../components/NothingCard';
 import { NothingButton } from '../components/NothingButton';
 import { NothingInput } from '../components/NothingInput';
-import { useAppStore, Habit } from '../store/useAppStore';
-import { ArrowLeft, Play, Pause, RotateCcw, Flame, Trophy, Settings, Trash2, Check, X } from 'lucide-react-native';
-import dayjs from 'dayjs';
-
+import { useAppStore } from '../store/useAppStore';
 const { width } = Dimensions.get('window');
 const CIRCLE_SIZE = width * 0.7;
 
@@ -271,131 +271,3 @@ export const HabitDetailScreen = ({ route, navigation }: any) => {
     );
 };
 
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-    },
-    header: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingHorizontal: 16,
-        paddingVertical: 12,
-    },
-    backBtn: {
-        padding: 8,
-    },
-    scrollContent: {
-        padding: 24,
-    },
-    statsRow: {
-        flexDirection: 'row',
-        gap: 12,
-        marginBottom: 32,
-    },
-    statCard: {
-        flex: 1,
-        alignItems: 'center',
-        paddingVertical: 20,
-    },
-    statVal: {
-        marginVertical: 4,
-    },
-    mainArea: {
-        alignItems: 'center',
-        marginVertical: 40,
-    },
-    timerContainer: {
-        alignItems: 'center',
-        width: '100%',
-    },
-    circleOutline: {
-        width: CIRCLE_SIZE,
-        height: CIRCLE_SIZE,
-        borderRadius: CIRCLE_SIZE / 2,
-        borderWidth: 2,
-        justifyContent: 'center',
-        alignItems: 'center',
-        overflow: 'hidden',
-    },
-    progressOverlay: {
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-    },
-    timerControls: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 24,
-        marginTop: 40,
-    },
-    playBtn: {
-        width: 80,
-        height: 80,
-        borderRadius: 40,
-        justifyContent: 'center',
-        alignItems: 'center',
-        elevation: 4,
-    },
-    controlBtn: {
-        width: 56,
-        height: 56,
-        borderRadius: 28,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    checkContainer: {
-        alignItems: 'center',
-    },
-    largeCheckBtn: {
-        width: 180,
-        height: 180,
-        borderRadius: 90,
-        borderWidth: 3,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    sectionTitle: {
-        letterSpacing: 2,
-        marginBottom: 12,
-        marginTop: 20,
-    },
-    historyCard: {
-        padding: 16,
-    },
-    heatmap: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        gap: 8,
-        justifyContent: 'center',
-    },
-    heatDot: {
-        width: 14,
-        height: 14,
-        borderRadius: 2,
-    },
-    deleteBtn: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginTop: 48,
-        paddingVertical: 16,
-        opacity: 0.6,
-    },
-    modalOverlay: {
-        flex: 1,
-        backgroundColor: 'rgba(0,0,0,0.8)',
-        justifyContent: 'center',
-        padding: 20,
-    },
-    modalContent: {
-        // dynamic
-    },
-    modalHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: 24,
-    }
-});
