@@ -107,18 +107,22 @@ export const ProfileScreen = ({ navigation }: any) => {
         <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
             <View style={styles.header}>
                 <TouchableOpacity onPress={() => navigation.goBack()}>
-                    <NothingText color={theme.colors.textSecondary}>BACK</NothingText>
+                    <NothingText color={theme.colors.primary} size={20} style={{ fontFamily: 'ndot' }}>BACK</NothingText>
                 </TouchableOpacity>
                 {/* <NothingText variant="dot" size={32}>SYSTEM</NothingText> */}
             </View>
 
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
-                <NothingCard padding="lg" bordered={false} style={[styles.profileCard, { backgroundColor: theme.colors.surface1 }]}>
-                    <View style={[styles.avatar, { borderColor: theme.colors.border }]}>
-                        <User size={48} color={theme.colors.text} />
+                <NothingCard padding="lg" bordered={false} style={[styles.profileCard, { backgroundColor: theme.colors.surface1, borderColor: theme.colors.primary, borderWidth: 1 }]}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
+                        <View style={[styles.avatar, { borderColor: theme.colors.border }]}>
+                            <User size={48} color={theme.colors.text} />
+                        </View>
+                        <View>
+                            <NothingText variant="bold" style={{ fontFamily: 'ndot' }} size={40}>{activeProfile?.name || currentUser}</NothingText>
+                            <NothingText color={theme.colors.textSecondary} size={12}>ID: {activeProfile?.id}</NothingText>
+                        </View>
                     </View>
-                    <NothingText variant="bold" size={24}>{activeProfile?.name || currentUser}</NothingText>
-                    <NothingText color={theme.colors.textSecondary} size={12}>ID: {activeProfile?.id}</NothingText>
                 </NothingCard>
 
                 <View style={styles.statsRow}>
@@ -203,7 +207,7 @@ export const ProfileScreen = ({ navigation }: any) => {
                         <TouchableOpacity onPress={() => Linking.openURL('https://github.com/RahulSainijeelo')}>
                             <Github size={24} color={theme.colors.text} />
                         </TouchableOpacity>
-                        <TouchableOpacity onPress={() => Linking.openURL('https://www.buymeacoffee.com')}>
+                        <TouchableOpacity onPress={() => Linking.openURL('https://www.buymeacoffee.com/rahulsainidev')}>
                             <Coffee size={24} color="#FFDD00" fill="#FFDD00" />
                         </TouchableOpacity>
                     </View>

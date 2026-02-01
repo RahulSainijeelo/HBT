@@ -5,7 +5,7 @@ import { useTheme } from '../theme';
 import { NothingText } from '../components/NothingText';
 import { NothingCard } from '../components/NothingCard';
 import { NothingButton } from '../components/NothingButton';
-import { ArrowLeft, BookOpen, Sparkles, Zap, Target, Award } from 'lucide-react-native';
+import { ArrowLeft, BookOpen, Sparkles, Zap, Target, Award, Check } from 'lucide-react-native';
 import { useAppStore } from '../store/useAppStore';
 import { HabitKnowledgeScreenStyles as styles } from '../styles/Habit.styles';
 
@@ -40,13 +40,13 @@ export const HabitKnowledgeScreen = ({ route, navigation }: any) => {
                 <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
                     <ArrowLeft color={theme.colors.text} size={24} />
                 </TouchableOpacity>
-                <NothingText variant="bold" size={20}>RISE INSIGHTS</NothingText>
+                <NothingText variant="bold" size={24} style={{ color: theme.colors.text, fontFamily: 'ndot' }}>RISE INSIGHTS</NothingText>
                 <View style={{ width: 40 }} />
             </View>
 
             <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
                 <View style={[styles.introSection, { borderBottomWidth: 1, borderBottomColor: theme.colors.border, paddingBottom: 24 }]}>
-                    <NothingText variant="dot" size={48} style={styles.title}>{template.title.toUpperCase()}</NothingText>
+                    <NothingText variant="dot" size={48} style={[styles.title, { fontFamily: 'ndot' }]}>{template.title.toUpperCase()}</NothingText>
                     <NothingText color={theme.colors.textSecondary} size={16} style={{ lineHeight: 24 }}>{template.description}</NothingText>
                 </View>
 
@@ -94,7 +94,7 @@ export const HabitKnowledgeScreen = ({ route, navigation }: any) => {
                 {/* ... other laws stay the same for brevity or can be enhanced */}
                 <View style={styles.lawRow}>
                     <View style={[styles.lawIcon, { backgroundColor: theme.colors.surface1 }]}>
-                        <ArrowLeft size={20} color={theme.colors.text} style={{ transform: [{ rotate: '180deg' }] }} />
+                        <Check size={20} color={theme.colors.text} />
                     </View>
                     <View style={styles.lawText}>
                         <NothingText variant="bold" size={16}>How to Apply</NothingText>

@@ -5,6 +5,7 @@ import { NothingText } from '../components/NothingText';
 import { useAppStore } from '../store/useAppStore';
 import { SettingsService } from '../services/SettingsService';
 import { StorageService } from '../services/StorageService';
+import { RiseLogoAnimation } from '../components/RiseLogoAnimation';
 
 const { width } = Dimensions.get('window');
 
@@ -43,7 +44,7 @@ export const SplashScreen = ({ navigation }: any) => {
 
         // 3. Navigation Logic after animation
         const init = async () => {
-            const minWait = new Promise(resolve => setTimeout(resolve, 2000));
+            const minWait = new Promise<void>(resolve => setTimeout(() => resolve(), 2000));
             const settings = await SettingsService.getSettings();
 
             await minWait;
@@ -72,17 +73,7 @@ export const SplashScreen = ({ navigation }: any) => {
     return (
         <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
             <Animated.View style={{ opacity, transform: [{ scale }] }}>
-                <View style={[styles.logoContainer, { borderColor: theme.colors.primary }]}>
-                    <NothingText variant="dot" size={48} color={theme.colors.primary}>
-                        Rise
-                    </NothingText>
-                </View>
-            </Animated.View>
-
-            <Animated.View style={{ opacity: textOpacity, position: 'absolute', bottom: 60 }}>
-                <NothingText variant="medium" size={12} color={theme.colors.textSecondary} style={{ letterSpacing: 4 }}>
-                    SYSTEM LOADING...
-                </NothingText>
+                <RiseLogoAnimation primaryColor={theme.colors.primary} />
             </Animated.View>
         </View>
     );
@@ -94,14 +85,4 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
     },
-    logoContainer: {
-        borderWidth: 1,
-        borderStyle: 'dotted',
-        padding: 32,
-        borderRadius: 100, // Circleish
-        justifyContent: 'center',
-        alignItems: 'center',
-        width: width * 0.6,
-        height: width * 0.6,
-    }
 });

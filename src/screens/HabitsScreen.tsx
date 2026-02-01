@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, FlatList, TouchableOpacity, Modal } from 'react-native';
+import { useRoute } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../theme';
 import { NothingText } from '../components/NothingText';
@@ -14,6 +15,7 @@ import { HabitsScreenStyles as styles } from '../styles/Habit.styles';
 import { COMMON_HABITS_TEMPLATES, HabitTemplate } from '../utils/HabitTemplates';
 
 export const HabitsScreen = () => {
+    const route = useRoute<any>();
     const navigation = useNavigation<any>();
     const { habits, addHabit, toggleHabit, updateNumericProgress } = useAppStore();
     const { theme } = useTheme();
@@ -24,6 +26,13 @@ export const HabitsScreen = () => {
     const [newFreq, setNewFreq] = useState<'daily' | 'weekly' | 'monthly'>('daily');
     const [newType, setNewType] = useState<'check' | 'timer' | 'numeric'>('check');
     const [newTimerGoal, setNewTimerGoal] = useState('10'); // minutes
+
+    React.useEffect(() => {
+        if (route.params?.openAdd) {
+            setIsAddModalVisible(true);
+            navigation.setParams({ openAdd: undefined });
+        }
+    }, [route.params?.openAdd]);
 
     const [newNumericGoal, setNewNumericGoal] = useState('8');
     const [newNumericUnit, setNewNumericUnit] = useState('glasses');

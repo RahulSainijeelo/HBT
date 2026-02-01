@@ -8,11 +8,35 @@ import { StyleSheet } from 'react-native';
 import { HabitDetailScreen } from '../screens/HabitDetailScreen';
 import { HabitKnowledgeScreen } from '../screens/HabitKnowledgeScreen';
 import { TabNavigator } from './TabNavigator';
+import { WidgetAddScreen } from '../screens/WidgetAddScreen';
 const Stack = createNativeStackNavigator();
+
+const linking = {
+    prefixes: ['rise://'],
+    config: {
+        screens: {
+            Main: {
+                path: 'home',
+                screens: {
+                    Home: 'root',
+                    Tasks: 'tasks',
+                    Habits: 'habits',
+                }
+            },
+            HabitDetail: 'item/:habitId/habit',
+            Profile: 'profile',
+            // Specific shortcuts
+            MainAdd: {
+                path: 'add',
+                exact: true,
+            }
+        }
+    }
+};
 
 export const AppNavigator = () => {
     return (
-        <NavigationContainer>
+        <NavigationContainer linking={linking}>
             <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName="Splash">
                 <Stack.Screen name="Splash" component={SplashScreen} />
                 <Stack.Screen name="Login" component={LoginScreen} />
@@ -20,6 +44,7 @@ export const AppNavigator = () => {
                 <Stack.Screen name="Profile" component={ProfileScreen} />
                 <Stack.Screen name="HabitDetail" component={HabitDetailScreen} />
                 <Stack.Screen name="HabitKnowledge" component={HabitKnowledgeScreen} />
+                <Stack.Screen name="MainAdd" component={WidgetAddScreen} options={{ presentation: 'transparentModal', animation: 'fade' }} />
             </Stack.Navigator>
         </NavigationContainer>
     );

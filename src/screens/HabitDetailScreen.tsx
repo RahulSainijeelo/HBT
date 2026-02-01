@@ -91,7 +91,7 @@ export const HabitDetailScreen = ({ route, navigation }: any) => {
                 <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
                     <ArrowLeft color={theme.colors.text} size={24} />
                 </TouchableOpacity>
-                <NothingText variant="bold" size={20}>{habit.title.toUpperCase()}</NothingText>
+                <NothingText variant="bold" style={{ fontFamily: 'ndot' }} size={24}>{habit.title.toUpperCase()}</NothingText>
                 <TouchableOpacity onPress={() => setShowSettings(true)}>
                     <Settings color={theme.colors.text} size={24} />
                 </TouchableOpacity>
@@ -202,7 +202,7 @@ export const HabitDetailScreen = ({ route, navigation }: any) => {
                 {/* Atomic Habit Section */}
                 {habit.cue && (
                     <View style={{ marginTop: 40 }}>
-                        <NothingText variant="bold" size={18} style={styles.sectionTitle}>THE HABIT LOOP</NothingText>
+                        <NothingText variant="bold" size={20} style={[styles.sectionTitle, { fontFamily: 'ndot' }]}>THE HABIT LOOP</NothingText>
                         <View style={styles.loopContainer}>
                             <View style={[styles.loopStep, { borderColor: theme.colors.border }]}>
                                 <View style={[styles.stepIcon, { backgroundColor: '#3B82F620' }]}>
@@ -226,7 +226,7 @@ export const HabitDetailScreen = ({ route, navigation }: any) => {
 
                             <View style={[styles.loopStep, { borderColor: theme.colors.border }]}>
                                 <View style={[styles.stepIcon, { backgroundColor: '#A78BFA20' }]}>
-                                    <ArrowLeft size={24} color="#A78BFA" style={{ transform: [{ rotate: '180deg' }] }} />
+                                    <Check size={24} color="#A78BFA" style={{ transform: [{ rotate: '180deg' }] }} />
                                 </View>
                                 <View style={styles.stepContent}>
                                     <NothingText variant="bold" size={14} color="#A78BFA">3. RESPONSE</NothingText>
@@ -300,7 +300,7 @@ export const HabitDetailScreen = ({ route, navigation }: any) => {
                         onStartShouldSetResponder={() => true}
                     >
                         <View style={styles.modalHeader}>
-                            <NothingText variant="bold" size={20}>EDIT HABIT</NothingText>
+                            <NothingText variant="bold" style={{ fontFamily: 'ndot' }} size={20}>EDIT HABIT</NothingText>
                             <TouchableOpacity onPress={() => setShowSettings(false)}>
                                 <X color={theme.colors.text} size={24} />
                             </TouchableOpacity>
@@ -314,7 +314,7 @@ export const HabitDetailScreen = ({ route, navigation }: any) => {
 
                         {habit.type === 'timer' && (
                             <View style={{ marginTop: 16 }}>
-                                <NothingText variant="bold" size={14} style={{ marginBottom: 12 }}>GOAL DURATION (MINS)</NothingText>
+                                <NothingText variant="bold" size={14} style={{ marginBottom: 12, fontFamily: 'ndot' }}>GOAL DURATION (MINS)</NothingText>
                                 <NothingInput
                                     placeholder="10"
                                     value={editGoal}

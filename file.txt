@@ -8,3 +8,8 @@ Ok now create a quick login screen. this screen will ask user name and then crea
 5. In the header show app icon and show profile button (with profile picture). this will open the profile screen, this screen will allow downloading the data till current app data(also all app data should be automatically being saved in the said location user data file in the android folder, so that there will not be any data loss issue. 
 
 6. don't forget that ui will be exactly like nothing os 4 ui
+
+
+
+adb install android/app/build/outputs/apk/release/app-release.apk
+./gradlew assembleRelease

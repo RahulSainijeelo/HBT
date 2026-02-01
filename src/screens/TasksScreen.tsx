@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, FlatList, TouchableOpacity, ScrollView, Platform } from 'react-native';
+import { useRoute, useNavigation } from '@react-navigation/native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Plus, ChevronDown, ChevronUp, Search, SlidersHorizontal } from 'lucide-react-native';
 import dayjs from 'dayjs';
@@ -20,6 +21,8 @@ import { styles } from '../styles/TaskScreen.style';
 import { getPriorityColor } from '../utils/TaskScreen.utils';
 import { useAppStore } from '../store/useAppStore';
 export const TasksScreen = () => {
+    const route = useRoute<any>();
+    const navigation = useNavigation<any>();
     const {
         activeTab, setActiveTab,
         isAddModalVisible, setIsAddModalVisible,
@@ -68,6 +71,13 @@ export const TasksScreen = () => {
         showManageLabelsModal, setShowManageLabelsModal,
     } = useTasksScreen();
     const insets = useSafeAreaInsets();
+
+    React.useEffect(() => {
+        if (route.params?.openAdd) {
+            setIsAddModalVisible(true);
+            navigation.setParams({ openAdd: undefined });
+        }
+    }, [route.params?.openAdd]);
 
     return (
         <>

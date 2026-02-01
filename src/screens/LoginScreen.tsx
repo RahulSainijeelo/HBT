@@ -77,12 +77,12 @@ export const LoginScreen = ({ navigation }: any) => {
             >
                 <View style={styles.header}>
                     <NothingLogo size={80} />
-                    <NothingText variant="dot" size={32} style={styles.title}>Rise</NothingText>
-                    <NothingText color={theme.colors.textSecondary}>Choose your profile to begin</NothingText>
+                    <NothingText variant="dot" size={32} style={[styles.title, { color: theme.colors.primary, fontFamily: 'ndot' }]}>RISE</NothingText>
+                    <NothingText color={theme.colors.textSecondary} style={{ fontFamily: 'ndot' }}>Choose your profile to begin</NothingText>
                 </View>
 
                 <NothingCard padding="lg" margin="sm">
-                    <NothingText variant="bold" size={20} style={styles.sectionTitle}>New Profile</NothingText>
+                    <NothingText variant="bold" size={20} style={[styles.sectionTitle, { fontFamily: 'ndot' }]}>New Profile</NothingText>
                     <NothingInput
                         placeholder="Username"
                         value={username}
@@ -97,7 +97,7 @@ export const LoginScreen = ({ navigation }: any) => {
 
                 {existingProfiles.length > 0 && (
                     <View style={styles.profilesSection}>
-                        <NothingText variant="bold" size={20} style={styles.sectionTitle}>Switch Profile</NothingText>
+                        <NothingText variant="bold" size={20} style={[styles.sectionTitle, { fontFamily: 'ndot' }]}>Switch Profile</NothingText>
                         {existingProfiles.map((profile) => (
                             <TouchableOpacity key={profile.id} onPress={() => handleSelectProfile(profile)}>
                                 <NothingCard margin="xs" style={styles.profileItem}>
