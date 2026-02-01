@@ -25,9 +25,15 @@
             <action android:name="android.intent.action.MAIN" />
             <category android:name="android.intent.category.LAUNCHER" />
         </intent-filter>
+        <intent-filter>
+            <action android:name="android.intent.action.VIEW" />
+            <category android:name="android.intent.category.DEFAULT" />
+            <category android:name="android.intent.category.BROWSABLE" />
+            <data android:scheme="rise" />
+        </intent-filter>
       </activity>
       <receiver
-        android:name=".RiseWidget"
+        android:name="com.rise.RiseWidget"
         android:exported="true">
         <intent-filter>
             <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
@@ -36,5 +42,8 @@
             android:name="android.appwidget.provider"
             android:resource="@xml/rise_widget_info" />
       </receiver>
+      <service
+        android:name=".RiseWidgetService"
+        android:permission="android.permission.BIND_REMOTEVIEWS" />
     </application>
 </manifest>

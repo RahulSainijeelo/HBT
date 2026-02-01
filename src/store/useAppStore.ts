@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import dayjs from 'dayjs';
 import { StorageService } from '../services/StorageService';
+import { WidgetService } from '../services/WidgetService';
 
 export interface Task {
     id: string;
@@ -151,6 +152,7 @@ export const useAppStore = create<AppState>((set, get) => ({
                 labels
             };
             await StorageService.saveUserData(activeProfile.id, dataToSave);
+            WidgetService.updateWidget(tasks, habits);
         }
     },
 

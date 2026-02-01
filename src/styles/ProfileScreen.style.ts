@@ -16,6 +16,7 @@ export const ProfileScreenStyle = StyleSheet.create({
     profileCard: {
         alignItems: 'center',
         marginBottom: 24,
+
     },
     avatar: {
         width: 100,
@@ -24,13 +25,14 @@ export const ProfileScreenStyle = StyleSheet.create({
         borderWidth: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        marginBottom: 16,
+        marginBottom: 20,
         borderStyle: 'dotted',
     },
     statsRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         marginBottom: 32,
+        marginTop: 23
     },
     statBox: {
         flex: 1,

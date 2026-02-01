@@ -40,13 +40,13 @@ export const HabitKnowledgeScreen = ({ route, navigation }: any) => {
                 <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
                     <ArrowLeft color={theme.colors.text} size={24} />
                 </TouchableOpacity>
-                <NothingText variant="bold" size={20}>RISE INSIGHTS</NothingText>
+                <NothingText variant="bold" size={24} style={{ color: theme.colors.text, fontFamily: 'ndot' }}>RISE INSIGHTS</NothingText>
                 <View style={{ width: 40 }} />
             </View>
 
             <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
                 <View style={[styles.introSection, { borderBottomWidth: 1, borderBottomColor: theme.colors.border, paddingBottom: 24 }]}>
-                    <NothingText variant="dot" size={48} style={styles.title}>{template.title.toUpperCase()}</NothingText>
+                    <NothingText variant="dot" size={48} style={[styles.title, { fontFamily: 'ndot' }]}>{template.title.toUpperCase()}</NothingText>
                     <NothingText color={theme.colors.textSecondary} size={16} style={{ lineHeight: 24 }}>{template.description}</NothingText>
                 </View>
 
