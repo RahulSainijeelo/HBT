@@ -9,7 +9,7 @@ export type SubTab = 'today' | 'upcoming' | 'browse';
 export const useTasksScreen = () => {
     const [activeTab, setActiveTab] = useState<SubTab>('today');
     const [isAddModalVisible, setIsAddModalVisible] = useState(false);
-    const { tasks, toggleTask, labels, addTask, addLabel, deleteTask } = useAppStore();
+    const { tasks, toggleTask, labels, addTask, addLabel, deleteTask, deleteLabel } = useAppStore();
     const { theme } = useTheme();
 
     // New task state
@@ -34,7 +34,7 @@ export const useTasksScreen = () => {
     const [showRemindersModal, setShowRemindersModal] = useState(false);
     const [selectedReminders, setSelectedReminders] = useState<string[]>([]);
     const [showLabelPicker, setShowLabelPicker] = useState(false);
-    const [showCompleted, setShowCompleted] = useState(false);
+    const [showManageLabelsModal, setShowManageLabelsModal] = useState(false);
     const [selectedTaskForView, setSelectedTaskForView] = useState<string | null>(null);
     const [isDetailModalVisible, setIsDetailModalVisible] = useState(false);
 
@@ -47,6 +47,11 @@ export const useTasksScreen = () => {
     timeModeRef.current = timeMode;
     const newTimeRef = useRef(newTime);
     newTimeRef.current = newTime;
+
+    const isDetailModalVisibleRef = useRef(isDetailModalVisible);
+    isDetailModalVisibleRef.current = isDetailModalVisible;
+    const selectedTaskForViewRef = useRef(selectedTaskForView);
+    selectedTaskForViewRef.current = selectedTaskForView;
 
     const handleTimeDrag = (x: number, y: number) => {
         const centerX = 130;
@@ -63,7 +68,11 @@ export const useTasksScreen = () => {
             let minute = Math.round(angle / 6);
             if (minute === 60) minute = 0;
             const h = newTimeRef.current ? newTimeRef.current.split(':')[0] : '12';
-            setNewTime(`${h}:${minute.toString().padStart(2, '0')}`);
+            const formattedTime = `${h}:${minute.toString().padStart(2, '0')}`;
+            setNewTime(formattedTime);
+            if (isDetailModalVisibleRef.current && selectedTaskForViewRef.current) {
+                useAppStore.getState().updateTask(selectedTaskForViewRef.current, { dueTime: formattedTime });
+            }
         } else {
             let hourIndex = Math.round(angle / 30) % 12;
             let hour = 0;
@@ -77,28 +86,39 @@ export const useTasksScreen = () => {
             }
 
             const m = newTimeRef.current ? newTimeRef.current.split(':')[1] : '00';
-            setNewTime(`${hour.toString().padStart(2, '0')}:${m}`);
+            const formattedTime = `${hour.toString().padStart(2, '0')}:${m}`;
+            setNewTime(formattedTime);
+            if (isDetailModalVisibleRef.current && selectedTaskForViewRef.current) {
+                useAppStore.getState().updateTask(selectedTaskForViewRef.current, { dueTime: formattedTime });
+            }
         }
     };
+
+    const handleTimeDragRef = useRef(handleTimeDrag);
+    handleTimeDragRef.current = handleTimeDrag;
 
     const panResponder = useRef(
         PanResponder.create({
             onStartShouldSetPanResponder: () => true,
             onMoveShouldSetPanResponder: () => true,
             onPanResponderGrant: (evt) => {
-                handleTimeDrag(evt.nativeEvent.locationX, evt.nativeEvent.locationY);
+                handleTimeDragRef.current(evt.nativeEvent.locationX, evt.nativeEvent.locationY);
             },
             onPanResponderMove: (evt) => {
-                handleTimeDrag(evt.nativeEvent.locationX, evt.nativeEvent.locationY);
+                handleTimeDragRef.current(evt.nativeEvent.locationX, evt.nativeEvent.locationY);
             },
         })
     ).current;
 
     const allFilteredTasks = tasks.filter(t => {
         if (activeTab === 'today') {
-            return t.dueDate === dayjs().format('YYYY-MM-DD') || !t.dueDate;
+            const isToday = t.dueDate === dayjs().format('YYYY-MM-DD') || !t.dueDate;
+            return isToday && !t.completed;
         }
-        if (activeTab === 'upcoming') return t.dueDate && dayjs(t.dueDate).isAfter(dayjs(), 'day');
+        if (activeTab === 'upcoming') {
+            const isUpcoming = t.dueDate && dayjs(t.dueDate).isAfter(dayjs(), 'day');
+            return isUpcoming && !t.completed;
+        }
         if (activeTab === 'browse') {
             const matchesSearch = t.title.toLowerCase().includes(searchQuery.toLowerCase());
 
@@ -111,9 +131,6 @@ export const useTasksScreen = () => {
         }
         return true;
     });
-
-    const activeTasks = allFilteredTasks.filter(t => !t.completed);
-    const completedTasks = allFilteredTasks.filter(t => t.completed);
 
     const activeTask = tasks.find(t => t.id === selectedTaskForView);
 
@@ -217,7 +234,7 @@ export const useTasksScreen = () => {
     return {
         activeTab, setActiveTab,
         isAddModalVisible, setIsAddModalVisible,
-        tasks, toggleTask, labels, addTask, addLabel, deleteTask,
+        tasks, toggleTask, labels, addTask, addLabel, deleteTask, deleteLabel,
         theme,
         newTitle, setNewTitle,
         newDate, setNewDate,
@@ -236,14 +253,13 @@ export const useTasksScreen = () => {
         showRemindersModal, setShowRemindersModal,
         selectedReminders, setSelectedReminders,
         showLabelPicker, setShowLabelPicker,
-        showCompleted, setShowCompleted,
+        showManageLabelsModal, setShowManageLabelsModal,
         currentMonth, setCurrentMonth,
         isRepeatEnabled, setIsRepeatEnabled,
         timeMode, setTimeMode,
         handleTimeDrag,
         panResponder,
-        activeTasks,
-        completedTasks,
+        allFilteredTasks,
         handleAddTask,
         handleOpenAddModal,
         onDateChange,

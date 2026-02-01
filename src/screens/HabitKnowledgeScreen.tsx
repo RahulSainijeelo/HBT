@@ -17,12 +17,19 @@ export const HabitKnowledgeScreen = ({ route, navigation }: any) => {
     const handleStartTracking = () => {
         addHabit({
             title: template.title,
-            description: template.desc,
+            description: template.description,
             frequency: 'daily',
             type: template.type,
-            timerGoal: template.timerGoal,
+            timerGoal: template.type === 'timer' ? template.goal : undefined,
+            numericGoal: template.type === 'numeric' ? template.goal : undefined,
+            numericUnit: template.unit,
             reminders: [],
             color: template.color || theme.colors.primary,
+            cue: template.cue,
+            craving: template.craving,
+            response: template.response,
+            reward: template.reward,
+            howToApply: template.howToApply
         });
         navigation.navigate('Main', { screen: 'Habits' });
     };
@@ -33,25 +40,44 @@ export const HabitKnowledgeScreen = ({ route, navigation }: any) => {
                 <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
                     <ArrowLeft color={theme.colors.text} size={24} />
                 </TouchableOpacity>
-                <NothingText variant="bold" size={20}>KNOWLEDGE BASE</NothingText>
+                <NothingText variant="bold" size={20}>RISE INSIGHTS</NothingText>
                 <View style={{ width: 40 }} />
             </View>
 
             <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-                <View style={styles.introSection}>
+                <View style={[styles.introSection, { borderBottomWidth: 1, borderBottomColor: theme.colors.border, paddingBottom: 24 }]}>
                     <NothingText variant="dot" size={48} style={styles.title}>{template.title.toUpperCase()}</NothingText>
-                    <NothingText color={theme.colors.textSecondary} size={16}>{template.desc}</NothingText>
+                    <NothingText color={theme.colors.textSecondary} size={16} style={{ lineHeight: 24 }}>{template.description}</NothingText>
                 </View>
 
-                <NothingCard style={styles.sectionCard}>
-                    <View style={styles.sectionHeader}>
-                        <Sparkles size={18} color={theme.colors.primary} />
-                        <NothingText variant="bold" style={{ marginLeft: 8 }}>THE BENEFITS</NothingText>
+                {/* THE LOOP SECTION */}
+                <View style={{ marginTop: 24 }}>
+                    <NothingText variant="bold" size={14} style={styles.subTitle}>THE HABIT LOOP</NothingText>
+
+                    <View style={{ gap: 16 }}>
+                        <NothingCard padding="md" style={{ borderColor: '#3B82F640', borderWidth: 1 }}>
+                            <NothingText variant="bold" color="#3B82F6">CUE</NothingText>
+                            <NothingText size={14}>{template.cue}</NothingText>
+                        </NothingCard>
+
+                        <NothingCard padding="md" style={{ borderColor: '#F472B640', borderWidth: 1 }}>
+                            <NothingText variant="bold" color="#F472B6">CRAVING</NothingText>
+                            <NothingText size={14}>{template.craving}</NothingText>
+                        </NothingCard>
+
+                        <NothingCard padding="md" style={{ borderColor: '#A78BFA40', borderWidth: 1 }}>
+                            <NothingText variant="bold" color="#A78BFA">RESPONSE</NothingText>
+                            <NothingText size={14}>{template.response}</NothingText>
+                        </NothingCard>
+
+                        <NothingCard padding="md" style={{ borderColor: '#34D39940', borderWidth: 1 }}>
+                            <NothingText variant="bold" color="#34D399">REWARD</NothingText>
+                            <NothingText size={14}>{template.reward}</NothingText>
+                        </NothingCard>
                     </View>
-                    <NothingText size={14} color={theme.colors.textSecondary}>
-                        Consistency in this habit leads to compounding results. Focus on the 1% improvement every day rather than immediate transformation.
-                    </NothingText>
-                </NothingCard>
+                </View>
+
+                <View style={{ height: 32 }} />
 
                 <NothingText variant="bold" size={14} style={styles.subTitle}>ATOMIC HABITS: THE 4 LAWS</NothingText>
 
@@ -65,33 +91,14 @@ export const HabitKnowledgeScreen = ({ route, navigation }: any) => {
                     </View>
                 </View>
 
+                {/* ... other laws stay the same for brevity or can be enhanced */}
                 <View style={styles.lawRow}>
                     <View style={[styles.lawIcon, { backgroundColor: theme.colors.surface1 }]}>
-                        <Target size={20} color={theme.colors.text} />
+                        <ArrowLeft size={20} color={theme.colors.text} style={{ transform: [{ rotate: '180deg' }] }} />
                     </View>
                     <View style={styles.lawText}>
-                        <NothingText variant="bold" size={16}>2nd Law: Make it Attractive</NothingText>
-                        <NothingText size={12} color={theme.colors.textSecondary}>Pair it with something you want. Use temptation bundling.</NothingText>
-                    </View>
-                </View>
-
-                <View style={styles.lawRow}>
-                    <View style={[styles.lawIcon, { backgroundColor: theme.colors.surface1 }]}>
-                        <BookOpen size={20} color={theme.colors.text} />
-                    </View>
-                    <View style={styles.lawText}>
-                        <NothingText variant="bold" size={16}>3rd Law: Make it Easy</NothingText>
-                        <NothingText size={12} color={theme.colors.textSecondary}>Start with the 2-minute rule. Focus on just showing up.</NothingText>
-                    </View>
-                </View>
-
-                <View style={styles.lawRow}>
-                    <View style={[styles.lawIcon, { backgroundColor: theme.colors.surface1 }]}>
-                        <Award size={20} color={theme.colors.text} />
-                    </View>
-                    <View style={styles.lawText}>
-                        <NothingText variant="bold" size={16}>4th Law: Make it Satisfying</NothingText>
-                        <NothingText size={12} color={theme.colors.textSecondary}>Use a habit tracker to see your progress instantly.</NothingText>
+                        <NothingText variant="bold" size={16}>How to Apply</NothingText>
+                        <NothingText size={12} color={theme.colors.textSecondary}>{template.howToApply}</NothingText>
                     </View>
                 </View>
 

@@ -45,7 +45,7 @@ export const AddTaskModal: React.FC<AddTaskModalProps> = ({
                 >
 
                     <View style={styles.modalHeader}>
-                        <NothingText variant="bold" size={20}>NEW TASK</NothingText>
+                        <NothingText variant="bold" style={{ fontFamily: 'ndot' }} size={27}>NEW TASK</NothingText>
                         <TouchableOpacity onPress={onClose}>
                             <X color={theme.colors.text} size={24} />
                         </TouchableOpacity>

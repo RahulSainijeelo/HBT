@@ -40,18 +40,18 @@ export const LabelPickerModal: React.FC<LabelPickerModalProps> = ({
                     onStartShouldSetResponder={() => true}
                     onResponderTerminationRequest={() => false}
                 >
-                    <NothingText variant="bold" size={18} style={{ marginBottom: 16 }}>ADD LABEL</NothingText>
+                    <NothingText variant="bold" size={28} style={{ marginBottom: 16, fontFamily: 'ndot' }}>ADD LABEL</NothingText>
 
                     <ScrollView style={{ maxHeight: 200 }} showsVerticalScrollIndicator={false}>
                         {labels.map(label => (
                             <TouchableOpacity
-                                key={label}
+                                key={label.id}
                                 style={styles.labelItem}
-                                onPress={() => { setNewLabel(label); onClose(); }}
+                                onPress={() => { setNewLabel(label.name); onClose(); }}
                             >
                                 <Tag size={16} color={theme.colors.textSecondary} />
-                                <NothingText style={{ marginLeft: 12 }}>{label}</NothingText>
-                                {newLabel === label && <CheckCircle2 size={16} color={theme.colors.primary} style={{ marginLeft: 'auto' }} />}
+                                <NothingText style={{ marginLeft: 12 }}>{label.name}</NothingText>
+                                {newLabel === label.name && <CheckCircle2 size={16} color={theme.colors.primary} style={{ marginLeft: 'auto' }} />}
                             </TouchableOpacity>
                         ))}
                     </ScrollView>
@@ -78,7 +78,7 @@ export const LabelPickerModal: React.FC<LabelPickerModalProps> = ({
                     </View>
 
                     <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-                        <NothingText color={theme.colors.textSecondary}>CLOSE</NothingText>
+                        <NothingText size={24} color={theme.colors.textSecondary} style={{ fontFamily: 'ndot' }}>CLOSE</NothingText>
                     </TouchableOpacity>
                 </View>
             </KeyboardAvoidingView>

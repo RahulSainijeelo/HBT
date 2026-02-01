@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View, TouchableOpacity, ScrollView, Animated, Dimensions, Vibration, Modal } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ArrowLeft, Play, Pause, RotateCcw, Flame, Trophy, Settings, Trash2, Check, X } from 'lucide-react-native';
+import { ArrowLeft, Play, Pause, RotateCcw, Flame, Trophy, Settings, Trash2, Check, X, Plus, Sparkles } from 'lucide-react-native';
 import { HabitDetailScreenStyles as styles } from '../styles/Habit.styles';
 import dayjs from 'dayjs';
 import { useTheme } from '../theme';
@@ -156,6 +156,30 @@ export const HabitDetailScreen = ({ route, navigation }: any) => {
                                 </TouchableOpacity>
                             </View>
                         </View>
+                    ) : habit.type === 'numeric' ? (
+                        <View style={styles.checkContainer}>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 32 }}>
+                                <TouchableOpacity
+                                    style={[styles.largeCheckBtn, { width: 80, height: 80, borderRadius: 40, borderColor: theme.colors.border }]}
+                                    onPress={() => useAppStore.getState().updateNumericProgress(habitId, today, -1)}
+                                >
+                                    <X size={32} color={theme.colors.error} />
+                                </TouchableOpacity>
+
+                                <View style={{ alignItems: 'center' }}>
+                                    <NothingText variant="dot" size={80}>{habit.numericProgress?.[today] || 0}</NothingText>
+                                    <NothingText color={theme.colors.textSecondary}>{habit.numericUnit?.toUpperCase()}</NothingText>
+                                </View>
+
+                                <TouchableOpacity
+                                    style={[styles.largeCheckBtn, { width: 80, height: 80, borderRadius: 40, borderColor: theme.colors.border, backgroundColor: (habit.numericProgress?.[today] || 0) >= (habit.numericGoal || 1) ? theme.colors.success + '20' : 'transparent' }]}
+                                    onPress={() => useAppStore.getState().updateNumericProgress(habitId, today, 1)}
+                                >
+                                    <Plus size={32} color={theme.colors.success} />
+                                </TouchableOpacity>
+                            </View>
+                            <NothingText variant="bold" style={{ marginTop: 24 }}>GOAL: {habit.numericGoal} {habit.numericUnit}</NothingText>
+                        </View>
                     ) : (
                         <View style={styles.checkContainer}>
                             <TouchableOpacity
@@ -174,6 +198,59 @@ export const HabitDetailScreen = ({ route, navigation }: any) => {
                         </View>
                     )}
                 </View>
+
+                {/* Atomic Habit Section */}
+                {habit.cue && (
+                    <View style={{ marginTop: 40 }}>
+                        <NothingText variant="bold" size={18} style={styles.sectionTitle}>THE HABIT LOOP</NothingText>
+                        <View style={styles.loopContainer}>
+                            <View style={[styles.loopStep, { borderColor: theme.colors.border }]}>
+                                <View style={[styles.stepIcon, { backgroundColor: '#3B82F620' }]}>
+                                    <Sparkles size={24} color="#3B82F6" />
+                                </View>
+                                <View style={styles.stepContent}>
+                                    <NothingText variant="bold" size={14} color="#3B82F6">1. CUE</NothingText>
+                                    <NothingText size={13} color={theme.colors.textSecondary}>{habit.cue}</NothingText>
+                                </View>
+                            </View>
+
+                            <View style={[styles.loopStep, { borderColor: theme.colors.border }]}>
+                                <View style={[styles.stepIcon, { backgroundColor: '#F472B620' }]}>
+                                    <Flame size={24} color="#F472B6" />
+                                </View>
+                                <View style={styles.stepContent}>
+                                    <NothingText variant="bold" size={14} color="#F472B6">2. CRAVING</NothingText>
+                                    <NothingText size={13} color={theme.colors.textSecondary}>{habit.craving}</NothingText>
+                                </View>
+                            </View>
+
+                            <View style={[styles.loopStep, { borderColor: theme.colors.border }]}>
+                                <View style={[styles.stepIcon, { backgroundColor: '#A78BFA20' }]}>
+                                    <ArrowLeft size={24} color="#A78BFA" style={{ transform: [{ rotate: '180deg' }] }} />
+                                </View>
+                                <View style={styles.stepContent}>
+                                    <NothingText variant="bold" size={14} color="#A78BFA">3. RESPONSE</NothingText>
+                                    <NothingText size={13} color={theme.colors.textSecondary}>{habit.response}</NothingText>
+                                </View>
+                            </View>
+
+                            <View style={[styles.loopStep, { borderColor: theme.colors.border }]}>
+                                <View style={[styles.stepIcon, { backgroundColor: '#34D39920' }]}>
+                                    <Trophy size={24} color="#34D399" />
+                                </View>
+                                <View style={styles.stepContent}>
+                                    <NothingText variant="bold" size={14} color="#34D399">4. REWARD</NothingText>
+                                    <NothingText size={13} color={theme.colors.textSecondary}>{habit.reward}</NothingText>
+                                </View>
+                            </View>
+                        </View>
+
+                        <View style={[styles.howToSection, { borderColor: theme.colors.primary + '40', backgroundColor: theme.colors.primary + '05' }]}>
+                            <NothingText variant="bold" size={16} color={theme.colors.primary} style={{ marginBottom: 8 }}>How to Grow this Habit</NothingText>
+                            <NothingText size={14} style={{ lineHeight: 20 }}>{habit.howToApply || 'Apply the 4 Laws of Behavior Change: Make it Obvious, Make it Attractive, Make it Easy, and Make it Satisfying.'}</NothingText>
+                        </View>
+                    </View>
+                )}
 
                 <NothingText variant="bold" size={14} style={styles.sectionTitle}>HISTORY</NothingText>
                 <NothingCard style={styles.historyCard}>

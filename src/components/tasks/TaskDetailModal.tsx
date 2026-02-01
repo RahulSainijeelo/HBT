@@ -14,6 +14,7 @@ import dayjs from 'dayjs';
 import { NothingText } from '../NothingText';
 import { ModalHandle } from './ModalHandle';
 import { Task } from '../../store/useAppStore';
+import { theme } from '../../theme';
 
 interface TaskDetailModalProps {
     visible: boolean;
@@ -86,7 +87,7 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
                         onResponderTerminationRequest={() => false}
                     >
                         <View style={styles.header}>
-                            <NothingText variant="bold" size={24} style={styles.title}>
+                            <NothingText variant="bold" size={28} style={{ ...styles.title, fontFamily: 'ndot' }}>
                                 {task.title}
                             </NothingText>
                             <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
@@ -102,7 +103,6 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
                                 >
                                     <Calendar size={16} color={theme.colors.textSecondary} />
                                     <View style={styles.metaTextContainer}>
-                                        <NothingText size={10} color={theme.colors.textSecondary}>DATE</NothingText>
                                         <NothingText size={14} color={theme.colors.text}>
                                             {task.dueDate ? dayjs(task.dueDate).format('DD MMM') : 'No Date'}
                                         </NothingText>
@@ -115,7 +115,6 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
                                 >
                                     <Tag size={16} color={theme.colors.textSecondary} />
                                     <View style={styles.metaTextContainer}>
-                                        <NothingText size={10} color={theme.colors.textSecondary}>LABEL</NothingText>
                                         <NothingText size={14} color={theme.colors.text}>
                                             {task.category}
                                         </NothingText>
@@ -128,7 +127,6 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
                                 >
                                     <Flag size={16} color={getPriorityColor(task.priority)} />
                                     <View style={styles.metaTextContainer}>
-                                        <NothingText size={10} color={theme.colors.textSecondary}>PRIORITY</NothingText>
                                         <NothingText size={14} color={getPriorityColor(task.priority)}>
                                             P{task.priority}
                                         </NothingText>
@@ -201,8 +199,6 @@ const styles = StyleSheet.create({
         justifyContent: 'flex-end',
     },
     modalContent: {
-        borderTopLeftRadius: 24,
-        borderTopRightRadius: 24,
         maxHeight: '90%',
         paddingTop: 8,
     },
@@ -243,7 +239,7 @@ const styles = StyleSheet.create({
     sectionTitle: {
         marginBottom: 12,
         letterSpacing: 1,
-        color: 'rgba(255,255,255,0.4)',
+        color: theme.colors.textSecondary,
     },
     stepItem: {
         flexDirection: 'row',

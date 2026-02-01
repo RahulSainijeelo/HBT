@@ -6,20 +6,20 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 const App = () => {
-  // Defensive check for GestureHandlerRootView
-  const RootView = GestureHandlerRootView || View;
   const { theme, isDark } = useTheme();
 
   return (
-    <SafeAreaProvider>
-      <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
-        <StatusBar
-          barStyle={isDark ? "light-content" : "dark-content"}
-          backgroundColor={theme.colors.background}
-        />
-        <AppNavigator />
-      </View>
-    </SafeAreaProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <SafeAreaProvider>
+        <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
+          <StatusBar
+            barStyle={isDark ? "light-content" : "dark-content"}
+            backgroundColor={theme.colors.background}
+          />
+          <AppNavigator />
+        </View>
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
   );
 };
 

@@ -148,7 +148,7 @@ export const TimeDialModal: React.FC<TimeDialModalProps> = ({
                     )}
                 </View>
                 <TouchableOpacity style={{ marginTop: 24, alignSelf: 'center' }} onPress={onClose}>
-                    <NothingText color={theme.colors.primary} variant="bold">DONE</NothingText>
+                    <NothingText size={24} color={theme.colors.primary} style={{ fontFamily: 'ndot' }} variant="bold">DONE</NothingText>
                 </TouchableOpacity>
             </View>
         </TouchableOpacity>

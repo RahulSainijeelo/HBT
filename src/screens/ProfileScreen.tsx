@@ -8,14 +8,24 @@ import { NothingButton } from '../components/NothingButton';
 import { useAppStore } from '../store/useAppStore';
 import { StorageService, UserProfile } from '../services/StorageService';
 import { SettingsService } from '../services/SettingsService';
-import { Download, LogOut, User, ShieldCheck, Check, Users } from 'lucide-react-native';
+import { Download, LogOut, User, ShieldCheck, Check, Users, Github, Coffee, Heart } from 'lucide-react-native';
 import { ProfileScreenStyle as styles } from '../styles/ProfileScreen.style';
+import { requestStoragePermission } from '../utils/permissions';
+import { ConfirmationModal } from '../components/ConfirmationModal';
+import { Linking, Platform } from 'react-native';
 
 export const ProfileScreen = ({ navigation }: any) => {
     const { activeProfile, currentUser, logout, tasks, habits, login } = useAppStore();
     const { theme } = useTheme();
     const [isDefault, setIsDefault] = useState(false);
     const [allProfiles, setAllProfiles] = useState<UserProfile[]>([]);
+
+    const [confirmVisible, setConfirmVisible] = useState(false);
+    const [confirmData, setConfirmData] = useState<{ title: string; message: string; onConfirm: () => void; type?: 'danger' | 'info' }>({
+        title: '',
+        message: '',
+        onConfirm: () => { },
+    });
 
     useEffect(() => {
         checkDefaultStatus();
@@ -49,43 +59,48 @@ export const ProfileScreen = ({ navigation }: any) => {
     };
 
     const handleSwitchProfile = async (profile: UserProfile) => {
-        Alert.alert(
-            'Switch Profile',
-            `Switch to ${profile.name}?`,
-            [
-                { text: 'Cancel', style: 'cancel' },
-                {
-                    text: 'Switch',
-                    onPress: async () => {
-                        await login(profile);
-                        navigation.navigate('Main');
-                    }
-                }
-            ]
-        );
+        setConfirmData({
+            title: 'Switch Profile',
+            message: `Do you want to switch to ${profile.name}? Any unsaved changes might be lost.`,
+            type: 'info',
+            onConfirm: async () => {
+                setConfirmVisible(false);
+                await login(profile);
+                navigation.navigate('Main');
+            }
+        });
+        setConfirmVisible(true);
     };
 
     const handleDownload = async () => {
-        if (activeProfile) {
+        if (!activeProfile) return;
+
+        const hasPermission = await requestStoragePermission();
+        if (!hasPermission && Platform.OS === 'android') {
+            Alert.alert('Permission Denied', 'Storage permission is required to save the backup.');
+            return;
+        }
+
+        try {
             const path = await StorageService.exportProfile(activeProfile.id);
-            Alert.alert('Download Ready', `Your data is saved at:\n${path}`);
+            Alert.alert('Backup Successful', `Your data report has been saved to the Downloads folder:\n\n${path}`);
+        } catch (e) {
+            Alert.alert('Backup Failed', 'An error occurred while creating the backup.');
         }
     };
 
     const handleLogout = () => {
-        Alert.alert(
-            'Logout',
-            'Are you sure you want to exit this profile?',
-            [
-                { text: 'Cancel', style: 'cancel' },
-                {
-                    text: 'Logout', style: 'destructive', onPress: () => {
-                        logout();
-                        navigation.replace('Login');
-                    }
-                }
-            ]
-        );
+        setConfirmData({
+            title: 'Logout',
+            message: 'Are you sure you want to exit your profile? You will need to login again to access your data.',
+            type: 'danger',
+            onConfirm: () => {
+                setConfirmVisible(false);
+                logout();
+                navigation.replace('Login');
+            }
+        });
+        setConfirmVisible(true);
     };
 
     return (
@@ -173,7 +188,36 @@ export const ProfileScreen = ({ navigation }: any) => {
                         icon={<LogOut size={20} color={theme.colors.primary} />}
                     />
                 </View>
+
+                {/* Developer Footer */}
+                <View style={[styles.footer, { paddingBottom: 40, marginTop: 32 }]}>
+                    <View style={{ height: 1, backgroundColor: theme.colors.border, width: '100%', marginBottom: 24, opacity: 0.5 }} />
+                    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
+                        <NothingText size={10} color={theme.colors.textSecondary}>MADE WITH</NothingText>
+                        <Heart size={12} color={theme.colors.error} fill={theme.colors.error} />
+                        <NothingText size={10} color={theme.colors.textSecondary}>BY</NothingText>
+                        <NothingText variant="bold" size={12} style={{ letterSpacing: 1 }}>RAHUL SAINI</NothingText>
+                    </View>
+
+                    <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 24, marginTop: 16 }}>
+                        <TouchableOpacity onPress={() => Linking.openURL('https://github.com/RahulSainijeelo')}>
+                            <Github size={24} color={theme.colors.text} />
+                        </TouchableOpacity>
+                        <TouchableOpacity onPress={() => Linking.openURL('https://www.buymeacoffee.com')}>
+                            <Coffee size={24} color="#FFDD00" fill="#FFDD00" />
+                        </TouchableOpacity>
+                    </View>
+                </View>
             </ScrollView>
+
+            <ConfirmationModal
+                visible={confirmVisible}
+                title={confirmData.title}
+                message={confirmData.message}
+                type={confirmData.type}
+                onConfirm={confirmData.onConfirm}
+                onCancel={() => setConfirmVisible(false)}
+            />
         </SafeAreaView>
     );
 };

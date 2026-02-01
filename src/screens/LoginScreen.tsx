@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import { View, StyleSheet, ScrollView, TouchableOpacity, Alert, StatusBar } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../theme';
 import { NothingText } from '../components/NothingText';
@@ -17,7 +17,7 @@ export const LoginScreen = ({ navigation }: any) => {
     const [username, setUsername] = useState('');
     const [existingProfiles, setExistingProfiles] = useState<UserProfile[]>([]);
     const { login, createProfile } = useAppStore();
-    const { theme } = useTheme();
+    const { theme, isDark } = useTheme();
 
     useEffect(() => {
         loadProfiles();
@@ -64,11 +64,20 @@ export const LoginScreen = ({ navigation }: any) => {
     };
 
     return (
-        <SafeAreaView style={styles.container} >
-            <ScrollView style={{ backgroundColor: theme.colors.background }} contentContainerStyle={styles.scrollContent}>
+        <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]} >
+            <StatusBar
+                barStyle={isDark ? "light-content" : "dark-content"}
+                backgroundColor="transparent"
+                translucent
+            />
+            <ScrollView
+                showsVerticalScrollIndicator={false}
+                style={{ backgroundColor: theme.colors.background }}
+                contentContainerStyle={[styles.scrollContent, { flexGrow: 1 }]}
+            >
                 <View style={styles.header}>
                     <NothingLogo size={80} />
-                    <NothingText variant="dot" size={32} style={styles.title}>IDENTITY</NothingText>
+                    <NothingText variant="dot" size={32} style={styles.title}>Rise</NothingText>
                     <NothingText color={theme.colors.textSecondary}>Choose your profile to begin</NothingText>
                 </View>
 

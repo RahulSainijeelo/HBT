@@ -72,6 +72,10 @@ export const ProfileScreenStyle = StyleSheet.create({
     },
     logoutBtn: {
         marginTop: 40,
-        marginBottom: 40,
+        marginBottom: 20,
+    },
+    footer: {
+        alignItems: 'center',
+        paddingHorizontal: 24,
     }
 });
