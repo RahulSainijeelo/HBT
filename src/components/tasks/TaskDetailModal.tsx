@@ -14,6 +14,7 @@ import dayjs from 'dayjs';
 import { NothingText } from '../NothingText';
 import { ModalHandle } from './ModalHandle';
 import { Task } from '../../store/useAppStore';
+import { theme } from '../../theme';
 
 interface TaskDetailModalProps {
     visible: boolean;
@@ -238,7 +239,7 @@ const styles = StyleSheet.create({
     sectionTitle: {
         marginBottom: 12,
         letterSpacing: 1,
-        color: 'rgba(255,255,255,0.4)',
+        color: theme.colors.textSecondary,
     },
     stepItem: {
         flexDirection: 'row',

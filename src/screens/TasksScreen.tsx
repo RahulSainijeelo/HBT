@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, FlatList, TouchableOpacity, ScrollView, Platform } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Plus, ChevronDown, ChevronUp } from 'lucide-react-native';
+import { Plus, ChevronDown, ChevronUp, Search, SlidersHorizontal } from 'lucide-react-native';
 import dayjs from 'dayjs';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { NothingText } from '../components/NothingText';
@@ -15,6 +15,7 @@ import { DurationModal } from '../components/tasks/DurationModal';
 import { RemindersModal } from '../components/tasks/RemindersModal';
 import { LabelPickerModal } from '../components/tasks/LabelPickerModal';
 import { TaskDetailModal } from '../components/tasks/TaskDetailModal';
+import { ManageLabelsModal } from '../components/tasks/ManageLabelsModal';
 import { styles } from '../styles/TaskScreen.style';
 import { getPriorityColor } from '../utils/TaskScreen.utils';
 import { useAppStore } from '../store/useAppStore';
@@ -63,6 +64,8 @@ export const TasksScreen = () => {
         handleOpenAddModal,
         newLabel, setNewLabel: setNewLabelProp,
         addLabel,
+        deleteLabel,
+        showManageLabelsModal, setShowManageLabelsModal,
     } = useTasksScreen();
     const insets = useSafeAreaInsets();
 
@@ -86,19 +89,47 @@ export const TasksScreen = () => {
 
                 {activeTab === 'browse' && (
                     <View style={[styles.browseContainer, { borderBottomColor: theme.colors.border }]}>
-                        <View style={[styles.searchBar, { backgroundColor: theme.colors.surface1 }]}>
-                            <NothingInput
-                                placeholder="Search tasks..."
-                                value={searchQuery}
-                                onChangeText={setSearchQuery}
-                            />
+                        <View style={styles.searchBarContainer}>
+                            <View style={[
+                                styles.searchBar,
+                                {
+                                    borderColor: theme.colors.border
+                                }
+                            ]}>
+                                <Search size={20} color={theme.colors.textSecondary} style={{ marginRight: 8 }} />
+                                <NothingInput
+                                    placeholder="Search tasks..."
+                                    value={searchQuery}
+                                    onChangeText={setSearchQuery}
+                                    style={{
+                                        flex: 1,
+                                        backgroundColor: 'transparent',
+                                        borderWidth: 0,
+                                        height: 48,
+                                        paddingHorizontal: 0,
+                                        paddingTop: 0,
+                                        marginBottom: -28,
+                                    }}
+                                />
+                            </View>
+                            <TouchableOpacity
+                                style={[
+                                    styles.manageButton,
+                                    {
+                                        borderColor: theme.colors.border
+                                    }
+                                ]}
+                                onPress={() => setShowManageLabelsModal(true)}
+                            >
+                                <SlidersHorizontal size={20} color={theme.colors.text} />
+                            </TouchableOpacity>
                         </View>
                         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.labelList}>
                             <TouchableOpacity
                                 onPress={() => setSelectedLabelFilter(null)}
                                 style={[
                                     styles.labelChip,
-                                    { backgroundColor: selectedLabelFilter === null ? theme.colors.primary : theme.colors.surface2 }
+                                    { backgroundColor: selectedLabelFilter === null ? theme.colors.primary : "transparent" }
                                 ]}
                             >
                                 <NothingText color={selectedLabelFilter === null ? theme.colors.background : theme.colors.text} size={12}>All</NothingText>
@@ -107,7 +138,7 @@ export const TasksScreen = () => {
                                 onPress={() => setSelectedLabelFilter(selectedLabelFilter === 'Done' ? null : 'Done')}
                                 style={[
                                     styles.labelChip,
-                                    { backgroundColor: selectedLabelFilter === 'Done' ? theme.colors.primary : theme.colors.surface2 }
+                                    { backgroundColor: selectedLabelFilter === 'Done' ? theme.colors.primary : "transparent" }
                                 ]}
                             >
                                 <NothingText color={selectedLabelFilter === 'Done' ? theme.colors.background : theme.colors.text} size={12}>Done</NothingText>
@@ -118,7 +149,7 @@ export const TasksScreen = () => {
                                     onPress={() => setSelectedLabelFilter(selectedLabelFilter === label.name ? null : label.name)}
                                     style={[
                                         styles.labelChip,
-                                        { backgroundColor: selectedLabelFilter === label.name ? theme.colors.primary : theme.colors.surface2 }
+                                        { backgroundColor: selectedLabelFilter === label.name ? theme.colors.primary : "transparent" }
                                     ]}
                                 >
                                     <NothingText color={selectedLabelFilter === label.name ? theme.colors.background : theme.colors.text} size={12}>{label.name}</NothingText>
@@ -206,7 +237,11 @@ export const TasksScreen = () => {
                 isRepeatEnabled={isRepeatEnabled}
                 setIsRepeatEnabled={setIsRepeatEnabled}
                 onAddTime={() => {
-                    if (!newTime) setNewTime(dayjs().format('HH:mm'));
+                    if (isDetailModalVisible && activeTask) {
+                        setNewTime(activeTask.dueTime || dayjs().format('HH:mm'));
+                    } else if (!newTime) {
+                        setNewTime(dayjs().format('HH:mm'));
+                    }
                     setShowAdvDateModal(false);
                     setShowAdvTimeModal(true);
                 }}
@@ -297,6 +332,16 @@ export const TasksScreen = () => {
                 onUpdateLabel={() => setShowLabelPicker(true)}
                 onUpdateDate={() => setShowAdvDateModal(true)}
                 getPriorityColor={getPriorityColor}
+            />
+
+            <ManageLabelsModal
+                visible={showManageLabelsModal}
+                onClose={() => setShowManageLabelsModal(false)}
+                theme={theme}
+                insets={insets}
+                labels={labels}
+                addLabel={addLabel}
+                deleteLabel={deleteLabel}
             />
         </>
     );

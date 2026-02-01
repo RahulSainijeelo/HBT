@@ -1,4 +1,5 @@
 import { StyleSheet } from "react-native";
+import { theme } from "../theme";
 
 export const styles = StyleSheet.create({
     container: {
@@ -52,19 +53,36 @@ export const styles = StyleSheet.create({
         padding: 16,
         paddingBottom: 0,
     },
+    searchBarContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 16,
+    },
     searchBar: {
+        flex: 1,
         flexDirection: 'row',
         alignItems: 'center',
         paddingHorizontal: 12,
         borderRadius: 12,
-        marginBottom: 16,
         height: 48,
+        borderWidth: 1,
+    },
+    manageButton: {
+        width: 48,
+        height: 48,
+        borderRadius: 12,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginLeft: 12,
+        borderWidth: 1,
     },
     labelList: {
         flexDirection: 'row',
         marginBottom: 16,
     },
     labelChip: {
+        borderWidth: 1,
+        borderColor: theme.colors.border,
         paddingVertical: 6,
         paddingHorizontal: 12,
         borderRadius: 20,

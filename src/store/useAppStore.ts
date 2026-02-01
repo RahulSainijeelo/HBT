@@ -65,6 +65,7 @@ interface AppState {
     toggleTask: (id: string) => void;
     deleteTask: (id: string) => void;
     addLabel: (name: string) => void;
+    deleteLabel: (id: string) => void;
 
     // Habit Actions
     addHabit: (habit: Omit<Habit, 'id' | 'completedDates' | 'streak' | 'bestStreak' | 'accumulatedTimeToday'>) => void;
@@ -177,6 +178,13 @@ export const useAppStore = create<AppState>((set, get) => ({
     addLabel: (name) => {
         set((state) => ({
             labels: [...state.labels, { id: Math.random().toString(36).substr(2, 9), name }]
+        }));
+        get().saveData();
+    },
+
+    deleteLabel: (id) => {
+        set((state) => ({
+            labels: state.labels.filter((l) => l.id !== id)
         }));
         get().saveData();
     },
