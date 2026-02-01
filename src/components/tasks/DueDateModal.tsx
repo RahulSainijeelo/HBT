@@ -4,7 +4,7 @@ import { ChevronDown, Clock, ChevronRight, Repeat } from 'lucide-react-native';
 import dayjs from 'dayjs';
 import { NothingText } from '../NothingText';
 import { DueDateModalProps } from '../../utils/TaskScreen.utils';
-import { DueDateModalStyle as styles } from './styles';
+import { DueDateModalStyle as styles } from '../../styles/styles';
 
 export const DueDateModal: React.FC<DueDateModalProps> = ({
     visible, onClose, theme, insets, newDate, setNewDate, newTime, setNewTime,

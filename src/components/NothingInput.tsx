@@ -1,12 +1,10 @@
 import React from 'react';
-import { TextInput, StyleSheet, TextInputProps, View } from 'react-native';
+import { TextInput, View } from 'react-native';
 import { useTheme } from '../theme';
 import { NothingText } from './NothingText';
+import { NothingInputStyles as styles } from '../styles/Nothing.ui.styles';
+import { NothingInputProps } from '../utils/Nothing.ui.utils';
 
-interface NothingInputProps extends TextInputProps {
-    label?: string;
-    error?: string;
-}
 
 export const NothingInput: React.FC<NothingInputProps> = ({
     label,
@@ -51,23 +49,3 @@ export const NothingInput: React.FC<NothingInputProps> = ({
     );
 };
 
-const styles = StyleSheet.create({
-    container: {
-        marginBottom: 16,
-        width: '100%',
-    },
-    label: {
-        marginBottom: 8,
-        marginLeft: 4,
-    },
-    input: {
-        paddingHorizontal: 16,
-        paddingVertical: 12,
-        borderWidth: 1,
-        fontSize: 16,
-    },
-    error: {
-        marginTop: 4,
-        marginLeft: 4,
-    },
-});

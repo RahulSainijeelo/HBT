@@ -1,14 +1,9 @@
 import React from 'react';
-import { TouchableOpacity, StyleSheet, TouchableOpacityProps, View } from 'react-native';
+import { TouchableOpacity, View } from 'react-native';
 import { useTheme } from '../theme';
 import { NothingText } from './NothingText';
-
-interface NothingButtonProps extends TouchableOpacityProps {
-    label: string;
-    variant?: 'primary' | 'secondary' | 'outline' | 'ghost';
-    size?: 'sm' | 'md' | 'lg';
-    icon?: React.ReactNode;
-}
+import { NothingButtonStyles as styles } from '../styles/Nothing.ui.styles';
+import { getColors, NothingButtonProps } from '../utils/Nothing.ui.utils';
 
 export const NothingButton: React.FC<NothingButtonProps> = ({
     label,
@@ -19,43 +14,7 @@ export const NothingButton: React.FC<NothingButtonProps> = ({
     ...props
 }) => {
     const { theme } = useTheme();
-
-    const getColors = () => {
-        switch (variant) {
-            case 'primary':
-                return {
-                    background: theme.colors.text,
-                    text: theme.colors.background,
-                    border: theme.colors.text,
-                };
-            case 'secondary':
-                return {
-                    background: theme.colors.surface2,
-                    text: theme.colors.text,
-                    border: theme.colors.surface2,
-                };
-            case 'outline':
-                return {
-                    background: 'transparent',
-                    text: theme.colors.text,
-                    border: theme.colors.text,
-                };
-            case 'ghost':
-                return {
-                    background: 'transparent',
-                    text: theme.colors.text,
-                    border: 'transparent',
-                };
-            default:
-                return {
-                    background: theme.colors.text,
-                    text: theme.colors.background,
-                    border: theme.colors.text,
-                };
-        }
-    };
-
-    const colors = getColors();
+    const colors = getColors(variant, theme);
 
     return (
         <TouchableOpacity
@@ -88,16 +47,3 @@ export const NothingButton: React.FC<NothingButtonProps> = ({
     );
 };
 
-const styles = StyleSheet.create({
-    button: {
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    content: {
-        flexDirection: 'row',
-        alignItems: 'center',
-    },
-    iconContainer: {
-        marginRight: 8,
-    },
-});

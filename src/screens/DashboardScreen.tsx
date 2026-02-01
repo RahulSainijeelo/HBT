@@ -1,10 +1,11 @@
 import React from 'react';
-import { View, StyleSheet, ScrollView, SafeAreaView } from 'react-native';
+import { View, ScrollView, SafeAreaView } from 'react-native';
 import { theme } from '../theme';
 import { NothingText } from '../components/NothingText';
 import { NothingCard } from '../components/NothingCard';
 import { useAppStore } from '../store/useAppStore';
-import { CheckCircle2, Circle } from 'lucide-react-native';
+import { Circle } from 'lucide-react-native';
+import { DashboardScreenStyles as styles } from '../styles/DashboardScreen.styles';
 
 export const DashboardScreen = () => {
     const { tasks, habits } = useAppStore();
@@ -53,47 +54,3 @@ export const DashboardScreen = () => {
         </SafeAreaView>
     );
 };
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: theme.colors.background,
-    },
-    scrollContent: {
-        padding: 16,
-    },
-    header: {
-        marginTop: 20,
-        marginBottom: 32,
-    },
-    sectionTitle: {
-        marginTop: 24,
-        marginBottom: 16,
-        marginLeft: 4,
-    },
-    itemCard: {
-        marginBottom: 8,
-    },
-    row: {
-        flexDirection: 'row',
-        alignItems: 'center',
-    },
-    itemText: {
-        marginLeft: 12,
-    },
-    habitsRow: {
-        flexDirection: 'row',
-        marginBottom: 32,
-    },
-    habitWidget: {
-        width: 140,
-        height: 140,
-        marginRight: 12,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    streakText: {
-        marginTop: 12,
-        marginBottom: 4,
-    }
-});

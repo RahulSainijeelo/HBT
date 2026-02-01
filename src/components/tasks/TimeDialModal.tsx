@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Modal, TouchableOpacity } from 'react-native';
 import { NothingText } from '../NothingText';
 import { TimeDialModalProps } from '../../utils/TaskScreen.utils';
-import { TimeDialModalStyle as styles } from './styles';
+import { TimeDialModalStyle as styles } from '../../styles/styles';
 
 export const TimeDialModal: React.FC<TimeDialModalProps> = ({
     visible, onClose, theme, insets, timeMode, setTimeMode, newTime, setNewTime, panResponder

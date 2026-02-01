@@ -14,8 +14,8 @@ import { TimeDialModal } from '../components/tasks/TimeDialModal';
 import { DurationModal } from '../components/tasks/DurationModal';
 import { RemindersModal } from '../components/tasks/RemindersModal';
 import { LabelPickerModal } from '../components/tasks/LabelPickerModal';
-import { styles } from './TaskScreen.style';
-
+import { styles } from '../styles/TaskScreen.style';
+import { getPriorityColor } from '../utils/TaskScreen.utils';
 export const TasksScreen = () => {
     const {
         activeTab, setActiveTab,
@@ -51,17 +51,7 @@ export const TasksScreen = () => {
         addLabel,
         newLabel, setNewLabel,
     } = useTasksScreen();
-
     const insets = useSafeAreaInsets();
-
-    const getPriorityColor = (p: number) => {
-        switch (p) {
-            case 1: return '#FF0000';
-            case 2: return '#FFAB00';
-            case 3: return '#0052CC';
-            default: return '#333';
-        }
-    };
 
     return (
         <>

@@ -1,6 +1,14 @@
 import dayjs from "dayjs";
 import { Task } from "../store/useAppStore";
 
+export const getPriorityColor = (p: number) => {
+    switch (p) {
+        case 1: return '#FF0000';
+        case 2: return '#FFAB00';
+        case 3: return '#0052CC';
+        default: return '#333';
+    }
+};
 export interface TaskItemProps {
     item: Task;
     theme: any;

@@ -1,6 +1,7 @@
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View } from 'react-native';
 import { useTheme } from '../theme';
+import { NothingLogoStyles as styles } from '../styles/Nothing.ui.styles';
 
 export const NothingLogo = ({ size = 60 }: { size?: number }) => {
     const { theme } = useTheme();
@@ -29,26 +30,3 @@ export const NothingLogo = ({ size = 60 }: { size?: number }) => {
         </View>
     );
 };
-
-const styles = StyleSheet.create({
-    container: {
-        borderWidth: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        borderStyle: 'dashed',
-    },
-    grid: {
-        width: '60%',
-        height: '60%',
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    dot: {
-        width: 4,
-        height: 4,
-        borderRadius: 2,
-        margin: 4,
-    }
-});

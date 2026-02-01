@@ -3,7 +3,7 @@ import { View, Modal, TouchableOpacity } from 'react-native';
 import { NothingText } from '../NothingText';
 import { NothingButton } from '../NothingButton';
 import { DurationModalProps } from '../../utils/TaskScreen.utils';
-import { DurationModalStyle as styles } from './styles';
+import { DurationModalStyle as styles } from '../../styles/styles';
 
 export const DurationModal: React.FC<DurationModalProps> = ({
     visible, onClose, theme, insets, duration, setDuration

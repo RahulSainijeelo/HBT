@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, Modal, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Modal, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../theme';
 import { NothingText } from '../components/NothingText';
@@ -8,6 +8,7 @@ import { Calendar } from 'react-native-calendars';
 import { useAppStore } from '../store/useAppStore';
 import { X, CheckCircle2, Circle, Flame } from 'lucide-react-native';
 import dayjs from 'dayjs';
+import { styles } from '../styles/HomeScreen.styles';
 
 export const HomeScreen = () => {
     const [selectedDate, setSelectedDate] = useState(dayjs().format('YYYY-MM-DD'));
@@ -120,49 +121,3 @@ export const HomeScreen = () => {
         </SafeAreaView>
     );
 };
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-    },
-    header: {
-        padding: 24,
-        marginTop: 20,
-    },
-    calendarContainer: {
-        flex: 1,
-        paddingHorizontal: 16,
-    },
-    modalOverlay: {
-        flex: 1,
-        backgroundColor: 'rgba(0,0,0,0.9)',
-        justifyContent: 'flex-end',
-    },
-    modalContent: {
-        height: '70%',
-        borderBottomLeftRadius: 0,
-        borderBottomRightRadius: 0,
-    },
-    modalHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: 32,
-    },
-    sectionTitle: {
-        fontSize: 14,
-        marginBottom: 12,
-        letterSpacing: 2,
-    },
-    row: {
-        flexDirection: 'row',
-        alignItems: 'center',
-    },
-    itemText: {
-        marginLeft: 12,
-    },
-    emptyText: {
-        marginLeft: 4,
-        fontStyle: 'italic',
-    }
-});

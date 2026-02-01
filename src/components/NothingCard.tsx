@@ -1,14 +1,7 @@
 import React from 'react';
 import { View, StyleSheet, ViewProps } from 'react-native';
 import { useTheme } from '../theme';
-
-interface NothingCardProps extends ViewProps {
-    padding?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
-    margin?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
-    bordered?: boolean;
-    backgroundColor?: string;
-    borderRadius?: 'sm' | 'md' | 'lg' | 'full';
-}
+import { NothingCardProps } from '../utils/Nothing.ui.utils';
 
 export const NothingCard: React.FC<NothingCardProps> = ({
     children,
@@ -25,27 +18,19 @@ export const NothingCard: React.FC<NothingCardProps> = ({
 
     return (
         <View
-            style={[
-                styles.card,
-                {
-                    padding: theme.spacing[padding],
-                    margin: margin ? theme.spacing[margin] : 0,
-                    borderWidth: bordered ? 1 : 0,
-                    borderColor: theme.colors.border,
-                    backgroundColor: finalBg,
-                    borderRadius: theme.borderRadius[borderRadius],
-                },
-                style,
-            ]}
+            style={{
+                overflow: 'hidden',
+                padding: theme.spacing[padding],
+                margin: margin ? theme.spacing[margin] : 0,
+                borderWidth: bordered ? 1 : 0,
+                borderColor: theme.colors.border,
+                backgroundColor: finalBg,
+                borderRadius: theme.borderRadius[borderRadius],
+                ...style,
+            }}
             {...props}
         >
             {children}
         </View>
     );
 };
-
-const styles = StyleSheet.create({
-    card: {
-        overflow: 'hidden',
-    },
-});

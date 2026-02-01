@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, FlatList, TouchableOpacity, Modal } from 'react-native';
+import { View, FlatList, TouchableOpacity, Modal } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../theme';
 import { NothingText } from '../components/NothingText';
@@ -7,9 +7,10 @@ import { NothingCard } from '../components/NothingCard';
 import { NothingInput } from '../components/NothingInput';
 import { NothingButton } from '../components/NothingButton';
 import { useAppStore, Habit } from '../store/useAppStore';
-import { Plus, Check, Flame, X, Timer, BookOpen, Heart, Sparkles, ChevronRight } from 'lucide-react-native';
+import { Plus, Check, Flame, X, Timer, Heart, Sparkles } from 'lucide-react-native';
 import dayjs from 'dayjs';
 import { useNavigation } from '@react-navigation/native';
+import { HabitsScreenStyles as styles } from '../styles/Habit.styles';
 
 const DISCOVERY_TEMPLATES = [
     { title: 'Morning Water', desc: 'Drink 500ml water', type: 'check', color: '#60A5FA' },
@@ -234,124 +235,3 @@ export const HabitsScreen = () => {
     );
 };
 
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-    },
-    header: {
-        padding: 24,
-    },
-    listContainer: {
-        padding: 16,
-        paddingBottom: 100,
-    },
-    habitCard: {
-        paddingVertical: 16,
-    },
-    habitMain: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-    },
-    habitInfo: {
-        flex: 1,
-    },
-    streakContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginTop: 4,
-    },
-    streakText: {
-        marginLeft: 6,
-        letterSpacing: 1,
-    },
-    checkBtn: {
-        width: 48,
-        height: 48,
-        borderRadius: 24,
-        borderWidth: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    fab: {
-        position: 'absolute',
-        right: 24,
-        bottom: 24,
-        width: 64,
-        height: 64,
-        borderRadius: 32,
-        justifyContent: 'center',
-        alignItems: 'center',
-        elevation: 8,
-    },
-    emptyContainer: {
-        alignItems: 'center',
-        marginTop: 100,
-    },
-    modalOverlay: {
-        flex: 1,
-        backgroundColor: 'rgba(0,0,0,0.85)',
-        justifyContent: 'center',
-        padding: 20,
-    },
-    modalContent: {
-        // dynamic
-    },
-    modalHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: 24,
-    },
-    freqRow: {
-        flexDirection: 'row',
-        marginTop: 16,
-        marginBottom: 24,
-    },
-    freqChip: {
-        paddingHorizontal: 12,
-        paddingVertical: 6,
-        borderRadius: 20,
-        borderWidth: 1,
-        marginRight: 8,
-    },
-    submitBtn: {
-        marginTop: 8,
-    },
-    discoverySection: {
-        marginBottom: 32,
-    },
-    sectionHeader: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginBottom: 16,
-        marginTop: 12,
-    },
-    templateCard: {
-        width: 140,
-        padding: 12,
-        marginRight: 12,
-        borderWidth: 1,
-    },
-    templateIcon: {
-        width: 36,
-        height: 36,
-        borderRadius: 18,
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginBottom: 12,
-    },
-    typeRow: {
-        flexDirection: 'row',
-        gap: 12,
-        marginBottom: 24,
-    },
-    typeBtn: {
-        flex: 1,
-        flexDirection: 'row',
-        alignItems: 'center',
-        padding: 12,
-        borderRadius: 12,
-        borderWidth: 1,
-    }
-});

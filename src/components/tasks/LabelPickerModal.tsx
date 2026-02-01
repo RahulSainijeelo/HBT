@@ -5,7 +5,7 @@ import { NothingText } from '../NothingText';
 import { NothingInput } from '../NothingInput';
 import { NothingButton } from '../NothingButton';
 import { LabelPickerModalProps } from '../../utils/TaskScreen.utils';
-import { LabelPickerModalStyle as styles } from './styles';
+import { LabelPickerModalStyle as styles } from '../../styles/styles';
 
 export const LabelPickerModal: React.FC<LabelPickerModalProps> = ({
     visible, onClose, theme, insets, labels, newLabel, setNewLabel, customLabel, setCustomLabel, addLabel
