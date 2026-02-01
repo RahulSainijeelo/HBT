@@ -49,5 +49,18 @@ export const WidgetService = {
         } catch (e) {
             console.error('WidgetService: Failed to update widget data', e);
         }
+    },
+
+    // Call this on logout or when no user is logged in
+    clearWidgetData: () => {
+        if (Platform.OS !== 'android') return;
+        if (!WidgetBridge || typeof WidgetBridge.setWidgetData !== 'function') return;
+
+        try {
+            // Send a special marker to indicate not logged in
+            WidgetBridge.setWidgetData(JSON.stringify([{ id: '__not_logged_in__', title: 'LOGIN', status: 'pending', type: 'task' }]));
+        } catch (e) {
+            console.error('WidgetService: Failed to clear widget data', e);
+        }
     }
 };

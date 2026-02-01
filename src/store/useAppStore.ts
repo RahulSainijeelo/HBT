@@ -121,7 +121,10 @@ export const useAppStore = create<AppState>((set, get) => ({
         await get().loadData(usernameOrId);
     },
 
-    logout: () => set({ activeProfile: null, currentUser: null, tasks: [], habits: [] }),
+    logout: () => {
+        WidgetService.clearWidgetData();
+        set({ activeProfile: null, currentUser: null, tasks: [], habits: [] });
+    },
 
     loadData: async (id) => {
         const data = await StorageService.loadUserData(id);
@@ -152,7 +155,7 @@ export const useAppStore = create<AppState>((set, get) => ({
                 labels
             };
             await StorageService.saveUserData(activeProfile.id, dataToSave);
-            // WidgetService.updateWidget(tasks, habits);
+            WidgetService.updateWidget(tasks, habits);
         }
     },
 

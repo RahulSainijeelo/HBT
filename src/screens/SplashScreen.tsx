@@ -75,12 +75,6 @@ export const SplashScreen = ({ navigation }: any) => {
             <Animated.View style={{ opacity, transform: [{ scale }] }}>
                 <RiseLogoAnimation primaryColor={theme.colors.primary} />
             </Animated.View>
-
-            <Animated.View style={{ opacity: textOpacity, position: 'absolute', bottom: 60 }}>
-                <NothingText variant="medium" size={12} color={theme.colors.textSecondary} style={{ letterSpacing: 4 }}>
-                    SYSTEM LOADING...
-                </NothingText>
-            </Animated.View>
         </View>
     );
 };

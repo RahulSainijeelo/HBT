@@ -5,7 +5,7 @@ import { useTheme } from '../theme';
 import { NothingText } from '../components/NothingText';
 import { NothingCard } from '../components/NothingCard';
 import { NothingButton } from '../components/NothingButton';
-import { ArrowLeft, BookOpen, Sparkles, Zap, Target, Award } from 'lucide-react-native';
+import { ArrowLeft, BookOpen, Sparkles, Zap, Target, Award, Check } from 'lucide-react-native';
 import { useAppStore } from '../store/useAppStore';
 import { HabitKnowledgeScreenStyles as styles } from '../styles/Habit.styles';
 
@@ -94,7 +94,7 @@ export const HabitKnowledgeScreen = ({ route, navigation }: any) => {
                 {/* ... other laws stay the same for brevity or can be enhanced */}
                 <View style={styles.lawRow}>
                     <View style={[styles.lawIcon, { backgroundColor: theme.colors.surface1 }]}>
-                        <ArrowLeft size={20} color={theme.colors.text} style={{ transform: [{ rotate: '180deg' }] }} />
+                        <Check size={20} color={theme.colors.text} />
                     </View>
                     <View style={styles.lawText}>
                         <NothingText variant="bold" size={16}>How to Apply</NothingText>
