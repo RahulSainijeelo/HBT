@@ -1,4 +1,6 @@
 import RNFS from 'react-native-fs';
+import { Platform } from 'react-native';
+import dayjs from 'dayjs';
 
 const APP_FOLDER_NAME = 'Rise_Data';
 const BASE_PATH = `${RNFS.DocumentDirectoryPath}/${APP_FOLDER_NAME}`;
@@ -90,7 +92,22 @@ export class StorageService {
 
     static async exportProfile(userId: string) {
         const sourcePath = `${BASE_PATH}/${userId}.json`;
-        return sourcePath;
+        const fileName = `Rise_Backup_${userId}_${dayjs().format('YYYYMMDD_HHmmss')}.json`;
+
+        let destPath: string;
+        if (Platform.OS === 'android') {
+            destPath = `${RNFS.DownloadDirectoryPath}/${fileName}`;
+        } else {
+            destPath = `${RNFS.DocumentDirectoryPath}/${fileName}`;
+        }
+
+        try {
+            await RNFS.copyFile(sourcePath, destPath);
+            return destPath;
+        } catch (e) {
+            console.error('Export failed', e);
+            throw e;
+        }
     }
 
     static async importProfile(sourceUri: string) {

@@ -120,7 +120,7 @@ export const HabitsScreen = () => {
     return (
         <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
             <View style={styles.header}>
-                <NothingText variant="dot" size={32}>RISE HABITS</NothingText>
+                <NothingText variant="dot" style={{ fontFamily: 'ndot' }} size={32}>RISE HABITS</NothingText>
             </View>
 
             <View style={styles.tabContainer}>

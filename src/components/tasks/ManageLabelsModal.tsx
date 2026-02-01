@@ -53,7 +53,7 @@ export const ManageLabelsModal: React.FC<ManageLabelsModalProps> = ({
                         onStartShouldSetResponder={() => true}
                         onResponderTerminationRequest={() => false}
                     >
-                        <NothingText variant="bold" size={18} style={{ marginBottom: 16 }}>Your Labels</NothingText>
+                        <NothingText variant="bold" size={28} style={{ marginBottom: 16, fontFamily: 'ndot' }}>Your Labels</NothingText>
                         <ScrollView style={{ maxHeight: 300 }} showsVerticalScrollIndicator={false}>
                             {labels.map(label => (
                                 <View

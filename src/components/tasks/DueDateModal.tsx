@@ -39,9 +39,9 @@ export const DueDateModal: React.FC<DueDateModalProps> = ({
                     onResponderTerminationRequest={() => false}
                 >
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-                        <NothingText variant="bold" size={20}>DUE DATE</NothingText>
+                        <NothingText variant="bold" style={{ fontFamily: 'ndot' }} size={27}>DUE DATE</NothingText>
                         <TouchableOpacity onPress={onClose}>
-                            <NothingText color={theme.colors.primary} variant="bold">DONE</NothingText>
+                            <NothingText color={theme.colors.primary} variant="bold" style={{ fontFamily: 'ndot' }}>DONE</NothingText>
                         </TouchableOpacity>
                     </View>
 

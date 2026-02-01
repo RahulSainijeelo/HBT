@@ -87,7 +87,7 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
                         onResponderTerminationRequest={() => false}
                     >
                         <View style={styles.header}>
-                            <NothingText variant="bold" size={24} style={styles.title}>
+                            <NothingText variant="bold" size={28} style={{ ...styles.title, fontFamily: 'ndot' }}>
                                 {task.title}
                             </NothingText>
                             <TouchableOpacity onPress={onClose} style={styles.closeBtn}>

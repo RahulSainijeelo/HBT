@@ -40,7 +40,7 @@ export const LabelPickerModal: React.FC<LabelPickerModalProps> = ({
                     onStartShouldSetResponder={() => true}
                     onResponderTerminationRequest={() => false}
                 >
-                    <NothingText variant="bold" size={18} style={{ marginBottom: 16 }}>ADD LABEL</NothingText>
+                    <NothingText variant="bold" size={28} style={{ marginBottom: 16, fontFamily: 'ndot' }}>ADD LABEL</NothingText>
 
                     <ScrollView style={{ maxHeight: 200 }} showsVerticalScrollIndicator={false}>
                         {labels.map(label => (
@@ -78,7 +78,7 @@ export const LabelPickerModal: React.FC<LabelPickerModalProps> = ({
                     </View>
 
                     <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-                        <NothingText color={theme.colors.textSecondary}>CLOSE</NothingText>
+                        <NothingText size={24} color={theme.colors.textSecondary} style={{ fontFamily: 'ndot' }}>CLOSE</NothingText>
                     </TouchableOpacity>
                 </View>
             </KeyboardAvoidingView>

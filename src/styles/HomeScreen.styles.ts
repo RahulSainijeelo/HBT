@@ -14,11 +14,12 @@ export const styles = StyleSheet.create({
     },
     modalOverlay: {
         flex: 1,
-        backgroundColor: 'rgba(0,0,0,0.9)',
+        backgroundColor: 'rgba(0,0,0,0.6)',
         justifyContent: 'flex-end',
     },
     modalContent: {
-        height: '70%',
+        minHeight: '30%',
+        maxHeight: '85%',
         borderBottomLeftRadius: 0,
         borderBottomRightRadius: 0,
     },

@@ -36,7 +36,7 @@ export const RemindersModal: React.FC<RemindersModalProps> = ({
                 ]}
                 onStartShouldSetResponder={() => true}
             >
-                <NothingText variant="bold" size={18} style={{ marginBottom: 16 }}>REMINDERS</NothingText>
+                <NothingText variant="bold" size={28} style={{ marginBottom: 16, fontFamily: 'ndot' }}>REMINDERS</NothingText>
 
                 {['At time of event', '10 minutes before', '30 minutes before', '1 hour before', '1 day before'].map(r => (
                     <TouchableOpacity
@@ -57,7 +57,7 @@ export const RemindersModal: React.FC<RemindersModalProps> = ({
                 ))}
 
                 <TouchableOpacity style={{ marginTop: 24, alignSelf: 'center' }} onPress={onClose}>
-                    <NothingText color={theme.colors.primary} variant="bold">DONE</NothingText>
+                    <NothingText color={theme.colors.primary} size={24} style={{ fontFamily: 'ndot' }} variant="bold">DONE</NothingText>
                 </TouchableOpacity>
             </View>
         </TouchableOpacity>

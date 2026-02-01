@@ -33,7 +33,7 @@ export const DurationModal: React.FC<DurationModalProps> = ({
                 ]}
                 onStartShouldSetResponder={() => true}
             >
-                <NothingText variant="bold" size={18} style={{ marginBottom: 16 }}>DURATION</NothingText>
+                <NothingText variant="bold" size={28} style={{ marginBottom: 16, fontFamily: 'ndot' }}>DURATION</NothingText>
 
                 <View style={styles.durationChipContainer}>
                     {[5, 15, 30, 45, 60, 90, 120].map(m => (

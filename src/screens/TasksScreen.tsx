@@ -72,6 +72,9 @@ export const TasksScreen = () => {
     return (
         <>
             <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
+                <View style={{ paddingHorizontal: 24, paddingTop: 16 }}>
+                    <NothingText variant="dot" style={{ fontFamily: 'ndot' }} size={32}>RISE TASKS</NothingText>
+                </View>
                 <View style={[styles.subTabs, { borderBottomColor: theme.colors.border }]}>
                     {(['today', 'upcoming', 'browse'] as SubTab[]).map(tab => (
                         <TouchableOpacity key={tab} onPress={() => setActiveTab(tab)} style={styles.tabItem}>
