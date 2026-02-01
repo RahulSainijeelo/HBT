@@ -1,4 +1,4 @@
-package com.hbt
+package com.rise
 
 import android.app.Application
 import com.facebook.react.PackageList
