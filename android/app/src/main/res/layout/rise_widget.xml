@@ -30,7 +30,6 @@
             android:textSize="14sp"
             android:textStyle="bold" />
 
-        <!-- Add Button aligned to end -->
         <TextView
             android:id="@+id/widget_add"
             android:layout_width="wrap_content"
@@ -43,13 +42,52 @@
 
     </RelativeLayout>
 
-    <!-- Placeholder content -->
-    <TextView
+    <!-- Divider -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#333333"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp" />
+
+    <!-- Row 1 -->
+    <RelativeLayout
+        android:id="@+id/widget_row1"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
+        android:padding="6dp">
+        <TextView android:id="@+id/widget_row1_text" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_alignParentStart="true" android:layout_centerVertical="true" android:textColor="#FFFFFF" android:textSize="13sp" android:text="Task 1" />
+        <TextView android:id="@+id/widget_row1_status" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_alignParentEnd="true" android:layout_centerVertical="true" android:textColor="#FF3B30" android:textSize="9sp" android:textStyle="bold" android:text="PENDING" />
+    </RelativeLayout>
+
+    <!-- Row 2 -->
+    <RelativeLayout
+        android:id="@+id/widget_row2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="6dp">
+        <TextView android:id="@+id/widget_row2_text" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_alignParentStart="true" android:layout_centerVertical="true" android:textColor="#FFFFFF" android:textSize="13sp" android:text="Task 2" />
+        <TextView android:id="@+id/widget_row2_status" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_alignParentEnd="true" android:layout_centerVertical="true" android:textColor="#FF3B30" android:textSize="9sp" android:textStyle="bold" android:text="PENDING" />
+    </RelativeLayout>
+
+    <!-- Row 3 -->
+    <RelativeLayout
+        android:id="@+id/widget_row3"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="6dp">
+        <TextView android:id="@+id/widget_row3_text" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_alignParentStart="true" android:layout_centerVertical="true" android:textColor="#FFFFFF" android:textSize="13sp" android:text="Task 3" />
+        <TextView android:id="@+id/widget_row3_status" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_alignParentEnd="true" android:layout_centerVertical="true" android:textColor="#FF3B30" android:textSize="9sp" android:textStyle="bold" android:text="PENDING" />
+    </RelativeLayout>
+
+    <!-- Empty View -->
+    <TextView
+        android:id="@+id/widget_empty"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:gravity="center"
-        android:text="DASHBOARD"
+        android:padding="10dp"
+        android:text="NO TASKS FOR TODAY"
         android:textColor="#888888"
         android:textSize="12sp" />
 
