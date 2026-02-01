@@ -6,6 +6,7 @@ import { NothingInput } from '../NothingInput';
 import { NothingButton } from '../NothingButton';
 import { LabelPickerModalProps } from '../../utils/TaskScreen.utils';
 import { LabelPickerModalStyle as styles } from '../../styles/styles';
+import { ModalHandle } from './ModalHandle';
 
 export const LabelPickerModal: React.FC<LabelPickerModalProps> = ({
     visible, onClose, theme, insets, labels, newLabel, setNewLabel, customLabel, setCustomLabel, addLabel
@@ -26,6 +27,7 @@ export const LabelPickerModal: React.FC<LabelPickerModalProps> = ({
                 behavior={Platform.OS === 'ios' ? 'padding' : undefined}
                 style={{ width: '100%' }}
             >
+                <ModalHandle theme={theme} />
                 <View
                     style={[
                         styles.addModalContent,
@@ -37,8 +39,7 @@ export const LabelPickerModal: React.FC<LabelPickerModalProps> = ({
                     ]}
                     onStartShouldSetResponder={() => true}
                 >
-                    <View style={styles.modalHandle} />
-                    <NothingText variant="bold" size={18} style={{ marginBottom: 16 }}>SELECT LABEL</NothingText>
+                    <NothingText variant="bold" size={18} style={{ marginBottom: 16 }}>ADD LABEL</NothingText>
 
                     <ScrollView style={{ maxHeight: 200 }} showsVerticalScrollIndicator={false}>
                         {labels.map(label => (

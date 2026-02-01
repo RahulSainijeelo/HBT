@@ -7,6 +7,7 @@ import { NothingInput } from '../NothingInput';
 import { NothingButton } from '../NothingButton';
 import { AddTaskModalProps } from '../../utils/TaskScreen.utils';
 import { AddTaskModalStyle as styles } from '../../styles/styles';
+import { ModalHandle } from './ModalHandle';
 
 export const AddTaskModal: React.FC<AddTaskModalProps> = ({
     visible, onClose, theme, insets, newTitle, setNewTitle, newDate, newPriority, setNewPriority,
@@ -28,6 +29,7 @@ export const AddTaskModal: React.FC<AddTaskModalProps> = ({
                 behavior="padding"
                 style={{ width: '100%' }}
             >
+                <ModalHandle theme={theme} />
                 <View
                     style={[
                         styles.addModalContent,
@@ -41,7 +43,7 @@ export const AddTaskModal: React.FC<AddTaskModalProps> = ({
                     onStartShouldSetResponder={() => true}
                     onResponderTerminationRequest={() => false}
                 >
-                    <View style={styles.modalHandle} />
+
                     <View style={styles.modalHeader}>
                         <NothingText variant="bold" size={20}>NEW TASK</NothingText>
                         <TouchableOpacity onPress={onClose}>
@@ -58,31 +60,31 @@ export const AddTaskModal: React.FC<AddTaskModalProps> = ({
                     />
 
                     <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.quickOptions}>
-                        <TouchableOpacity style={[styles.optionBtn, { backgroundColor: theme.colors.surface1 }]} onPress={onAddDate}>
+                        <TouchableOpacity style={[styles.optionBtn, { backgroundColor: theme.colors.surface1, borderWidth: 1, borderColor: theme.colors.border }]} onPress={onAddDate}>
                             <Calendar size={18} color={newDate === dayjs().format('YYYY-MM-DD') ? theme.colors.primary : theme.colors.text} />
                             <NothingText style={{ fontSize: 10, marginTop: 4, color: theme.colors.textSecondary }}>
-                                {dayjs(newDate).format('DD MMM')}
+                                {newDate ? dayjs(newDate).format('DD MMM') : 'No Date'}
                             </NothingText>
                         </TouchableOpacity>
 
-                        <TouchableOpacity style={[styles.optionBtn, { backgroundColor: theme.colors.surface1 }]} onPress={onAddDuration}>
+                        <TouchableOpacity style={[styles.optionBtn, { backgroundColor: theme.colors.surface1, borderWidth: 1, borderColor: theme.colors.border }]} onPress={onAddDuration}>
                             <Clock size={16} color={duration ? theme.colors.primary : theme.colors.text} />
                             <NothingText style={{ fontSize: 10, color: theme.colors.textSecondary }}>
                                 {duration ? (duration < 60 ? `${duration}m` : `${duration / 60}h`) : 'Duration'}
                             </NothingText>
                         </TouchableOpacity>
 
-                        <TouchableOpacity style={[styles.optionBtn, { backgroundColor: theme.colors.surface1 }]} onPress={() => setNewPriority(newPriority === 1 ? 4 : (newPriority - 1) as any)}>
+                        <TouchableOpacity style={[styles.optionBtn, { backgroundColor: theme.colors.surface1, borderWidth: 1, borderColor: theme.colors.border }]} onPress={() => setNewPriority(newPriority === 1 ? 4 : (newPriority - 1) as any)}>
                             <Flag size={18} color={getPriorityColor(newPriority)} />
                             <NothingText style={{ fontSize: 10, marginTop: 4, color: theme.colors.textSecondary }}>P{newPriority}</NothingText>
                         </TouchableOpacity>
 
-                        <TouchableOpacity style={[styles.optionBtn, { backgroundColor: theme.colors.surface1 }]} onPress={onAddReminders}>
+                        <TouchableOpacity style={[styles.optionBtn, { backgroundColor: theme.colors.surface1, borderWidth: 1, borderColor: theme.colors.border }]} onPress={onAddReminders}>
                             <Bell size={18} color={selectedReminders.length > 0 ? theme.colors.primary : theme.colors.text} />
                             <NothingText style={{ fontSize: 10, marginTop: 4, color: theme.colors.textSecondary }}>Alert</NothingText>
                         </TouchableOpacity>
 
-                        <TouchableOpacity style={[styles.optionBtn, { backgroundColor: theme.colors.surface1 }]} onPress={onAddLabel}>
+                        <TouchableOpacity style={[styles.optionBtn, { backgroundColor: theme.colors.surface1, borderWidth: 1, borderColor: theme.colors.border }]} onPress={onAddLabel}>
                             <Tag size={18} color={theme.colors.text} />
                             <NothingText style={{ fontSize: 10, marginTop: 4, color: theme.colors.textSecondary }}>
                                 {newLabel}

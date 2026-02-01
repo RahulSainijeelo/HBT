@@ -33,7 +33,11 @@ export const TaskItem: React.FC<TaskItemProps> = ({ item, theme, toggleTask, get
                     </NothingText>
                 )}
             </TouchableOpacity>
-            <View style={[styles.priorityDot, { backgroundColor: getPriorityColor(item.priority) }]} />
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                <NothingText size={12} color={theme.colors.textSecondary}>P{item.priority}</NothingText>
+                <View style={[styles.priorityDot, { backgroundColor: getPriorityColor(item.priority) }]} />
+            </View>
+
         </View>
     </NothingCard>
 );

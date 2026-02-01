@@ -5,6 +5,7 @@ import dayjs from 'dayjs';
 import { NothingText } from '../NothingText';
 import { DueDateModalProps } from '../../utils/TaskScreen.utils';
 import { DueDateModalStyle as styles } from '../../styles/styles';
+import { ModalHandle } from './ModalHandle';
 
 export const DueDateModal: React.FC<DueDateModalProps> = ({
     visible, onClose, theme, insets, newDate, setNewDate, newTime, setNewTime,
@@ -22,6 +23,7 @@ export const DueDateModal: React.FC<DueDateModalProps> = ({
             activeOpacity={1}
             onPress={onClose}
         >
+            <ModalHandle theme={theme} />
             <View
                 style={[
                     styles.addModalContent,
@@ -33,7 +35,6 @@ export const DueDateModal: React.FC<DueDateModalProps> = ({
                 ]}
                 onStartShouldSetResponder={() => true}
             >
-                <View style={styles.modalHandle} />
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
                     <NothingText variant="bold" size={20}>DUE DATE</NothingText>
                     <TouchableOpacity onPress={onClose}>

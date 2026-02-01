@@ -3,6 +3,7 @@ import { View, Modal, TouchableOpacity } from 'react-native';
 import { NothingText } from '../NothingText';
 import { TimeDialModalProps } from '../../utils/TaskScreen.utils';
 import { TimeDialModalStyle as styles } from '../../styles/styles';
+import { ModalHandle } from './ModalHandle';
 
 export const TimeDialModal: React.FC<TimeDialModalProps> = ({
     visible, onClose, theme, insets, timeMode, setTimeMode, newTime, setNewTime, panResponder
@@ -19,6 +20,7 @@ export const TimeDialModal: React.FC<TimeDialModalProps> = ({
             activeOpacity={1}
             onPress={onClose}
         >
+            <ModalHandle theme={theme} />
             <View
                 style={[
                     styles.addModalContent,
@@ -32,7 +34,6 @@ export const TimeDialModal: React.FC<TimeDialModalProps> = ({
                 ]}
                 onStartShouldSetResponder={() => true}
             >
-                <View style={styles.modalHandle} />
                 <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginBottom: 32 }}>
                     <TouchableOpacity
                         onPress={() => setTimeMode('hour')}

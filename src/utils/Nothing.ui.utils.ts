@@ -44,9 +44,9 @@ export const getColors = (variant: 'primary' | 'secondary' | 'outline' | 'ghost'
     switch (variant) {
         case 'primary':
             return {
-                background: theme.colors.text,
-                text: theme.colors.background,
-                border: theme.colors.text,
+                background: theme.colors.primary,
+                text: theme.colors.primaryText,
+                border: theme.colors.primary,
             };
         case 'secondary':
             return {

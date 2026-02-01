@@ -4,6 +4,7 @@ import { NothingText } from '../NothingText';
 import { NothingButton } from '../NothingButton';
 import { DurationModalProps } from '../../utils/TaskScreen.utils';
 import { DurationModalStyle as styles } from '../../styles/styles';
+import { ModalHandle } from './ModalHandle';
 
 export const DurationModal: React.FC<DurationModalProps> = ({
     visible, onClose, theme, insets, duration, setDuration
@@ -20,6 +21,7 @@ export const DurationModal: React.FC<DurationModalProps> = ({
             activeOpacity={1}
             onPress={onClose}
         >
+            <ModalHandle theme={theme} />
             <View
                 style={[
                     styles.addModalContent,
@@ -31,7 +33,6 @@ export const DurationModal: React.FC<DurationModalProps> = ({
                 ]}
                 onStartShouldSetResponder={() => true}
             >
-                <View style={styles.modalHandle} />
                 <NothingText variant="bold" size={18} style={{ marginBottom: 16 }}>DURATION</NothingText>
 
                 <View style={styles.durationChipContainer}>
