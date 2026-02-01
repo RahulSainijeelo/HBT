@@ -49,13 +49,7 @@ export const HabitsScreen = () => {
     };
 
     const handleTemplateSelect = (template: typeof DISCOVERY_TEMPLATES[0]) => {
-        setNewTitle(template.title);
-        setNewDesc(template.desc);
-        setNewType(template.type as any);
-        if (template.timerGoal) {
-            setNewTimerGoal((template.timerGoal / 60).toString());
-        }
-        setIsAddModalVisible(true);
+        navigation.navigate('HabitKnowledge', { template });
     };
 
     const todayStr = dayjs().format('YYYY-MM-DD');

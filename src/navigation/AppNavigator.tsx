@@ -8,12 +8,13 @@ import { HabitsScreen } from '../screens/HabitsScreen';
 import { LoginScreen } from '../screens/LoginScreen';
 import { ProfileScreen } from '../screens/ProfileScreen';
 import { SplashScreen } from '../screens/SplashScreen';
-import { useTheme } from '../theme';
 import { Home, CheckSquare, RotateCcw, User } from 'lucide-react-native';
 import { View, TouchableOpacity, StyleSheet, Platform } from 'react-native';
 import { useAppStore } from '../store/useAppStore';
-import { NothingLogo } from '../components/NothingLogo';
 import { HabitDetailScreen } from '../screens/HabitDetailScreen';
+import { HabitKnowledgeScreen } from '../screens/HabitKnowledgeScreen';
+import { useTheme } from '../theme';
+import { NothingLogo } from '../components/NothingLogo';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -88,6 +89,7 @@ export const AppNavigator = () => {
                 <Stack.Screen name="Main" component={TabNavigator} />
                 <Stack.Screen name="Profile" component={ProfileScreen} />
                 <Stack.Screen name="HabitDetail" component={HabitDetailScreen} />
+                <Stack.Screen name="HabitKnowledge" component={HabitKnowledgeScreen} />
             </Stack.Navigator>
         </NavigationContainer>
     );

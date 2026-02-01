@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, StyleSheet, TouchableOpacity, ScrollView, Animated, Dimensions } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, ScrollView, Animated, Dimensions, Vibration, Modal } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../theme';
 import { NothingText } from '../components/NothingText';
 import { NothingCard } from '../components/NothingCard';
 import { NothingButton } from '../components/NothingButton';
+import { NothingInput } from '../components/NothingInput';
 import { useAppStore, Habit } from '../store/useAppStore';
-import { ArrowLeft, Play, Pause, RotateCcw, Flame, Trophy, Settings, Trash2, Check } from 'lucide-react-native';
+import { ArrowLeft, Play, Pause, RotateCcw, Flame, Trophy, Settings, Trash2, Check, X } from 'lucide-react-native';
 import dayjs from 'dayjs';
 
 const { width } = Dimensions.get('window');
@@ -20,35 +21,59 @@ export const HabitDetailScreen = ({ route, navigation }: any) => {
 
     const [isTimerRunning, setIsTimerRunning] = useState(false);
     const [timeLeft, setTimeLeft] = useState(habit?.timerGoal || 0);
+    const [showSettings, setShowSettings] = useState(false);
+    const [editTitle, setEditTitle] = useState(habit?.title || '');
+    const [editGoal, setEditGoal] = useState(((habit?.timerGoal || 0) / 60).toString());
+
     const timerRef = useRef<any>(null);
 
+    // Sync state when habit updates or timer goal changes
     useEffect(() => {
-        if (habit?.type === 'timer' && !isTimerRunning) {
-            setTimeLeft(habit.timerGoal || 0);
+        if (habit) {
+            setEditTitle(habit.title);
+            setEditGoal(((habit.timerGoal || 0) / 60).toString());
+            if (habit.type === 'timer' && !isTimerRunning) {
+                setTimeLeft(habit.timerGoal || 0);
+            }
         }
-    }, [habit?.timerGoal]);
+    }, [habit?.id, habit?.timerGoal]);
 
     useEffect(() => {
         if (isTimerRunning && timeLeft > 0) {
             timerRef.current = setInterval(() => {
-                setTimeLeft(prev => prev - 1);
+                setTimeLeft(prev => {
+                    if (prev <= 1) {
+                        setIsTimerRunning(false);
+                        Vibration.vibrate([0, 500, 200, 500]);
+                        const today = dayjs().format('YYYY-MM-DD');
+                        if (habit && !habit.completedDates.includes(today)) {
+                            toggleHabit(habitId, today);
+                        }
+                        return 0;
+                    }
+                    return prev - 1;
+                });
             }, 1000);
-        } else if (timeLeft === 0 && isTimerRunning) {
-            setIsTimerRunning(false);
+        } else {
             if (timerRef.current) clearInterval(timerRef.current);
-            // Auto complete for today if timer finishes
-            const today = dayjs().format('YYYY-MM-DD');
-            if (!habit?.completedDates.includes(today)) {
-                toggleHabit(habitId, today);
-            }
         }
 
         return () => {
             if (timerRef.current) clearInterval(timerRef.current);
         };
-    }, [isTimerRunning, timeLeft]);
+    }, [isTimerRunning]);
 
     if (!habit) return null;
+
+    const handleSaveSettings = () => {
+        if (editTitle.trim()) {
+            updateHabit(habitId, {
+                title: editTitle,
+                timerGoal: habit.type === 'timer' ? parseInt(editGoal) * 60 : undefined
+            });
+            setShowSettings(false);
+        }
+    };
 
     const formatTime = (seconds: number) => {
         const m = Math.floor(seconds / 60);
@@ -57,7 +82,6 @@ export const HabitDetailScreen = ({ route, navigation }: any) => {
     };
 
     const progress = habit.type === 'timer' ? (timeLeft / (habit.timerGoal || 1)) : 0;
-
     const today = dayjs().format('YYYY-MM-DD');
     const isCompletedToday = habit.completedDates.includes(today);
 
@@ -68,13 +92,12 @@ export const HabitDetailScreen = ({ route, navigation }: any) => {
                     <ArrowLeft color={theme.colors.text} size={24} />
                 </TouchableOpacity>
                 <NothingText variant="bold" size={20}>{habit.title.toUpperCase()}</NothingText>
-                <TouchableOpacity onPress={() => {/* Show Settings Modal */ }}>
+                <TouchableOpacity onPress={() => setShowSettings(true)}>
                     <Settings color={theme.colors.text} size={24} />
                 </TouchableOpacity>
             </View>
 
             <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-                {/* Stats Summary */}
                 <View style={styles.statsRow}>
                     <NothingCard style={styles.statCard}>
                         <Flame size={20} color={theme.colors.primary} />
@@ -89,12 +112,10 @@ export const HabitDetailScreen = ({ route, navigation }: any) => {
                     </NothingCard>
                 </View>
 
-                {/* Main Interaction Area */}
                 <View style={styles.mainArea}>
                     {habit.type === 'timer' ? (
                         <View style={styles.timerContainer}>
                             <View style={[styles.circleOutline, { borderColor: theme.colors.surface2 }]}>
-                                {/* Progress Indicator (Simple version for now) */}
                                 <View style={[styles.progressOverlay, {
                                     height: CIRCLE_SIZE * (1 - progress),
                                     backgroundColor: theme.colors.background,
@@ -128,7 +149,7 @@ export const HabitDetailScreen = ({ route, navigation }: any) => {
                                     style={[styles.controlBtn, { backgroundColor: theme.colors.surface1 }]}
                                     onPress={() => {
                                         setIsTimerRunning(false);
-                                        setTimeLeft(0); // Manual complete
+                                        setTimeLeft(0);
                                     }}
                                 >
                                     <Check size={24} color={theme.colors.success} />
@@ -154,11 +175,9 @@ export const HabitDetailScreen = ({ route, navigation }: any) => {
                     )}
                 </View>
 
-                {/* History / Heatmap Placeholder */}
                 <NothingText variant="bold" size={14} style={styles.sectionTitle}>HISTORY</NothingText>
                 <NothingCard style={styles.historyCard}>
                     <View style={styles.heatmap}>
-                        {/* 5x7 grid of dots for last 35 days */}
                         {Array.from({ length: 35 }).map((_, i) => {
                             const date = dayjs().subtract(34 - i, 'day').format('YYYY-MM-DD');
                             const active = habit.completedDates.includes(date);
@@ -186,10 +205,71 @@ export const HabitDetailScreen = ({ route, navigation }: any) => {
                     <NothingText color={theme.colors.error} style={{ marginLeft: 8 }}>Delete Habit</NothingText>
                 </TouchableOpacity>
             </ScrollView>
+
+            <Modal
+                transparent={true}
+                visible={showSettings}
+                animationType="fade"
+                onRequestClose={() => setShowSettings(false)}
+            >
+                <TouchableOpacity
+                    style={styles.modalOverlay}
+                    activeOpacity={1}
+                    onPress={() => setShowSettings(false)}
+                >
+                    <NothingCard
+                        style={[styles.modalContent, { backgroundColor: theme.colors.surface }]}
+                        padding="lg"
+                        onStartShouldSetResponder={() => true}
+                    >
+                        <View style={styles.modalHeader}>
+                            <NothingText variant="bold" size={20}>EDIT HABIT</NothingText>
+                            <TouchableOpacity onPress={() => setShowSettings(false)}>
+                                <X color={theme.colors.text} size={24} />
+                            </TouchableOpacity>
+                        </View>
+
+                        <NothingInput
+                            placeholder="Habit Name"
+                            value={editTitle}
+                            onChangeText={setEditTitle}
+                        />
+
+                        {habit.type === 'timer' && (
+                            <View style={{ marginTop: 16 }}>
+                                <NothingText variant="bold" size={14} style={{ marginBottom: 12 }}>GOAL DURATION (MINS)</NothingText>
+                                <NothingInput
+                                    placeholder="10"
+                                    value={editGoal}
+                                    onChangeText={setEditGoal}
+                                    keyboardType="numeric"
+                                />
+                            </View>
+                        )}
+
+                        <NothingButton
+                            label="Save Changes"
+                            onPress={handleSaveSettings}
+                            style={{ marginTop: 24 }}
+                        />
+
+                        <TouchableOpacity
+                            style={[styles.deleteBtn, { marginTop: 24 }]}
+                            onPress={() => {
+                                setShowSettings(false);
+                                deleteHabit(habitId);
+                                navigation.goBack();
+                            }}
+                        >
+                            <Trash2 size={18} color={theme.colors.error} />
+                            <NothingText color={theme.colors.error} size={14} style={{ marginLeft: 8 }}>Delete Habit</NothingText>
+                        </TouchableOpacity>
+                    </NothingCard>
+                </TouchableOpacity>
+            </Modal>
         </SafeAreaView>
     );
 };
-
 
 const styles = StyleSheet.create({
     container: {
@@ -302,5 +382,20 @@ const styles = StyleSheet.create({
         marginTop: 48,
         paddingVertical: 16,
         opacity: 0.6,
+    },
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0,0,0,0.8)',
+        justifyContent: 'center',
+        padding: 20,
+    },
+    modalContent: {
+        // dynamic
+    },
+    modalHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 24,
     }
 });
