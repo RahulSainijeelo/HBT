@@ -4,6 +4,7 @@ import { Bell, CheckCircle2 } from 'lucide-react-native';
 import { NothingText } from '../NothingText';
 import { RemindersModalProps } from '../../utils/TaskScreen.utils';
 import { RemindersModalStyle as styles } from '../../styles/styles';
+import { ModalHandle } from './ModalHandle';
 
 export const RemindersModal: React.FC<RemindersModalProps> = ({
     visible, onClose, theme, insets, selectedReminders, setSelectedReminders
@@ -20,6 +21,7 @@ export const RemindersModal: React.FC<RemindersModalProps> = ({
             activeOpacity={1}
             onPress={onClose}
         >
+            <ModalHandle theme={theme} />
             <View
                 style={[
                     styles.addModalContent,
@@ -34,7 +36,6 @@ export const RemindersModal: React.FC<RemindersModalProps> = ({
                 ]}
                 onStartShouldSetResponder={() => true}
             >
-                <View style={styles.modalHandle} />
                 <NothingText variant="bold" size={18} style={{ marginBottom: 16 }}>REMINDERS</NothingText>
 
                 {['At time of event', '10 minutes before', '30 minutes before', '1 hour before', '1 day before'].map(r => (
