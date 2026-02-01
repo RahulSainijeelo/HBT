@@ -14,6 +14,7 @@ import { TimeDialModal } from '../components/tasks/TimeDialModal';
 import { DurationModal } from '../components/tasks/DurationModal';
 import { RemindersModal } from '../components/tasks/RemindersModal';
 import { LabelPickerModal } from '../components/tasks/LabelPickerModal';
+import { TaskDetailModal } from '../components/tasks/TaskDetailModal';
 import { styles } from '../styles/TaskScreen.style';
 import { getPriorityColor } from '../utils/TaskScreen.utils';
 export const TasksScreen = () => {
@@ -48,8 +49,14 @@ export const TasksScreen = () => {
         handleAddTask,
         onDateChange,
         onTimeChange,
-        addLabel,
+        isDetailModalVisible, setIsDetailModalVisible,
+        activeTask,
+        handleTaskPress,
+        handleAddSubtask,
+        handleToggleSubtask,
+        handleDeleteSubtask,
         newLabel, setNewLabel,
+        addLabel,
     } = useTasksScreen();
     const insets = useSafeAreaInsets();
 
@@ -108,7 +115,15 @@ export const TasksScreen = () => {
 
                 <FlatList
                     data={activeTasks}
-                    renderItem={({ item }) => <TaskItem item={item} theme={theme} toggleTask={toggleTask} getPriorityColor={getPriorityColor} />}
+                    renderItem={({ item }) => (
+                        <TaskItem
+                            item={item}
+                            theme={theme}
+                            toggleTask={toggleTask}
+                            getPriorityColor={getPriorityColor}
+                            onPress={handleTaskPress}
+                        />
+                    )}
                     keyExtractor={(item) => item.id}
                     contentContainerStyle={styles.listContainer}
                     ListEmptyComponent={
@@ -129,7 +144,14 @@ export const TasksScreen = () => {
                                     {showCompleted ? <ChevronUp size={16} color={theme.colors.textSecondary} style={{ marginLeft: 8 }} /> : <ChevronDown size={16} color={theme.colors.textSecondary} style={{ marginLeft: 8 }} />}
                                 </TouchableOpacity>
                                 {showCompleted && completedTasks.map(item => (
-                                    <TaskItem key={item.id} item={item} theme={theme} toggleTask={toggleTask} getPriorityColor={getPriorityColor} />
+                                    <TaskItem
+                                        key={item.id}
+                                        item={item}
+                                        theme={theme}
+                                        toggleTask={toggleTask}
+                                        getPriorityColor={getPriorityColor}
+                                        onPress={handleTaskPress}
+                                    />
                                 ))}
                             </View>
                         ) : null
@@ -244,6 +266,18 @@ export const TasksScreen = () => {
                     onChange={onTimeChange}
                 />
             )}
+
+            <TaskDetailModal
+                visible={isDetailModalVisible}
+                onClose={() => setIsDetailModalVisible(false)}
+                theme={theme}
+                insets={insets}
+                task={activeTask}
+                onAddSubtask={handleAddSubtask}
+                onToggleSubtask={handleToggleSubtask}
+                onDeleteSubtask={handleDeleteSubtask}
+                getPriorityColor={getPriorityColor}
+            />
         </>
     );
 };
