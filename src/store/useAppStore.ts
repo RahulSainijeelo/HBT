@@ -129,18 +129,23 @@ export const useAppStore = create<AppState>((set, get) => ({
     loadData: async (id) => {
         const data = await StorageService.loadUserData(id);
         if (data) {
+            const tasks = data.tasks || [];
+            const habits = data.habits || [];
             set({
                 // If the loaded data has a name, update our state
                 activeProfile: { id: id, name: data.name || get().activeProfile?.name || id },
                 currentUser: data.name || get().currentUser,
-                tasks: data.tasks || [],
-                habits: data.habits || [],
+                tasks,
+                habits,
                 labels: data.labels && Array.isArray(data.labels) && typeof data.labels[0] === 'object'
                     ? data.labels
                     : (data.labels || DEFAULT_LABELS).map((l: any) => typeof l === 'string' ? { id: Math.random().toString(36).substr(2, 9), name: l } : l)
             });
+            // Update widget with loaded data
+            WidgetService.updateWidget(tasks, habits);
         } else {
             set({ tasks: [], habits: [] });
+            WidgetService.updateWidget([], []);
         }
     },
 
