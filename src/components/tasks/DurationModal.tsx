@@ -40,7 +40,7 @@ export const DurationModal: React.FC<DurationModalProps> = ({
                         <TouchableOpacity
                             key={m}
                             style={[styles.durationChip, duration === m && { backgroundColor: theme.colors.primary }]}
-                            onPress={() => setDuration(m)}
+                            onPress={() => { setDuration(m); onClose(); }}
                         >
                             <NothingText color={duration === m ? theme.colors.background : theme.colors.text}>
                                 {m < 60 ? `${m}m` : `${m / 60}h`}

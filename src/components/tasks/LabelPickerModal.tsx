@@ -14,7 +14,7 @@ export const LabelPickerModal: React.FC<LabelPickerModalProps> = ({
     <Modal
         transparent={true}
         visible={visible}
-        animationType="fade"
+        animationType="slide"
         onRequestClose={onClose}
         statusBarTranslucent
     >
@@ -24,7 +24,7 @@ export const LabelPickerModal: React.FC<LabelPickerModalProps> = ({
             onPress={onClose}
         >
             <KeyboardAvoidingView
-                behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+                behavior="padding"
                 style={{ width: '100%' }}
             >
                 <ModalHandle theme={theme} />
@@ -38,6 +38,7 @@ export const LabelPickerModal: React.FC<LabelPickerModalProps> = ({
                         }
                     ]}
                     onStartShouldSetResponder={() => true}
+                    onResponderTerminationRequest={() => false}
                 >
                     <NothingText variant="bold" size={18} style={{ marginBottom: 16 }}>ADD LABEL</NothingText>
 
