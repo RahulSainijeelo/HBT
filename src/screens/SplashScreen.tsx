@@ -74,7 +74,7 @@ export const SplashScreen = ({ navigation }: any) => {
             <Animated.View style={{ opacity, transform: [{ scale }] }}>
                 <View style={[styles.logoContainer, { borderColor: theme.colors.primary }]}>
                     <NothingText variant="dot" size={48} color={theme.colors.primary}>
-                        GLYPH
+                        Rise
                     </NothingText>
                 </View>
             </Animated.View>

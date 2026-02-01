@@ -44,7 +44,7 @@ export const HomeScreen = () => {
     return (
         <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
             <View style={styles.header}>
-                <NothingText variant="dot" style={{ fontFamily: 'ndot' }} size={32}>GLYPH</NothingText>
+                <NothingText variant="dot" style={{ fontFamily: 'ndot' }} size={32}>Rise</NothingText>
                 <NothingText color={theme.colors.textSecondary}>{dayjs().format('MMMM YYYY')}</NothingText>
             </View>
 

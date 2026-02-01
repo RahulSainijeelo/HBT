@@ -128,6 +128,36 @@ export const HabitDetailScreenStyles = StyleSheet.create({
         justifyContent: 'space-between',
         alignItems: 'center',
         marginBottom: 24,
+    },
+    // Atomic Habit Loop Styles
+    loopContainer: {
+        marginTop: 32,
+        gap: 20,
+    },
+    loopStep: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        padding: 16,
+        borderRadius: 16,
+        borderWidth: 1,
+    },
+    stepIcon: {
+        width: 48,
+        height: 48,
+        borderRadius: 24,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: 16,
+    },
+    stepContent: {
+        flex: 1,
+    },
+    howToSection: {
+        marginTop: 40,
+        padding: 20,
+        borderRadius: 20,
+        borderWidth: 1,
+        borderStyle: 'dashed',
     }
 });
 
@@ -308,5 +338,35 @@ export const HabitsScreenStyles = StyleSheet.create({
         padding: 12,
         borderRadius: 12,
         borderWidth: 1,
+    },
+    // Tab Styles
+    tabContainer: {
+        flexDirection: 'row',
+        paddingHorizontal: 24,
+        marginBottom: 24,
+    },
+    tab: {
+        marginRight: 24,
+        paddingBottom: 8,
+        borderBottomWidth: 2,
+        borderBottomColor: 'transparent',
+    },
+    // Numeric Habit Styles
+    numericControls: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 12,
+    },
+    numericBtn: {
+        width: 36,
+        height: 36,
+        borderRadius: 18,
+        borderWidth: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    progressText: {
+        minWidth: 40,
+        textAlign: 'center',
     }
 }); 

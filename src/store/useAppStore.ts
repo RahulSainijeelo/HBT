@@ -24,13 +24,23 @@ export interface Habit {
     frequency: 'daily' | 'weekly' | 'monthly';
     targetDays?: number;
     completedDates: string[];
+    numericProgress?: Record<string, number>;
     streak: number;
     bestStreak: number;
     reminders: string[];
-    type: 'check' | 'timer';
+    type: 'check' | 'timer' | 'numeric';
     timerGoal?: number; // in seconds
-    accumulatedTimeToday?: number; // for the current day
+    numericGoal?: number;
+    numericUnit?: string;
+    accumulatedTimeToday?: number; // for legacy timer
+    timerProgress?: Record<string, number>; // New: { "date": seconds }
     color?: string;
+    // Atomic Habit breakdown
+    cue?: string;
+    craving?: string;
+    response?: string;
+    reward?: string;
+    howToApply?: string;
 }
 
 export interface Label {
@@ -68,9 +78,11 @@ interface AppState {
     deleteLabel: (id: string) => void;
 
     // Habit Actions
-    addHabit: (habit: Omit<Habit, 'id' | 'completedDates' | 'streak' | 'bestStreak' | 'accumulatedTimeToday'>) => void;
+    addHabit: (habit: Omit<Habit, 'id' | 'completedDates' | 'streak' | 'bestStreak'>) => void;
     toggleHabit: (id: string, date: string) => void;
     updateHabit: (id: string, updates: Partial<Habit>) => void;
+    updateNumericProgress: (id: string, date: string, amount: number) => void;
+    updateTimerProgress: (id: string, date: string, seconds: number) => void;
     deleteHabit: (id: string) => void;
 }
 
@@ -195,9 +207,10 @@ export const useAppStore = create<AppState>((set, get) => ({
                 ...habit,
                 id: Math.random().toString(36).substr(2, 9),
                 completedDates: [],
+                numericProgress: {},
+                timerProgress: {},
                 streak: 0,
                 bestStreak: 0,
-                accumulatedTimeToday: 0
             }]
         }));
         get().saveData();
@@ -213,14 +226,12 @@ export const useAppStore = create<AppState>((set, get) => ({
                         : [...h.completedDates, date];
 
                     // Recalculate streak correctly (contiguous days)
-                    // This is a simple version: sort and count back from today
                     const sortedDates = [...newCompletedDates].sort((a, b) => b.localeCompare(a));
                     let streak = 0;
                     if (sortedDates.length > 0) {
                         const today = dayjs().format('YYYY-MM-DD');
                         const yesterday = dayjs().subtract(1, 'day').format('YYYY-MM-DD');
 
-                        // If not completed today or yesterday, streak is broken (unless it's currently today)
                         if (sortedDates[0] === today || sortedDates[0] === yesterday) {
                             streak = 1;
                             for (let i = 0; i < sortedDates.length - 1; i++) {
@@ -243,6 +254,124 @@ export const useAppStore = create<AppState>((set, get) => ({
             });
             return { habits };
         });
+        get().saveData();
+    },
+
+    updateNumericProgress: (id, date, amount) => {
+        set((state) => {
+            const habits = state.habits.map((h) => {
+                if (h.id === id && h.type === 'numeric') {
+                    const currentProgress = h.numericProgress?.[date] || 0;
+                    const newProgress = Math.max(0, currentProgress + amount);
+                    const numericProgress = { ...h.numericProgress, [date]: newProgress };
+
+                    // Check if goal reached to update completedDates
+                    const isCompleted = h.completedDates.includes(date);
+                    const goalReached = newProgress >= (h.numericGoal || 1);
+                    let newCompletedDates = [...h.completedDates];
+
+                    if (goalReached && !isCompleted) {
+                        newCompletedDates.push(date);
+                    } else if (!goalReached && isCompleted) {
+                        newCompletedDates = newCompletedDates.filter(d => d !== date);
+                    }
+
+                    // For numeric habits, we don't recalculate streak here because toggleHabit handles it via completedDates
+                    // But we SHOULD trigger the same streak logic if completedDates changed.
+                    // Instead of duplicating, we'll let the component call toggleHabit or we can refactor.
+                    // For now, let's just update the habit.
+
+                    return { ...h, numericProgress, completedDates: newCompletedDates };
+                }
+                return h;
+            });
+            return { habits };
+        });
+        // We need to trigger streak recalculation if completedDates changed
+        // Actually, let's just call toggleHabit internally if we want, or just re-calc here.
+        // I'll re-run streak calc for consistency.
+        set((state) => ({
+            habits: state.habits.map(h => {
+                if (h.id === id) {
+                    const sortedDates = [...h.completedDates].sort((a, b) => b.localeCompare(a));
+                    let streak = 0;
+                    if (sortedDates.length > 0) {
+                        const today = dayjs().format('YYYY-MM-DD');
+                        const yesterday = dayjs().subtract(1, 'day').format('YYYY-MM-DD');
+                        if (sortedDates[0] === today || sortedDates[0] === yesterday) {
+                            streak = 1;
+                            for (let i = 0; i < sortedDates.length - 1; i++) {
+                                const curr = dayjs(sortedDates[i]);
+                                const next = dayjs(sortedDates[i + 1]);
+                                if (curr.subtract(1, 'day').format('YYYY-MM-DD') === next.format('YYYY-MM-DD')) {
+                                    streak++;
+                                } else {
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    const bestStreak = Math.max(h.bestStreak || 0, streak);
+                    return { ...h, streak, bestStreak };
+                }
+                return h;
+            })
+        }));
+        get().saveData();
+    },
+
+    updateTimerProgress: (id, date, seconds) => {
+        set((state) => {
+            const habits = state.habits.map((h) => {
+                if (h.id === id && h.type === 'timer') {
+                    const currentProgress = h.timerProgress?.[date] || 0;
+                    const newProgress = currentProgress + seconds;
+                    const timerProgress = { ...h.timerProgress, [date]: newProgress };
+
+                    const isCompleted = h.completedDates.includes(date);
+                    const goalReached = newProgress >= (h.timerGoal || 1);
+                    let newCompletedDates = [...h.completedDates];
+
+                    if (goalReached && !isCompleted) {
+                        newCompletedDates.push(date);
+                    } else if (!goalReached && isCompleted) {
+                        newCompletedDates = newCompletedDates.filter(d => d !== date);
+                    }
+
+                    return { ...h, timerProgress, completedDates: newCompletedDates };
+                }
+                return h;
+            });
+            return { habits };
+        });
+        // Streak logic again
+        set((state) => ({
+            habits: state.habits.map(h => {
+                if (h.id === id) {
+                    const sortedDates = [...h.completedDates].sort((a, b) => b.localeCompare(a));
+                    let streak = 0;
+                    if (sortedDates.length > 0) {
+                        const today = dayjs().format('YYYY-MM-DD');
+                        const yesterday = dayjs().subtract(1, 'day').format('YYYY-MM-DD');
+                        if (sortedDates[0] === today || sortedDates[0] === yesterday) {
+                            streak = 1;
+                            for (let i = 0; i < sortedDates.length - 1; i++) {
+                                const curr = dayjs(sortedDates[i]);
+                                const next = dayjs(sortedDates[i + 1]);
+                                if (curr.subtract(1, 'day').format('YYYY-MM-DD') === next.format('YYYY-MM-DD')) {
+                                    streak++;
+                                } else {
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    const bestStreak = Math.max(h.bestStreak || 0, streak);
+                    return { ...h, streak, bestStreak };
+                }
+                return h;
+            })
+        }));
         get().saveData();
     },
 
