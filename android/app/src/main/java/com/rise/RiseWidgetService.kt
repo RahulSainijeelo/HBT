@@ -64,6 +64,11 @@ class RiseWidgetFactory(private val context: Context) : RemoteViewsService.Remot
                     continue
                 }
                 
+                val dueTime = if (obj.has("dueTime") && !obj.isNull("dueTime")) {
+                    val time = obj.optString("dueTime", "")
+                    if (time.isNotEmpty()) time else null
+                } else null
+                
                 tempItems.add(WidgetItem(
                     id = id,
                     title = obj.optString("title", "Task"),
@@ -71,7 +76,7 @@ class RiseWidgetFactory(private val context: Context) : RemoteViewsService.Remot
                     type = type,
                     category = category,
                     dueDate = obj.optString("dueDate", ""),
-                    dueTime = if (obj.has("dueTime") && !obj.isNull("dueTime")) obj.optString("dueTime") else null,
+                    dueTime = dueTime,
                     priority = obj.optInt("priority", 4)
                 ))
             }
@@ -137,17 +142,22 @@ class RiseWidgetFactory(private val context: Context) : RemoteViewsService.Remot
             val item = items[position]
             
             if (item.isDateHeader) {
-                // Date header styling
+                // Date header - minimal styling, no card background
                 views.setTextViewText(R.id.widget_item_title, item.title)
                 views.setTextColor(R.id.widget_item_title, 0xFF888888.toInt())
                 views.setFloat(R.id.widget_item_title, "setTextSize", 11f)
                 views.setTextViewText(R.id.widget_item_datetime, "")
                 views.setTextViewText(R.id.widget_item_type, "")
-                views.setViewVisibility(R.id.widget_item_priority, View.INVISIBLE)
-                views.setViewVisibility(R.id.widget_item_checkbox, View.INVISIBLE)
+                views.setViewVisibility(R.id.widget_item_priority, View.GONE)
+                views.setViewVisibility(R.id.widget_item_checkbox, View.GONE)
+                // Transparent background for headers
+                views.setInt(R.id.widget_item_container, "setBackgroundColor", Color.TRANSPARENT)
                 views.setOnClickFillInIntent(R.id.widget_item_container, Intent())
             } else {
                 val isCompleted = item.status.equals("completed", ignoreCase = true)
+                
+                // Reset background for task/habit items
+                views.setInt(R.id.widget_item_container, "setBackgroundResource", R.drawable.widget_item_bg)
                 
                 // Checkbox
                 views.setViewVisibility(R.id.widget_item_checkbox, View.VISIBLE)
@@ -163,9 +173,14 @@ class RiseWidgetFactory(private val context: Context) : RemoteViewsService.Remot
                 views.setTextColor(R.id.widget_item_title, 
                     if (isCompleted) 0xFF666666.toInt() else 0xFFFFFFFF.toInt())
                 
-                // Time
-                val dateTimeText = item.dueTime ?: ""
-                views.setTextViewText(R.id.widget_item_datetime, dateTimeText)
+                // Time display
+                if (item.dueTime != null && item.dueTime.isNotEmpty()) {
+                    views.setTextViewText(R.id.widget_item_datetime, item.dueTime)
+                    views.setViewVisibility(R.id.widget_item_datetime, View.VISIBLE)
+                } else {
+                    views.setTextViewText(R.id.widget_item_datetime, "")
+                    views.setViewVisibility(R.id.widget_item_datetime, View.GONE)
+                }
                 
                 // Type indicator
                 val typeIndicator = if (item.type == "habit") "H" else "T"
@@ -173,7 +188,7 @@ class RiseWidgetFactory(private val context: Context) : RemoteViewsService.Remot
                 views.setTextColor(R.id.widget_item_type, 
                     if (item.type == "habit") 0xFFE91E63.toInt() else 0xFF2196F3.toInt())
                 
-                // Priority dot - use setColorFilter on ImageView
+                // Priority dot
                 views.setViewVisibility(R.id.widget_item_priority, View.VISIBLE)
                 val priorityColor = when (item.priority) {
                     1 -> 0xFFFF0000.toInt()
@@ -183,10 +198,11 @@ class RiseWidgetFactory(private val context: Context) : RemoteViewsService.Remot
                 }
                 views.setInt(R.id.widget_item_priority, "setColorFilter", priorityColor)
                 
-                // Fill-in intent for toggle
+                // Fill-in intent - different action for habits vs tasks
                 val fillIntent = Intent().apply {
                     putExtra("itemId", item.id)
                     putExtra("itemType", item.type)
+                    putExtra("isHabit", item.type == "habit")
                 }
                 views.setOnClickFillInIntent(R.id.widget_item_container, fillIntent)
             }
