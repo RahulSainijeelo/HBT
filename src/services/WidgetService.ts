@@ -11,6 +11,8 @@ export interface WidgetItem {
     type: 'task' | 'habit';
     category?: string;
     dueDate?: string;
+    dueTime?: string;
+    priority?: number;
 }
 
 export interface WidgetLabel {
@@ -30,14 +32,16 @@ export const WidgetService = {
         try {
             const today = dayjs().format('YYYY-MM-DD');
 
-            // Include ALL tasks (not just today's) so widget can filter by label
+            // Include ALL tasks with full details
             const widgetTasks: WidgetItem[] = (tasks || []).map(t => ({
                 id: t.id,
                 title: t.title,
                 status: t.completed ? 'completed' : 'pending',
                 type: 'task' as const,
                 category: t.category || 'Inbox',
-                dueDate: t.dueDate
+                dueDate: t.dueDate || today,
+                dueTime: t.dueTime || undefined,
+                priority: t.priority || 4
             }));
 
             // Include all habits
@@ -45,10 +49,19 @@ export const WidgetService = {
                 id: h.id,
                 title: h.title,
                 status: h.completedDates?.includes(today) ? 'completed' : 'pending',
-                type: 'habit' as const
+                type: 'habit' as const,
+                dueDate: today, // Habits are always for today
+                priority: 4 // Habits don't have priority
             }));
 
             const allItems = [...widgetTasks, ...widgetHabits];
+
+            // Sort by date
+            allItems.sort((a, b) => {
+                const dateA = a.dueDate || today;
+                const dateB = b.dueDate || today;
+                return dateA.localeCompare(dateB);
+            });
 
             // Limit to a reasonable number of items
             const limitedItems = allItems.slice(0, 100);

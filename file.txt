@@ -13,3 +13,12 @@ Ok now create a quick login screen. this screen will ask user name and then crea
 
 adb install android/app/build/outputs/apk/release/app-release.apk
 ./gradlew assembleRelease
+
+
+
+
+//////////export ANDROID_HOME=$HOME/Android/Sdk && cd android && ./gradlew assembleDebug --parallel 2>&1 | tail -30
+
+
+
+//////adb install -r android/app/build/outputs/apk/debug/app-debug.apk && echo "Installed successfully"

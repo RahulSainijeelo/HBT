@@ -10,6 +10,7 @@ import { HabitKnowledgeScreen } from '../screens/HabitKnowledgeScreen';
 import { TabNavigator } from './TabNavigator';
 import { WidgetAddScreen } from '../screens/WidgetAddScreen';
 import { WidgetLabelPickerScreen } from '../screens/WidgetLabelPickerScreen';
+import { WidgetActionHandler } from '../screens/WidgetActionHandler';
 
 const Stack = createNativeStackNavigator();
 
@@ -36,9 +37,12 @@ const linking = {
                 path: 'label-picker',
                 exact: true,
             },
-            // Toggle task/habit from widget click
-            Toggle: {
+            // Widget action handlers
+            WidgetToggle: {
                 path: 'toggle/:itemId/:itemType',
+            },
+            WidgetHabitDetail: {
+                path: 'habit-detail/:itemId/:itemType',
             }
         }
     }
@@ -56,6 +60,8 @@ export const AppNavigator = () => {
                 <Stack.Screen name="HabitKnowledge" component={HabitKnowledgeScreen} />
                 <Stack.Screen name="MainAdd" component={WidgetAddScreen} options={{ presentation: 'transparentModal', animation: 'fade' }} />
                 <Stack.Screen name="LabelPicker" component={WidgetLabelPickerScreen} options={{ presentation: 'transparentModal', animation: 'fade' }} />
+                <Stack.Screen name="WidgetToggle" component={WidgetActionHandler} options={{ animation: 'none' }} />
+                <Stack.Screen name="WidgetHabitDetail" component={WidgetActionHandler} options={{ animation: 'none' }} />
             </Stack.Navigator>
         </NavigationContainer>
     );
