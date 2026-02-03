@@ -2,9 +2,8 @@ package com.rise
 
 import android.content.Context
 import android.content.Intent
-import android.graphics.Color
-import android.net.Uri
 import android.util.Log
+import android.view.View
 import android.widget.RemoteViews
 import android.widget.RemoteViewsService
 import java.text.SimpleDateFormat
@@ -54,14 +53,11 @@ class RiseWidgetFactory(private val context: Context) : RemoteViewsService.Remot
                 val obj = jsonArray.getJSONObject(i)
                 val id = obj.optString("id", "")
 
-                // Skip the login marker
                 if (id == "__not_logged_in__") continue
 
                 val category = obj.optString("category", "Inbox")
                 val type = obj.optString("type", "task")
 
-                // Filter by selected label (if not "All")
-                // For habits, always show them (they don't have categories)
                 if (selectedLabel != "All" && type == "task" && category != selectedLabel) {
                     continue
                 }
@@ -74,20 +70,21 @@ class RiseWidgetFactory(private val context: Context) : RemoteViewsService.Remot
                                 type = type,
                                 category = category,
                                 dueDate = obj.optString("dueDate", ""),
-                                dueTime = obj.optString("dueTime", null),
+                                dueTime =
+                                        if (obj.has("dueTime") && !obj.isNull("dueTime"))
+                                                obj.optString("dueTime")
+                                        else null,
                                 priority = obj.optInt("priority", 4)
                         )
                 )
             }
 
-            // Sort by date
             tempItems.sortBy { it.dueDate }
 
-            // Group by date - add date headers
+            // Group by date with headers
             var lastDate = ""
             for (item in tempItems) {
                 if (item.dueDate.isNotEmpty() && item.dueDate != lastDate) {
-                    // Add date header
                     items.add(
                             WidgetItem(
                                     id = "header_${item.dueDate}",
@@ -120,11 +117,11 @@ class RiseWidgetFactory(private val context: Context) : RemoteViewsService.Remot
             val tomorrow = inputFormat.format(java.util.Date(System.currentTimeMillis() + 86400000))
 
             when (dateStr) {
-                today -> "TODAY"
-                tomorrow -> "TOMORROW"
+                today -> "Today"
+                tomorrow -> "Tomorrow"
                 else -> {
                     val outputFormat = SimpleDateFormat("EEE, MMM d", Locale.getDefault())
-                    outputFormat.format(date!!).uppercase()
+                    outputFormat.format(date!!)
                 }
             }
         } catch (e: Exception) {
@@ -145,42 +142,52 @@ class RiseWidgetFactory(private val context: Context) : RemoteViewsService.Remot
             val item = items[position]
 
             if (item.isDateHeader) {
-                // Date header styling
+                // Date header styling - simple text, no checkbox
                 views.setTextViewText(R.id.widget_item_title, item.title)
                 views.setTextColor(R.id.widget_item_title, 0xFF888888.toInt())
-                views.setTextViewText(R.id.widget_item_checkbox, "")
+                views.setFloat(R.id.widget_item_title, "setTextSize", 11f)
+                views.setTextViewText(R.id.widget_item_checkmark, "")
                 views.setTextViewText(R.id.widget_item_datetime, "")
                 views.setTextViewText(R.id.widget_item_type, "")
-                views.setInt(R.id.widget_item_priority, "setBackgroundColor", Color.TRANSPARENT)
+                views.setViewVisibility(R.id.widget_item_priority, View.INVISIBLE)
+                views.setViewVisibility(R.id.widget_item_checkbox_bg, View.INVISIBLE)
                 // No click for headers
                 views.setOnClickFillInIntent(R.id.widget_item_container, Intent())
             } else {
                 val isCompleted = item.status.equals("completed", ignoreCase = true)
 
-                // Checkbox
-                views.setTextViewText(R.id.widget_item_checkbox, if (isCompleted) "✓" else "○")
-                views.setTextColor(
-                        R.id.widget_item_checkbox,
-                        if (isCompleted) 0xFF4CAF50.toInt() else 0xFFFFFFFF.toInt()
-                )
+                // Checkbox styling
+                views.setViewVisibility(R.id.widget_item_checkbox_bg, View.VISIBLE)
+                if (isCompleted) {
+                    views.setInt(
+                            R.id.widget_item_checkbox_bg,
+                            "setBackgroundResource",
+                            R.drawable.widget_checkbox_filled
+                    )
+                    views.setTextViewText(R.id.widget_item_checkmark, "✓")
+                    views.setTextColor(R.id.widget_item_checkmark, 0xFFFFFFFF.toInt())
+                } else {
+                    views.setInt(
+                            R.id.widget_item_checkbox_bg,
+                            "setBackgroundResource",
+                            R.drawable.widget_checkbox
+                    )
+                    views.setTextViewText(R.id.widget_item_checkmark, "")
+                }
 
                 // Title
                 views.setTextViewText(R.id.widget_item_title, item.title)
+                views.setFloat(R.id.widget_item_title, "setTextSize", 13f)
                 views.setTextColor(
                         R.id.widget_item_title,
                         if (isCompleted) 0xFF666666.toInt() else 0xFFFFFFFF.toInt()
                 )
 
-                // Date/Time
-                val dateTimeText =
-                        if (item.dueTime != null && item.dueTime.isNotEmpty()) {
-                            item.dueTime
-                        } else {
-                            ""
-                        }
+                // Date/Time inline
+                val dateTimeText = item.dueTime ?: ""
                 views.setTextViewText(R.id.widget_item_datetime, dateTimeText)
 
-                // Type indicator (T or H)
+                // Type indicator
                 val typeIndicator = if (item.type == "habit") "H" else "T"
                 views.setTextViewText(R.id.widget_item_type, typeIndicator)
                 views.setTextColor(
@@ -188,21 +195,22 @@ class RiseWidgetFactory(private val context: Context) : RemoteViewsService.Remot
                         if (item.type == "habit") 0xFFE91E63.toInt() else 0xFF2196F3.toInt()
                 )
 
-                // Priority dot color
+                // Priority dot
+                views.setViewVisibility(R.id.widget_item_priority, View.VISIBLE)
                 val priorityColor =
                         when (item.priority) {
-                            1 -> 0xFFFF0000.toInt() // Red
-                            2 -> 0xFFFFAB00.toInt() // Orange
-                            3 -> 0xFF0052CC.toInt() // Blue
-                            else -> 0xFF333333.toInt() // Gray
+                            1 -> 0xFFFF0000.toInt()
+                            2 -> 0xFFFFAB00.toInt()
+                            3 -> 0xFF0052CC.toInt()
+                            else -> 0xFF444444.toInt()
                         }
                 views.setInt(R.id.widget_item_priority, "setBackgroundColor", priorityColor)
 
-                // Set fill-in intent for item click
-                val action = if (item.type == "habit") "habit-detail" else "toggle"
+                // Fill-in intent for toggle
                 val fillIntent =
                         Intent().apply {
-                            data = Uri.parse("rise://$action/${item.id}/${item.type}")
+                            putExtra("itemId", item.id)
+                            putExtra("itemType", item.type)
                         }
                 views.setOnClickFillInIntent(R.id.widget_item_container, fillIntent)
             }
