@@ -42,6 +42,9 @@ export interface Habit {
     response?: string;
     reward?: string;
     howToApply?: string;
+    // Sensor Information
+    isSensorBased?: boolean;
+    sensorType?: 'pedometer' | 'light' | 'screen' | 'noise' | 'movement' | 'gps';
 }
 
 export interface Label {
