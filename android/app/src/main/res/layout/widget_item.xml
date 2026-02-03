@@ -4,38 +4,28 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="horizontal"
-    android:paddingStart="4dp"
-    android:paddingEnd="8dp"
+    android:paddingStart="10dp"
+    android:paddingEnd="10dp"
     android:paddingTop="10dp"
     android:paddingBottom="10dp"
-    android:gravity="center_vertical">
+    android:layout_marginBottom="4dp"
+    android:gravity="center_vertical"
+    android:background="@drawable/widget_item_bg">
 
-    <!-- Priority dot -->
-    <View
+    <!-- Priority dot using ImageView -->
+    <ImageView
         android:id="@+id/widget_item_priority"
         android:layout_width="6dp"
         android:layout_height="6dp"
-        android:background="@drawable/widget_priority_dot" />
+        android:src="@drawable/widget_priority_dot" />
 
-    <!-- Custom checkbox circle -->
-    <View
-        android:id="@+id/widget_item_checkbox_bg"
+    <!-- Custom checkbox using ImageView -->
+    <ImageView
+        android:id="@+id/widget_item_checkbox"
         android:layout_width="18dp"
         android:layout_height="18dp"
         android:layout_marginStart="10dp"
-        android:background="@drawable/widget_checkbox" />
-
-    <!-- Checkmark (shows on top when completed) -->
-    <TextView
-        android:id="@+id/widget_item_checkmark"
-        android:layout_width="18dp"
-        android:layout_height="18dp"
-        android:layout_marginStart="-18dp"
-        android:gravity="center"
-        android:text="✓"
-        android:textColor="#FFFFFF"
-        android:textSize="12sp"
-        android:textStyle="bold" />
+        android:src="@drawable/widget_checkbox" />
 
     <!-- Middle section: Title + DateTime -->
     <LinearLayout
@@ -64,7 +54,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="2dp"
             android:text=""
-            android:textColor="#666666"
+            android:textColor="#888888"
             android:textSize="10sp"
             android:maxLines="1" />
 

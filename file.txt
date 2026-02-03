@@ -22,3 +22,5 @@ adb install android/app/build/outputs/apk/release/app-release.apk
 
 
 //////adb install -r android/app/build/outputs/apk/debug/app-debug.apk && echo "Installed successfully"
+
+adb logcat -d | grep -i "error\|exception\|RiseWidget" | grep -v "nothing\|aiwidget" | tail -30
