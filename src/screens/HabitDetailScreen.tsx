@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View, TouchableOpacity, ScrollView, Animated, Dimensions, Vibration, Modal } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ArrowLeft, Play, Pause, RotateCcw, Flame, Trophy, Settings, Trash2, Check, X, Plus, Sparkles } from 'lucide-react-native';
+import { ArrowLeft, Play, Pause, RotateCcw, Flame, Trophy, Settings, Trash2, Check, X, Plus, Sparkles, Activity } from 'lucide-react-native';
 import { HabitDetailScreenStyles as styles } from '../styles/Habit.styles';
 import dayjs from 'dayjs';
 import { useTheme } from '../theme';
@@ -12,6 +12,8 @@ import { NothingInput } from '../components/NothingInput';
 import { useAppStore } from '../store/useAppStore';
 const { width } = Dimensions.get('window');
 const CIRCLE_SIZE = width * 0.7;
+
+import { sensorService } from '../services/SensorService';
 
 export const HabitDetailScreen = ({ route, navigation }: any) => {
     const { habitId } = route.params;
@@ -25,7 +27,56 @@ export const HabitDetailScreen = ({ route, navigation }: any) => {
     const [editTitle, setEditTitle] = useState(habit?.title || '');
     const [editGoal, setEditGoal] = useState(((habit?.timerGoal || 0) / 60).toString());
 
+    // Sensor State
+    const [liveData, setLiveData] = useState({
+        steps: 0,
+        activity: 0,
+        lux: 0,
+        noise: 0
+    });
+
     const timerRef = useRef<any>(null);
+
+    // Sensor Effect
+    useEffect(() => {
+        if (!habit?.isSensorBased) return;
+
+        let interval: any;
+        const today = dayjs().format('YYYY-MM-DD');
+
+        if (habit.sensorType === 'pedometer' || habit.sensorType === 'movement') {
+            sensorService.startPedometer((steps, activity) => {
+                setLiveData(prev => {
+                    // Persist steps to store if they increased
+                    if (steps > prev.steps) {
+                        useAppStore.getState().updateSensorProgress(habitId, today, steps);
+                    }
+                    return { ...prev, steps, activity };
+                });
+            });
+        } else if (habit.sensorType === 'light') {
+            sensorService.startLightSensor((lux) => {
+                setLiveData(prev => ({ ...prev, lux }));
+                // For light, maybe only update if it's a significant change or periodically
+                if (lux > 100) { // Simple threshold for "Morning Sunlight"
+                    // We could track "Minutes of Light" instead of raw lux in the store
+                }
+            });
+        } else if (habit.sensorType === 'noise') {
+            interval = sensorService.startNoiseSensor((noise) => {
+                setLiveData(prev => {
+                    // Update noise level (simulate tracking for now)
+                    return { ...prev, noise };
+                });
+            });
+        }
+
+        return () => {
+            sensorService.stopPedometer();
+            sensorService.stopLightSensor();
+            if (interval) clearInterval(interval);
+        };
+    }, [habit?.id]);
 
     // Sync state when habit updates or timer goal changes
     useEffect(() => {
@@ -85,6 +136,77 @@ export const HabitDetailScreen = ({ route, navigation }: any) => {
     const today = dayjs().format('YYYY-MM-DD');
     const isCompletedToday = habit.completedDates.includes(today);
 
+    const SensorInsight = () => {
+        if (!habit.isSensorBased) return null;
+
+        return (
+            <NothingCard margin="md" style={{ backgroundColor: theme.colors.surface1, padding: 20 }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 16 }}>
+                    <Activity size={18} color={theme.colors.primary} />
+                    <NothingText variant="bold" size={14} style={{ marginLeft: 8, fontFamily: 'ndot' }}>LIVE INSIGHTS</NothingText>
+                    <View style={{ flex: 1 }} />
+                    <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: theme.colors.success, opacity: 0.8 }} />
+                </View>
+
+                {habit.sensorType === 'pedometer' || habit.sensorType === 'movement' ? (
+                    <View>
+                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+                            <View>
+                                <NothingText variant="dot" size={48}>{liveData.steps}</NothingText>
+                                <NothingText size={12} color={theme.colors.textSecondary}>STEPS DETECTED</NothingText>
+                            </View>
+                            <View style={{ alignItems: 'flex-end' }}>
+                                <NothingText variant="bold" size={14}>{liveData.activity.toFixed(1)}%</NothingText>
+                                <NothingText size={10} color={theme.colors.textSecondary}>ACTIVITY LEVEL</NothingText>
+                            </View>
+                        </View>
+                        <View style={{ height: 40, flexDirection: 'row', alignItems: 'flex-end', gap: 2, marginTop: 12 }}>
+                            {Array.from({ length: 30 }).map((_, i) => (
+                                <View
+                                    key={i}
+                                    style={{
+                                        flex: 1,
+                                        backgroundColor: theme.colors.primary,
+                                        height: Math.max(4, Math.random() * (liveData.activity / 2)),
+                                        opacity: 0.3 + (i / 30) * 0.7
+                                    }}
+                                />
+                            ))}
+                        </View>
+                    </View>
+                ) : habit.sensorType === 'light' ? (
+                    <View style={{ alignItems: 'center', paddingVertical: 10 }}>
+                        <NothingText variant="dot" size={64}>{liveData.lux}</NothingText>
+                        <NothingText size={12} color={theme.colors.textSecondary} style={{ marginBottom: 16 }}>LUMEN INTENSITY (LUX)</NothingText>
+                        <View style={{ width: '100%', height: 2, backgroundColor: theme.colors.border }}>
+                            <View style={{ width: `${Math.min(100, liveData.lux / 10)}%`, height: '100%', backgroundColor: theme.colors.primary }} />
+                        </View>
+                    </View>
+                ) : habit.sensorType === 'noise' ? (
+                    <View>
+                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <NothingText variant="dot" size={48}>{liveData.noise}dB</NothingText>
+                            <View style={{ flexDirection: 'row', gap: 4 }}>
+                                {Array.from({ length: 5 }).map((_, i) => (
+                                    <View
+                                        key={i}
+                                        style={{
+                                            width: 8,
+                                            height: 20 + Math.random() * 20,
+                                            backgroundColor: liveData.noise > 60 ? theme.colors.error : theme.colors.success,
+                                            opacity: 0.8
+                                        }}
+                                    />
+                                ))}
+                            </View>
+                        </View>
+                        <NothingText size={12} color={theme.colors.textSecondary}>AMBIENT NOISE LEVEL</NothingText>
+                    </View>
+                ) : null}
+            </NothingCard>
+        );
+    };
+
     return (
         <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
             <View style={styles.header}>
@@ -111,6 +233,8 @@ export const HabitDetailScreen = ({ route, navigation }: any) => {
                         <NothingText size={10} color={theme.colors.textSecondary}>BEST STREAK</NothingText>
                     </NothingCard>
                 </View>
+
+                <SensorInsight />
 
                 <View style={styles.mainArea}>
                     {habit.type === 'timer' ? (

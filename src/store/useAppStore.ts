@@ -87,6 +87,7 @@ interface AppState {
     updateHabit: (id: string, updates: Partial<Habit>) => void;
     updateNumericProgress: (id: string, date: string, amount: number) => void;
     updateTimerProgress: (id: string, date: string, seconds: number) => void;
+    updateSensorProgress: (id: string, date: string, value: number) => void;
     deleteHabit: (id: string) => void;
 }
 
@@ -392,6 +393,60 @@ export const useAppStore = create<AppState>((set, get) => ({
     updateHabit: (id, updates) => {
         set((state) => ({
             habits: state.habits.map(h => h.id === id ? { ...h, ...updates } : h)
+        }));
+        get().saveData();
+    },
+
+    updateSensorProgress: (id, date, value) => {
+        set((state) => ({
+            habits: state.habits.map(h => {
+                if (h.id === id) {
+                    const numericProgress = { ...h.numericProgress };
+                    numericProgress[date] = value;
+
+                    // Simple completion logic: if current value >= goal, mark completed
+                    let newCompletedDates = [...h.completedDates];
+                    const goalReached = value >= (h.numericGoal || 1);
+                    const isCompleted = newCompletedDates.includes(date);
+
+                    if (goalReached && !isCompleted) {
+                        newCompletedDates.push(date);
+                    } else if (!goalReached && isCompleted) {
+                        newCompletedDates = newCompletedDates.filter(d => d !== date);
+                    }
+
+                    return { ...h, numericProgress, completedDates: newCompletedDates };
+                }
+                return h;
+            })
+        }));
+        // Re-calculate streak (can be refactored into a reusable helper)
+        set((state) => ({
+            habits: state.habits.map(h => {
+                if (h.id === id) {
+                    const sortedDates = [...h.completedDates].sort((a, b) => b.localeCompare(a));
+                    let streak = 0;
+                    if (sortedDates.length > 0) {
+                        const today = dayjs().format('YYYY-MM-DD');
+                        const yesterday = dayjs().subtract(1, 'day').format('YYYY-MM-DD');
+                        if (sortedDates[0] === today || sortedDates[0] === yesterday) {
+                            streak = 1;
+                            for (let i = 0; i < sortedDates.length - 1; i++) {
+                                const curr = dayjs(sortedDates[i]);
+                                const next = dayjs(sortedDates[i + 1]);
+                                if (curr.subtract(1, 'day').format('YYYY-MM-DD') === next.format('YYYY-MM-DD')) {
+                                    streak++;
+                                } else {
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    const bestStreak = Math.max(h.bestStreak || 0, streak);
+                    return { ...h, streak, bestStreak };
+                }
+                return h;
+            })
         }));
         get().saveData();
     },
