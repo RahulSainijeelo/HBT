@@ -14,6 +14,10 @@ export interface HabitTemplate {
     response: string;
     reward: string;
     howToApply: string;
+    // Sensor Information
+    isSensorBased?: boolean;
+    sensorType?: 'pedometer' | 'light' | 'screen' | 'noise' | 'movement' | 'gps';
+    requiredPermissions?: string[];
 }
 
 export const COMMON_HABITS_TEMPLATES: HabitTemplate[] = [
@@ -109,133 +113,113 @@ export const COMMON_HABITS_TEMPLATES: HabitTemplate[] = [
         howToApply: 'Law 1: Make it obvious. Set your shoes where you can\'t miss them.'
     },
     {
-        id: 'no_sugar_habit',
-        title: 'No Added Sugar',
-        description: 'Lower inflammation and stabilize energy levels.',
+        id: 'step_legend',
+        title: 'Step Legend',
+        description: 'Commit to a daily step goal verified by your phone.',
+        type: 'numeric',
+        category: 'Health',
+        color: '#FFFFFF',
+        icon: 'Footprints',
+        goal: 10000,
+        unit: 'steps',
+        isSensorBased: true,
+        sensorType: 'pedometer',
+        requiredPermissions: ['android.permission.ACTIVITY_RECOGNITION', 'ios.permission.MOTION'],
+        cue: 'Check your current step count as soon as you finish breakfast.',
+        craving: 'The urge to see that progress bar hit the 100% mark.',
+        response: 'Take the stairs or go for a short walk to top up your count.',
+        reward: 'The "Legendary" badge on your profile and genuine physical fatigue.',
+        howToApply: 'Law 1: Make it obvious. Add the Rise Step Widget to your home screen.'
+    },
+    {
+        id: 'lumen_guardian',
+        title: 'Lumen Guardian',
+        description: 'Get your daily dose of morning light for better circadian rhythm.',
+        type: 'timer',
+        category: 'Health',
+        color: '#FDE047',
+        icon: 'Sun',
+        goal: 1200, // 20 mins
+        unit: 'seconds',
+        isSensorBased: true,
+        sensorType: 'light',
+        requiredPermissions: [],
+        cue: 'Wait for the "Low Light" notification from Rise at 8:00 AM.',
+        craving: 'Desiring that mental "click" where your brain finally feels awake.',
+        response: 'Spend 20 minutes near a window or outside (Detected by sensor).',
+        reward: 'Consistent nightly sleep and morning alertness.',
+        howToApply: 'Law 2: Make it attractive. Sunlight + Podcast = The perfect combo.'
+    },
+    {
+        id: 'digital_sunset',
+        title: 'Digital Sunset',
+        description: 'Ensure no phone usage after your sunset time.',
         type: 'check',
         category: 'Bad Habit',
-        color: '#F472B6',
-        icon: 'CandyOff',
-        cue: 'Cleaning out the pantry of all sugary snacks.',
-        craving: 'The afternoon energy slump that makes you want a snack.',
-        response: 'Eat a piece of fruit or some nuts instead.',
-        reward: 'Steady energy levels and clearer skin over time.',
-        howToApply: 'Inversion of Law 2: Make it unattractive. Read about the effects of sugar.'
+        color: '#FB7185',
+        icon: 'Moon',
+        isSensorBased: true,
+        sensorType: 'screen',
+        requiredPermissions: [],
+        cue: 'The clock hitting 10:00 PM and your phone auto-dimming.',
+        craving: 'Resisting the "one last scroll" that steals your sleep.',
+        response: 'Put the phone on the charger in another room (Verified by sensor).',
+        reward: 'Waking up without dry eyes and with a clear head.',
+        howToApply: 'Law 3: Make it difficult. A physical separation from your device.'
     },
     {
-        id: 'gratitude_habit',
-        title: 'Gratitude Journal',
-        description: 'Shift your focus from what you lack to what you have.',
-        type: 'check',
-        category: 'Mindset',
-        color: '#FCD34D',
-        icon: 'HeartPulse',
-        cue: 'Seeing your journal on your nightstand.',
-        craving: 'Wanting to end the day on a positive note.',
-        response: 'Write down 3 things you are grateful for today.',
-        reward: 'Falling asleep with a peaceful and thankful mind.',
-        howToApply: 'Law 4: Make it satisfying. Use a beautiful journal you love.'
-    },
-    {
-        id: 'plan_day_habit',
-        title: 'Plan Tomorrow',
-        description: 'Wake up with clarity by planning ahead.',
-        type: 'check',
-        category: 'Productivity',
-        color: '#4B5563',
-        icon: 'ListChecks',
-        cue: 'Closing your laptop for the final time in the evening.',
-        craving: 'The peace of mind that comes with knowing what to do next.',
-        response: 'Write down your top 3 tasks for tomorrow.',
-        reward: 'A productive morning without the "decision fatigue".',
-        howToApply: 'Law 1: Make it obvious. Keep your planner on your desk.'
-    },
-    {
-        id: 'deep_work_habit',
-        title: 'Deep Work Block',
-        description: 'Focus on high-value tasks without distractions.',
+        id: 'deep_silence',
+        title: 'Deep Silence',
+        description: 'Build focus by working in a truly quiet environment.',
         type: 'timer',
         category: 'Productivity',
-        color: '#6366F1',
+        color: '#94A3B8',
+        icon: 'VolumeX',
+        goal: 3600, // 1 hour
+        unit: 'seconds',
+        isSensorBased: true,
+        sensorType: 'noise',
+        requiredPermissions: ['android.permission.RECORD_AUDIO', 'ios.permission.MICROPHONE'],
+        cue: 'Clearing your desk and putting your phone in "Silent".',
+        craving: 'The feeling of "Flow" where time disappears.',
+        response: 'Work for 60 minutes with noise levels below 45dB.',
+        reward: 'Massive progress on your hardest tasks.',
+        howToApply: 'Law 4: Make it satisfying. Watching the "Silence Meter" stay in the green.'
+    },
+    {
+        id: 'immediate_rise',
+        title: 'Immediate Rise',
+        description: 'Defeat the snooze button by moving instantly.',
+        type: 'check',
+        category: 'Health',
+        color: '#38BDF8',
         icon: 'Zap',
-        goal: 3600, // 60 mins
-        cue: 'Putting on focus-mode headphones.',
-        craving: 'The desire to make real progress on important projects.',
-        response: 'Work for 60 minutes with phone in another room.',
-        reward: 'Completing "Work that Matters" and feeling accomplished.',
-        howToApply: 'Law 3: Make it easy. Set a specific time for Deep Work.'
+        isSensorBased: true,
+        sensorType: 'movement',
+        requiredPermissions: ['android.permission.ACTIVITY_RECOGNITION', 'ios.permission.MOTION'],
+        cue: 'Your alarm goes off at 7:00 AM.',
+        craving: 'The instinct to hide under the covers for "5 more minutes".',
+        response: 'Walk 50 meters within 5 minutes (Verified by accelerometer).',
+        reward: 'Being the first person to start the day in your household.',
+        howToApply: 'Law 3: Make it easy. Place your robe and slippers right next to bed.'
     },
     {
-        id: 'stretch_habit',
-        title: 'Daily Stretching',
-        description: 'Maintain mobility and prevent stiffness.',
-        type: 'timer',
+        id: 'city_glider',
+        title: 'City Glider',
+        description: 'Choose active commuting over idle travel.',
+        type: 'numeric',
         category: 'Health',
-        color: '#6EE7B7',
-        icon: 'Accessibility',
-        goal: 600, // 10 mins
-        cue: 'Rolling out your yoga mat when you start watching TV.',
-        craving: 'Relieving the tension in your back and shoulders.',
-        response: '10 minutes of mobility work while listening to a podcast.',
-        reward: 'Feeling loose and limber rather than stiff and sore.',
-        howToApply: 'Law 2: Make it attractive. Watch your favorite show while stretching.'
-    },
-    {
-        id: 'cold_shower_habit',
-        title: 'Cold Shower',
-        description: 'Build mental toughness and boost immunity.',
-        type: 'timer',
-        category: 'Health',
-        color: '#3B82F6',
-        icon: 'Snowflake',
-        goal: 180, // 3 mins
-        cue: 'Turning the handle to cold at the end of your shower.',
-        craving: 'The rush of adrenaline and clarity after the initial shock.',
-        response: 'Breathe through 3 minutes of cold water.',
-        reward: 'Extreme mental clarity and an "I can do anything" attitude.',
-        howToApply: 'Law 4: Make it satisfying. Track your wins on the Rise app.'
-    },
-    {
-        id: 'no_caffeine_late',
-        title: 'No Caffeine After 2PM',
-        description: 'Ensure caffeine doesn\'t interfere with deep sleep.',
-        type: 'check',
-        category: 'Bad Habit',
-        color: '#B45309',
-        icon: 'Coffee',
-        cue: 'The clock hitting 2:00 PM.',
-        craving: 'The habit of having a mid-afternoon pick-me-up.',
-        response: 'Switch to herbal tea or sparkling water.',
-        reward: 'Deeper sleep and waking up more naturally alert.',
-        howToApply: 'Inversion of Law 3: Make it difficult. Remove coffee from the office after 2PM.'
-    },
-    {
-        id: 'save_money_habit',
-        title: 'No Random Spends',
-        description: 'Build wealth by eliminating impulsive purchases.',
-        type: 'check',
-        category: 'Mindset',
-        color: '#059669',
-        icon: 'Banknote',
-        cue: 'Seeing an ad or an item you "want" but don\'t "need".',
-        craving: 'The temporary dopamine hit of a new purchase.',
-        response: 'Wait 24 hours before buying anything non-essential.',
-        reward: 'Watching your savings account grow every month.',
-        howToApply: 'Inversion of Law 4: Make it unsatisfying. Imagine the wasted hours spent earning that money.'
-    },
-    {
-        id: 'coding_habit',
-        title: 'Code/Learn 1hr',
-        description: 'Continuous skill building for career growth.',
-        type: 'timer',
-        category: 'Productivity',
-        color: '#EC4899',
-        icon: 'Code',
-        goal: 3600, // 1 hr
-        cue: 'Opening your laptop at 7 PM.',
-        craving: 'The satisfaction of solving problems and building things.',
-        response: 'Follow a tutorial or work on a side project for 1 hour.',
-        reward: 'New skills and certificates for your portfolio.',
-        howToApply: 'Law 1: Make it obvious. Set your computer to open your project automatically.'
+        color: '#4ADE80',
+        icon: 'Bike',
+        goal: 2,
+        unit: 'km',
+        isSensorBased: true,
+        sensorType: 'gps',
+        requiredPermissions: ['android.permission.ACCESS_FINE_LOCATION', 'ios.permission.LOCATION'],
+        cue: 'Leaving the house for work or errands.',
+        craving: 'Feeling the wind and noticing your surroundings.',
+        response: 'Bike or walk 2km instead of taking a car or bus.',
+        reward: 'Endorphin rush and a "Greener World" achievement.',
+        howToApply: 'Law 4: Make it satisfying. Check the commute savings in your weekly report.'
     }
 ];

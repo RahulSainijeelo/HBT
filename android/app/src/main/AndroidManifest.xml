@@ -4,6 +4,10 @@
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.ACTIVITY_RECOGNITION" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 
     <application
       android:name=".MainApplication"
@@ -38,9 +42,19 @@
         <intent-filter>
             <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
         </intent-filter>
+        <intent-filter>
+            <action android:name="com.rise.WIDGET_UPDATE" />
+        </intent-filter>
+        <intent-filter>
+            <action android:name="com.rise.TOGGLE_TASK" />
+        </intent-filter>
         <meta-data
             android:name="android.appwidget.provider"
             android:resource="@xml/rise_widget_info" />
       </receiver>
+      <service
+        android:name="com.rise.RiseWidgetService"
+        android:permission="android.permission.BIND_REMOTEVIEWS"
+        android:exported="false" />
     </application>
 </manifest>

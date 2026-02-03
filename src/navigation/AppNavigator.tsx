@@ -9,6 +9,9 @@ import { HabitDetailScreen } from '../screens/HabitDetailScreen';
 import { HabitKnowledgeScreen } from '../screens/HabitKnowledgeScreen';
 import { TabNavigator } from './TabNavigator';
 import { WidgetAddScreen } from '../screens/WidgetAddScreen';
+import { WidgetLabelPickerScreen } from '../screens/WidgetLabelPickerScreen';
+import { WidgetActionHandler } from '../screens/WidgetActionHandler';
+
 const Stack = createNativeStackNavigator();
 
 const linking = {
@@ -25,10 +28,21 @@ const linking = {
             },
             HabitDetail: 'item/:habitId/habit',
             Profile: 'profile',
-            // Specific shortcuts
+            // Widget shortcuts
             MainAdd: {
                 path: 'add',
                 exact: true,
+            },
+            LabelPicker: {
+                path: 'label-picker',
+                exact: true,
+            },
+            // Widget action handlers
+            WidgetToggle: {
+                path: 'toggle/:itemId/:itemType',
+            },
+            WidgetHabitDetail: {
+                path: 'habit-detail/:itemId/:itemType',
             }
         }
     }
@@ -45,6 +59,9 @@ export const AppNavigator = () => {
                 <Stack.Screen name="HabitDetail" component={HabitDetailScreen} />
                 <Stack.Screen name="HabitKnowledge" component={HabitKnowledgeScreen} />
                 <Stack.Screen name="MainAdd" component={WidgetAddScreen} options={{ presentation: 'transparentModal', animation: 'fade' }} />
+                <Stack.Screen name="LabelPicker" component={WidgetLabelPickerScreen} options={{ presentation: 'transparentModal', animation: 'fade' }} />
+                <Stack.Screen name="WidgetToggle" component={WidgetActionHandler} options={{ animation: 'none' }} />
+                <Stack.Screen name="WidgetHabitDetail" component={WidgetActionHandler} options={{ animation: 'none' }} />
             </Stack.Navigator>
         </NavigationContainer>
     );

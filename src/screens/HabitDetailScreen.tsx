@@ -226,7 +226,7 @@ export const HabitDetailScreen = ({ route, navigation }: any) => {
 
                             <View style={[styles.loopStep, { borderColor: theme.colors.border }]}>
                                 <View style={[styles.stepIcon, { backgroundColor: '#A78BFA20' }]}>
-                                    <Check size={24} color="#A78BFA" style={{ transform: [{ rotate: '180deg' }] }} />
+                                    <Check size={24} color="#A78BFA" />
                                 </View>
                                 <View style={styles.stepContent}>
                                     <NothingText variant="bold" size={14} color="#A78BFA">3. RESPONSE</NothingText>

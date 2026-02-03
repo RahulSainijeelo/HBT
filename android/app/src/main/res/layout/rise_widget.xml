@@ -19,18 +19,36 @@
             android:layout_centerVertical="true"
             android:src="@mipmap/ic_launcher" />
 
-        <!-- Date Label with down arrow -->
-        <TextView
-            android:id="@+id/widget_date_label"
+        <!-- Label selector with down arrow -->
+        <LinearLayout
+            android:id="@+id/widget_label_container"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_toEndOf="@id/widget_logo"
             android:layout_centerVertical="true"
             android:layout_marginStart="8dp"
-            android:text="TODAY ▼"
-            android:textColor="#FFFFFF"
-            android:textSize="14sp"
-            android:textStyle="bold" />
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:id="@+id/widget_date_label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="All"
+                android:textColor="#FFFFFF"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
+            <!-- Down arrow icon -->
+            <ImageView
+                android:id="@+id/widget_arrow"
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:layout_marginStart="4dp"
+                android:src="@drawable/widget_arrow_down"
+                android:tint="#AAAAAA" />
+
+        </LinearLayout>
 
         <!-- Add Button -->
         <TextView
@@ -45,33 +63,15 @@
 
     </RelativeLayout>
 
-    <!-- Task Rows -->
-    <TextView
-        android:id="@+id/widget_row1_text"
+    <!-- Scrollable ListView for tasks -->
+    <ListView
+        android:id="@+id/widget_list"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
-        android:textColor="#FFFFFF"
-        android:textSize="13sp"
-        android:text="Task 1" />
-
-    <TextView
-        android:id="@+id/widget_row2_text"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="6dp"
-        android:textColor="#FFFFFF"
-        android:textSize="13sp"
-        android:text="Task 2" />
-
-    <TextView
-        android:id="@+id/widget_row3_text"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="6dp"
-        android:textColor="#FFFFFF"
-        android:textSize="13sp"
-        android:text="Task 3" />
+        android:layout_height="match_parent"
+        android:layout_marginTop="8dp"
+        android:divider="@android:color/transparent"
+        android:dividerHeight="2dp"
+        android:scrollbars="none" />
 
     <!-- Login Button (shown when not logged in) -->
     <TextView
@@ -94,11 +94,10 @@
     <TextView
         android:id="@+id/widget_empty"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:gravity="center"
-        android:padding="10dp"
-        android:text="NO TASKS FOR TODAY"
-        android:textColor="#888888"
+        android:text="NO TASKS"
+        android:textColor="#666666"
         android:textSize="12sp" />
 
 </LinearLayout>
