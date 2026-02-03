@@ -142,10 +142,11 @@ export const useAppStore = create<AppState>((set, get) => ({
                     : (data.labels || DEFAULT_LABELS).map((l: any) => typeof l === 'string' ? { id: Math.random().toString(36).substr(2, 9), name: l } : l)
             });
             // Update widget with loaded data
-            WidgetService.updateWidget(tasks, habits);
+            const loadedLabels = data.labels && Array.isArray(data.labels) ? data.labels : DEFAULT_LABELS;
+            WidgetService.updateWidget(tasks, habits, loadedLabels);
         } else {
             set({ tasks: [], habits: [] });
-            WidgetService.updateWidget([], []);
+            WidgetService.updateWidget([], [], DEFAULT_LABELS);
         }
     },
 
@@ -160,7 +161,7 @@ export const useAppStore = create<AppState>((set, get) => ({
                 labels
             };
             await StorageService.saveUserData(activeProfile.id, dataToSave);
-            WidgetService.updateWidget(tasks, habits);
+            WidgetService.updateWidget(tasks, habits, labels);
         }
     },
 

@@ -45,33 +45,15 @@
 
     </RelativeLayout>
 
-    <!-- Task Rows -->
-    <TextView
-        android:id="@+id/widget_row1_text"
+    <!-- Scrollable ListView for tasks -->
+    <ListView
+        android:id="@+id/widget_list"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
-        android:textColor="#FFFFFF"
-        android:textSize="13sp"
-        android:text="Task 1" />
-
-    <TextView
-        android:id="@+id/widget_row2_text"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="6dp"
-        android:textColor="#FFFFFF"
-        android:textSize="13sp"
-        android:text="Task 2" />
-
-    <TextView
-        android:id="@+id/widget_row3_text"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="6dp"
-        android:textColor="#FFFFFF"
-        android:textSize="13sp"
-        android:text="Task 3" />
+        android:layout_height="match_parent"
+        android:layout_marginTop="8dp"
+        android:divider="@android:color/transparent"
+        android:dividerHeight="4dp"
+        android:scrollbars="none" />
 
     <!-- Login Button (shown when not logged in) -->
     <TextView
@@ -94,9 +76,8 @@
     <TextView
         android:id="@+id/widget_empty"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:gravity="center"
-        android:padding="10dp"
         android:text="NO TASKS FOR TODAY"
         android:textColor="#888888"
         android:textSize="12sp" />

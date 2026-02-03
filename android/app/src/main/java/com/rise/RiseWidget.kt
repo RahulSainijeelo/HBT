@@ -3,142 +3,183 @@ package com.rise
 import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
-import android.os.Build
+import android.util.Log
 import android.view.View
 import android.widget.RemoteViews
-import com.rise.R
 import org.json.JSONArray
 
 class RiseWidget : AppWidgetProvider() {
 
-    override fun onUpdate(context: Context, appWidgetManager: AppWidgetManager, appWidgetIds: IntArray) {
+    override fun onUpdate(
+            context: Context,
+            appWidgetManager: AppWidgetManager,
+            appWidgetIds: IntArray
+    ) {
+        Log.d("RiseWidget", "onUpdate called with ${appWidgetIds.size} widgets")
+
         for (appWidgetId in appWidgetIds) {
+            updateAppWidget(context, appWidgetManager, appWidgetId)
+        }
+    }
+
+    override fun onReceive(context: Context, intent: Intent) {
+        super.onReceive(context, intent)
+
+        // Handle data refresh broadcast
+        if (intent.action == "com.rise.WIDGET_UPDATE") {
+            Log.d("RiseWidget", "Received WIDGET_UPDATE broadcast")
+            val appWidgetManager = AppWidgetManager.getInstance(context)
+            val componentName = ComponentName(context, RiseWidget::class.java)
+            val appWidgetIds = appWidgetManager.getAppWidgetIds(componentName)
+
+            // Notify that data changed
+            appWidgetManager.notifyAppWidgetViewDataChanged(appWidgetIds, R.id.widget_list)
+
+            // Also update the widget views
+            onUpdate(context, appWidgetManager, appWidgetIds)
+        }
+    }
+
+    companion object {
+        fun updateAppWidget(
+                context: Context,
+                appWidgetManager: AppWidgetManager,
+                appWidgetId: Int
+        ) {
+            Log.d("RiseWidget", "updateAppWidget for $appWidgetId")
+
             val views = RemoteViews(context.packageName, R.layout.rise_widget)
-            
+
             // Load data from SharedPreferences
             val sharedPref = context.getSharedPreferences("RiseWidgetPrefs", Context.MODE_PRIVATE)
             val dataString = sharedPref.getString("widgetData", "[]") ?: "[]"
-            val dateLabel = sharedPref.getString("dateLabel", "TODAY") ?: "TODAY"
-            val items = try { JSONArray(dataString) } catch (e: Exception) { JSONArray() }
-            
-            val textIds = intArrayOf(R.id.widget_row1_text, R.id.widget_row2_text, R.id.widget_row3_text)
-            val itemCount = items.length()
-            
-            // Check if user is not logged in (special marker)
-            val isNotLoggedIn = itemCount == 1 && 
-                items.optJSONObject(0)?.optString("id") == "__not_logged_in__"
-            
-            if (isNotLoggedIn) {
-                // Hide all task rows
-                for (textId in textIds) {
-                    views.setViewVisibility(textId, View.GONE)
-                }
-                views.setViewVisibility(R.id.widget_empty, View.GONE)
-                
-                // Hide + button when not logged in
-                views.setViewVisibility(R.id.widget_add, View.GONE)
-                
-                // Show login button
-                views.setViewVisibility(R.id.widget_login_btn, View.VISIBLE)
-                
-                // Set date label to just "RISE"
-                views.setTextViewText(R.id.widget_date_label, "RISE")
-                
-                // Login button click
-                val loginIntent = Intent(context, MainActivity::class.java).apply {
-                    addCategory(Intent.CATEGORY_LAUNCHER)
-                    flags = Intent.FLAG_ACTIVITY_NEW_TASK
-                }
-                val loginPendingIntent = PendingIntent.getActivity(
-                    context, 5, loginIntent,
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-                    } else {
-                        PendingIntent.FLAG_UPDATE_CURRENT
+            val selectedLabel = sharedPref.getString("selectedLabel", "All") ?: "All"
+            val items =
+                    try {
+                        JSONArray(dataString)
+                    } catch (e: Exception) {
+                        JSONArray()
                     }
-                )
+
+            val itemCount = items.length()
+            Log.d("RiseWidget", "Data count: $itemCount, Selected label: $selectedLabel")
+
+            // Check if user is not logged in
+            val isNotLoggedIn =
+                    itemCount == 1 && items.optJSONObject(0)?.optString("id") == "__not_logged_in__"
+
+            if (isNotLoggedIn) {
+                // Hide list and show login
+                views.setViewVisibility(R.id.widget_list, View.GONE)
+                views.setViewVisibility(R.id.widget_empty, View.GONE)
+                views.setViewVisibility(R.id.widget_add, View.GONE)
+                views.setViewVisibility(R.id.widget_login_btn, View.VISIBLE)
+                views.setTextViewText(R.id.widget_date_label, "RISE")
+
+                // Login button click - EXPLICIT intent with component
+                val loginIntent =
+                        Intent(context, MainActivity::class.java).apply {
+                            action = Intent.ACTION_MAIN
+                            addCategory(Intent.CATEGORY_LAUNCHER)
+                            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+                        }
+                val loginPendingIntent =
+                        PendingIntent.getActivity(
+                                context,
+                                5,
+                                loginIntent,
+                                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                        )
                 views.setOnClickPendingIntent(R.id.widget_login_btn, loginPendingIntent)
             } else {
-                // Hide login button when logged in
+                // Show list and hide login
                 views.setViewVisibility(R.id.widget_login_btn, View.GONE)
-                
-                // Show + button
                 views.setViewVisibility(R.id.widget_add, View.VISIBLE)
-                
-                // Set date label
-                views.setTextViewText(R.id.widget_date_label, "$dateLabel ▼")
-                
-                // Populate rows with tasks
-                for (i in 0 until 3) {
-                    if (i < itemCount) {
-                        val item = items.getJSONObject(i)
-                        val title = item.optString("title", "Task")
-                        val status = item.optString("status", "pending")
-                        
-                        val displayText = if (status.equals("completed", ignoreCase = true)) {
-                            "✓ $title"
-                        } else {
-                            "○ $title"
+                views.setViewVisibility(R.id.widget_list, View.VISIBLE)
+
+                // Show current label in header
+                views.setTextViewText(R.id.widget_date_label, "$selectedLabel ▼")
+
+                // Setup ListView with RemoteViewsService
+                val serviceIntent =
+                        Intent(context, RiseWidgetService::class.java).apply {
+                            putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
+                            // Unique URI to prevent view reuse issues
+                            data = Uri.parse(toUri(Intent.URI_INTENT_SCHEME))
                         }
-                        
-                        views.setTextViewText(textIds[i], displayText)
-                        views.setViewVisibility(textIds[i], View.VISIBLE)
-                    } else {
-                        views.setViewVisibility(textIds[i], View.GONE)
+                views.setRemoteAdapter(R.id.widget_list, serviceIntent)
+                views.setEmptyView(R.id.widget_list, R.id.widget_empty)
+
+                // Template for item clicks - EXPLICIT intent targeting MainActivity
+                val clickIntent =
+                        Intent(context, MainActivity::class.java).apply {
+                            action = Intent.ACTION_VIEW
+                            // The fill-in intent from RiseWidgetService will add the data URI
+                        }
+                val clickPendingIntent =
+                        PendingIntent.getActivity(
+                                context,
+                                2,
+                                clickIntent,
+                                PendingIntent.FLAG_MUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+                        )
+                views.setPendingIntentTemplate(R.id.widget_list, clickPendingIntent)
+            }
+
+            // Logo click - opens main app (EXPLICIT intent)
+            val logoIntent =
+                    Intent(context, MainActivity::class.java).apply {
+                        action = Intent.ACTION_MAIN
+                        addCategory(Intent.CATEGORY_LAUNCHER)
+                        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
                     }
-                }
-                
-                // Show/hide empty view
-                views.setViewVisibility(R.id.widget_empty, if (itemCount == 0) View.VISIBLE else View.GONE)
-            }
-            
-            // Logo click - opens main app
-            val logoIntent = Intent(context, MainActivity::class.java).apply {
-                addCategory(Intent.CATEGORY_LAUNCHER)
-                flags = Intent.FLAG_ACTIVITY_NEW_TASK
-            }
-            val logoPendingIntent = PendingIntent.getActivity(
-                context, 0, logoIntent,
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-                } else {
-                    PendingIntent.FLAG_UPDATE_CURRENT
-                }
-            )
+            val logoPendingIntent =
+                    PendingIntent.getActivity(
+                            context,
+                            0,
+                            logoIntent,
+                            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                    )
             views.setOnClickPendingIntent(R.id.widget_logo, logoPendingIntent)
 
-            // Date label click - cycles through dates
-            val dateLabelIntent = Intent(Intent.ACTION_VIEW, Uri.parse("rise://widget-date")).apply {
-                flags = Intent.FLAG_ACTIVITY_NEW_TASK
-            }
-            val dateLabelPendingIntent = PendingIntent.getActivity(
-                context, 3, dateLabelIntent,
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-                } else {
-                    PendingIntent.FLAG_UPDATE_CURRENT
-                }
-            )
-            views.setOnClickPendingIntent(R.id.widget_date_label, dateLabelPendingIntent)
+            // Label selector click - opens label picker modal in app (EXPLICIT intent)
+            val labelIntent =
+                    Intent(context, MainActivity::class.java).apply {
+                        action = Intent.ACTION_VIEW
+                        data = Uri.parse("rise://label-picker")
+                        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP
+                    }
+            val labelPendingIntent =
+                    PendingIntent.getActivity(
+                            context,
+                            3,
+                            labelIntent,
+                            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                    )
+            views.setOnClickPendingIntent(R.id.widget_date_label, labelPendingIntent)
 
-            // Add button click - opens add modal
-            val addIntent = Intent(Intent.ACTION_VIEW, Uri.parse("rise://add")).apply {
-                flags = Intent.FLAG_ACTIVITY_NEW_TASK
-            }
-            val addPendingIntent = PendingIntent.getActivity(
-                context, 1, addIntent,
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-                } else {
-                    PendingIntent.FLAG_UPDATE_CURRENT
-                }
-            )
+            // Add button click - opens add task modal in app (EXPLICIT intent)
+            val addIntent =
+                    Intent(context, MainActivity::class.java).apply {
+                        action = Intent.ACTION_VIEW
+                        data = Uri.parse("rise://add")
+                        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP
+                    }
+            val addPendingIntent =
+                    PendingIntent.getActivity(
+                            context,
+                            1,
+                            addIntent,
+                            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                    )
             views.setOnClickPendingIntent(R.id.widget_add, addPendingIntent)
 
             appWidgetManager.updateAppWidget(appWidgetId, views)
+            Log.d("RiseWidget", "Widget updated successfully")
         }
     }
 }

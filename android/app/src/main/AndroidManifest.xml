@@ -38,9 +38,16 @@
         <intent-filter>
             <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
         </intent-filter>
+        <intent-filter>
+            <action android:name="com.rise.WIDGET_UPDATE" />
+        </intent-filter>
         <meta-data
             android:name="android.appwidget.provider"
             android:resource="@xml/rise_widget_info" />
       </receiver>
+      <service
+        android:name="com.rise.RiseWidgetService"
+        android:permission="android.permission.BIND_REMOTEVIEWS"
+        android:exported="false" />
     </application>
 </manifest>
