@@ -8,7 +8,7 @@ import { NothingCard } from '../components/NothingCard';
 import { NothingInput } from '../components/NothingInput';
 import { NothingButton } from '../components/NothingButton';
 import { useAppStore, Habit } from '../store/useAppStore';
-import { Plus, Check, Flame, X, Timer, Heart, Sparkles, Minus, TrendingUp, Compass, User as UserIcon } from 'lucide-react-native';
+import { Plus, Check, Flame, X, Timer, Heart, Sparkles, Minus, TrendingUp, Compass, User as UserIcon, Activity } from 'lucide-react-native';
 import dayjs from 'dayjs';
 import { useNavigation } from '@react-navigation/native';
 import { HabitsScreenStyles as styles } from '../styles/Habit.styles';
@@ -154,25 +154,76 @@ export const HabitsScreen = () => {
             </View>
 
             <FlatList
-                data={(activeTab === 'my' ? habits : COMMON_HABITS_TEMPLATES) as any}
-                renderItem={(activeTab === 'my' ? renderHabit : ({ item }: { item: HabitTemplate }) => (
-                    <TouchableOpacity onPress={() => handleTemplateSelect(item)}>
-                        <NothingCard margin="xs" style={[styles.habitCard, { padding: 12 }]}>
-                            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                <View style={[styles.templateIcon, { backgroundColor: item.color + '20', marginBottom: 0, marginRight: 16 }]}>
-                                    <Sparkles size={18} color={item.color} />
-                                </View>
-                                <View style={{ flex: 1 }}>
-                                    <NothingText variant="bold" size={16}>{item.title}</NothingText>
-                                    <NothingText size={12} color={theme.colors.textSecondary} numberOfLines={1}>{item.description}</NothingText>
-                                </View>
-                                <NothingText size={10} color={item.category === 'Bad Habit' ? '#EF4444' : theme.colors.primary} variant="bold">
-                                    {item.category.toUpperCase()}
-                                </NothingText>
+                showsVerticalScrollIndicator={false}
+                data={activeTab === 'my' ? habits : [
+                    { id: 'header_sensor', isHeader: true, title: 'PREMIUM SENSORS' },
+                    ...COMMON_HABITS_TEMPLATES.filter(t => t.isSensorBased),
+                    { id: 'header_regular', isHeader: true, title: 'REGULAR HABITS' },
+                    ...COMMON_HABITS_TEMPLATES.filter(t => !t.isSensorBased)
+                ] as any}
+                renderItem={(activeTab === 'my' ? renderHabit : ({ item }: { item: any }) => {
+                    if (item.isHeader) {
+                        return (
+                            <View style={{ paddingVertical: 12, paddingHorizontal: 4, marginTop: item.title === 'REGULAR HABITS' ? 16 : 0 }}>
+                                {item.title === 'REGULAR HABITS' && <View style={{ height: 1, backgroundColor: theme.colors.border, opacity: 0.3, marginBottom: 16 }} />}
+                                <NothingText variant="bold" size={12} color={theme.colors.textSecondary} style={{ letterSpacing: 3 }}>{item.title}</NothingText>
                             </View>
-                        </NothingCard>
-                    </TouchableOpacity>
-                )) as any}
+                        );
+                    }
+
+                    const isSensor = item.isSensorBased;
+
+                    return (
+                        <TouchableOpacity onPress={() => handleTemplateSelect(item)}>
+                            <NothingCard
+                                margin="xs"
+                                style={[
+                                    styles.habitCard,
+                                    { padding: 12 },
+                                    isSensor && {
+                                        borderColor: theme.colors.primary + '80',
+                                        borderWidth: 1.5,
+                                        backgroundColor: theme.colors.surface1,
+                                        shadowColor: theme.colors.primary,
+                                        shadowOffset: { width: 0, height: 0 },
+                                        shadowOpacity: 0.2,
+                                        shadowRadius: 10,
+                                        elevation: 4
+                                    }
+                                ]}
+                            >
+                                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                    <View style={[styles.templateIcon, {
+                                        backgroundColor: item.color + '20',
+                                        marginBottom: 0,
+                                        marginRight: 16,
+                                        borderColor: isSensor ? theme.colors.primary + '40' : 'transparent',
+                                        borderWidth: isSensor ? 1 : 0
+                                    }]}>
+                                        <Sparkles size={18} color={item.color} />
+                                    </View>
+                                    <View style={{ flex: 1 }}>
+                                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                            <NothingText variant="bold" size={16} color={isSensor ? theme.colors.text : theme.colors.text}>{item.title}</NothingText>
+                                            {isSensor && (
+                                                <View style={{ marginLeft: 8, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 2, backgroundColor: theme.colors.primary + '20' }}>
+                                                    <NothingText size={7} color={theme.colors.primary} variant="bold" style={{ letterSpacing: 1 }}>AUTO-LINK</NothingText>
+                                                </View>
+                                            )}
+                                        </View>
+                                        <NothingText size={12} color={theme.colors.textSecondary} numberOfLines={1}>{item.description}</NothingText>
+                                    </View>
+                                    <View style={{ alignItems: 'flex-end' }}>
+                                        <NothingText size={10} color={item.category === 'Bad Habit' ? '#EF4444' : theme.colors.primary} variant="bold">
+                                            {item.category.toUpperCase()}
+                                        </NothingText>
+                                        {isSensor && <Activity size={12} color={theme.colors.primary + '60'} style={{ marginTop: 4 }} />}
+                                    </View>
+                                </View>
+                            </NothingCard>
+                        </TouchableOpacity>
+                    );
+                }) as any}
                 keyExtractor={(item) => item.id}
                 contentContainerStyle={styles.listContainer}
                 ListEmptyComponent={
@@ -309,4 +360,3 @@ export const HabitsScreen = () => {
         </SafeAreaView>
     );
 };
-

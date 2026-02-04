@@ -32,7 +32,9 @@ export const HabitDetailScreen = ({ route, navigation }: any) => {
         steps: 0,
         activity: 0,
         lux: 0,
-        noise: 0
+        noise: 0,
+        distance: 0,
+        location: null as { latitude: number; longitude: number } | null
     });
 
     const timerRef = useRef<any>(null);
@@ -47,34 +49,48 @@ export const HabitDetailScreen = ({ route, navigation }: any) => {
         if (habit.sensorType === 'pedometer' || habit.sensorType === 'movement') {
             sensorService.startPedometer((steps, activity) => {
                 setLiveData(prev => {
-                    // Persist steps to store if they increased
                     if (steps > prev.steps) {
                         useAppStore.getState().updateSensorProgress(habitId, today, steps);
+
+                        // Auto-complete for movement 'check' habits (Immediate Rise)
+                        if (habit.type === 'check' && steps >= 50 && !isCompletedToday) {
+                            toggleHabit(habitId, today);
+                            Vibration.vibrate(200);
+                        }
                     }
                     return { ...prev, steps, activity };
                 });
             });
         } else if (habit.sensorType === 'light') {
-            sensorService.startLightSensor((lux) => {
+            interval = sensorService.startLightSensor((lux) => {
                 setLiveData(prev => ({ ...prev, lux }));
-                // For light, maybe only update if it's a significant change or periodically
-                if (lux > 100) { // Simple threshold for "Morning Sunlight"
-                    // We could track "Minutes of Light" instead of raw lux in the store
+
+                // Auto-complete for light 'timer' or 'check' (simulated)
+                if (lux > 400 && habit.type === 'check' && !isCompletedToday) {
+                    toggleHabit(habitId, today);
                 }
             });
         } else if (habit.sensorType === 'noise') {
-            interval = sensorService.startNoiseSensor((noise) => {
+            sensorService.startNoiseSensor((noise) => {
+                setLiveData(prev => ({ ...prev, noise }));
+            });
+        } else if (habit.sensorType === 'gps') {
+            sensorService.startLocationTracking((lat, lng, distance) => {
                 setLiveData(prev => {
-                    // Update noise level (simulate tracking for now)
-                    return { ...prev, noise };
+                    const km = distance / 1000;
+                    if (km > (habit.numericProgress?.[today] || 0)) {
+                        useAppStore.getState().updateSensorProgress(habitId, today, km);
+                    }
+                    return { ...prev, location: { latitude: lat, longitude: lng }, distance };
                 });
             });
         }
 
         return () => {
             sensorService.stopPedometer();
-            sensorService.stopLightSensor();
-            if (interval) clearInterval(interval);
+            sensorService.stopLightSensor(interval);
+            sensorService.stopNoiseSensor();
+            sensorService.stopLocationTracking();
         };
     }, [habit?.id]);
 
@@ -202,6 +218,24 @@ export const HabitDetailScreen = ({ route, navigation }: any) => {
                         </View>
                         <NothingText size={12} color={theme.colors.textSecondary}>AMBIENT NOISE LEVEL</NothingText>
                     </View>
+                ) : habit.sensorType === 'gps' ? (
+                    <View>
+                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <View>
+                                <NothingText variant="dot" size={16}>LAT: {(liveData as any).location?.latitude?.toFixed(4) || '0.0000'}</NothingText>
+                                <NothingText variant="dot" size={16}>LNG: {(liveData as any).location?.longitude?.toFixed(4) || '0.0000'}</NothingText>
+                                <NothingText size={12} color={theme.colors.textSecondary} style={{ marginTop: 8 }}>CURRENT COORDINATES</NothingText>
+                            </View>
+                            <View style={{ alignItems: 'flex-end' }}>
+                                <NothingText variant="dot" size={24}>{(liveData.distance / 1000).toFixed(2)}km</NothingText>
+                                <NothingText size={10} color={theme.colors.textSecondary}>TOTAL DISTANCE</NothingText>
+                            </View>
+                        </View>
+                        <View style={{ height: 1.5, backgroundColor: theme.colors.border, marginVertical: 12, opacity: 0.5 }} />
+                        <View style={{ width: '100%', height: 4, backgroundColor: theme.colors.border, borderRadius: 2 }}>
+                            <View style={{ width: `${Math.min(100, (liveData.distance / 1000) / (habit.numericGoal || 1) * 100)}%`, height: '100%', backgroundColor: theme.colors.primary, borderRadius: 2 }} />
+                        </View>
+                    </View>
                 ) : null}
             </NothingCard>
         );
@@ -283,42 +317,76 @@ export const HabitDetailScreen = ({ route, navigation }: any) => {
                     ) : habit.type === 'numeric' ? (
                         <View style={styles.checkContainer}>
                             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 32 }}>
-                                <TouchableOpacity
-                                    style={[styles.largeCheckBtn, { width: 80, height: 80, borderRadius: 40, borderColor: theme.colors.border }]}
-                                    onPress={() => useAppStore.getState().updateNumericProgress(habitId, today, -1)}
-                                >
-                                    <X size={32} color={theme.colors.error} />
-                                </TouchableOpacity>
+                                {!habit.isSensorBased && (
+                                    <TouchableOpacity
+                                        style={[styles.largeCheckBtn, { width: 80, height: 80, borderRadius: 40, borderColor: theme.colors.border }]}
+                                        onPress={() => useAppStore.getState().updateNumericProgress(habitId, today, -1)}
+                                    >
+                                        <X size={32} color={theme.colors.error} />
+                                    </TouchableOpacity>
+                                )}
 
                                 <View style={{ alignItems: 'center' }}>
-                                    <NothingText variant="dot" size={80}>{habit.numericProgress?.[today] || 0}</NothingText>
+                                    <NothingText variant="dot" size={80}>
+                                        {habit.isSensorBased ? (
+                                            habit.sensorType === 'pedometer' ? liveData.steps :
+                                                habit.sensorType === 'noise' ? liveData.noise :
+                                                    habit.numericProgress?.[today] || 0
+                                        ) : (
+                                            habit.numericProgress?.[today] || 0
+                                        )}
+                                    </NothingText>
                                     <NothingText color={theme.colors.textSecondary}>{habit.numericUnit?.toUpperCase()}</NothingText>
                                 </View>
 
-                                <TouchableOpacity
-                                    style={[styles.largeCheckBtn, { width: 80, height: 80, borderRadius: 40, borderColor: theme.colors.border, backgroundColor: (habit.numericProgress?.[today] || 0) >= (habit.numericGoal || 1) ? theme.colors.success + '20' : 'transparent' }]}
-                                    onPress={() => useAppStore.getState().updateNumericProgress(habitId, today, 1)}
-                                >
-                                    <Plus size={32} color={theme.colors.success} />
-                                </TouchableOpacity>
+                                {!habit.isSensorBased && (
+                                    <TouchableOpacity
+                                        style={[styles.largeCheckBtn, { width: 80, height: 80, borderRadius: 40, borderColor: theme.colors.border, backgroundColor: (habit.numericProgress?.[today] || 0) >= (habit.numericGoal || 1) ? theme.colors.success + '20' : 'transparent' }]}
+                                        onPress={() => useAppStore.getState().updateNumericProgress(habitId, today, 1)}
+                                    >
+                                        <Plus size={32} color={theme.colors.success} />
+                                    </TouchableOpacity>
+                                )}
                             </View>
                             <NothingText variant="bold" style={{ marginTop: 24 }}>GOAL: {habit.numericGoal} {habit.numericUnit}</NothingText>
                         </View>
                     ) : (
                         <View style={styles.checkContainer}>
-                            <TouchableOpacity
-                                style={[
-                                    styles.largeCheckBtn,
-                                    { borderColor: theme.colors.border },
-                                    isCompletedToday && { backgroundColor: theme.colors.text, borderColor: theme.colors.text }
-                                ]}
-                                onPress={() => toggleHabit(habitId, today)}
-                            >
-                                <Check size={80} color={isCompletedToday ? theme.colors.background : theme.colors.surface2} strokeWidth={3} />
-                            </TouchableOpacity>
-                            <NothingText variant="bold" size={18} style={{ marginTop: 24 }}>
-                                {isCompletedToday ? 'COMPLETED FOR TODAY' : 'MARK AS DONE'}
-                            </NothingText>
+                            {!habit.isSensorBased ? (
+                                <>
+                                    <TouchableOpacity
+                                        style={[
+                                            styles.largeCheckBtn,
+                                            { borderColor: theme.colors.border },
+                                            isCompletedToday && { backgroundColor: theme.colors.text, borderColor: theme.colors.text }
+                                        ]}
+                                        onPress={() => toggleHabit(habitId, today)}
+                                    >
+                                        <Check size={80} color={isCompletedToday ? theme.colors.background : theme.colors.surface2} strokeWidth={3} />
+                                    </TouchableOpacity>
+                                    <NothingText variant="bold" size={18} style={{ marginTop: 24 }}>
+                                        {isCompletedToday ? 'COMPLETED FOR TODAY' : 'MARK AS DONE'}
+                                    </NothingText>
+                                </>
+                            ) : (
+                                <View style={{ alignItems: 'center' }}>
+                                    <View style={[styles.largeCheckBtn, { borderColor: isCompletedToday ? theme.colors.success : theme.colors.border, backgroundColor: isCompletedToday ? theme.colors.success + '10' : 'transparent' }]}>
+                                        {isCompletedToday ? (
+                                            <Check size={80} color={theme.colors.success} strokeWidth={3} />
+                                        ) : (
+                                            <Activity size={80} color={theme.colors.surface2} />
+                                        )}
+                                    </View>
+                                    <NothingText variant="bold" size={18} style={{ marginTop: 24, color: isCompletedToday ? theme.colors.success : theme.colors.text }}>
+                                        {isCompletedToday ? 'GOAL REACHED' : 'WAITING FOR SENSOR...'}
+                                    </NothingText>
+                                    {!isCompletedToday && (
+                                        <NothingText size={12} color={theme.colors.textSecondary} style={{ marginTop: 8, paddingHorizontal: 40, textAlign: 'center' }}>
+                                            This habit is automatically verified by your sensors. Keep moving!
+                                        </NothingText>
+                                    )}
+                                </View>
+                            )}
                         </View>
                     )}
                 </View>

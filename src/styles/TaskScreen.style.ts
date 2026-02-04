@@ -8,16 +8,15 @@ export const styles = StyleSheet.create({
     subTabs: {
         flexDirection: 'row',
         paddingHorizontal: 24,
-        marginTop: 8,
         borderBottomWidth: 1,
     },
     tabItem: {
-        paddingVertical: 12,
+        paddingBottom: 8,
         marginRight: 24,
         alignItems: 'center',
     },
     tabText: {
-        fontSize: 13,
+        fontSize: 15,
         letterSpacing: 1.5,
     },
     activeIndicator: {
