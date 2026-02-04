@@ -154,25 +154,55 @@ export const HabitsScreen = () => {
             </View>
 
             <FlatList
-                data={(activeTab === 'my' ? habits : COMMON_HABITS_TEMPLATES) as any}
-                renderItem={(activeTab === 'my' ? renderHabit : ({ item }: { item: HabitTemplate }) => (
-                    <TouchableOpacity onPress={() => handleTemplateSelect(item)}>
-                        <NothingCard margin="xs" style={[styles.habitCard, { padding: 12 }]}>
-                            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                <View style={[styles.templateIcon, { backgroundColor: item.color + '20', marginBottom: 0, marginRight: 16 }]}>
-                                    <Sparkles size={18} color={item.color} />
-                                </View>
-                                <View style={{ flex: 1 }}>
-                                    <NothingText variant="bold" size={16}>{item.title}</NothingText>
-                                    <NothingText size={12} color={theme.colors.textSecondary} numberOfLines={1}>{item.description}</NothingText>
-                                </View>
-                                <NothingText size={10} color={item.category === 'Bad Habit' ? '#EF4444' : theme.colors.primary} variant="bold">
-                                    {item.category.toUpperCase()}
-                                </NothingText>
+                showsVerticalScrollIndicator={false}
+                data={activeTab === 'my' ? habits : [
+                    ...COMMON_HABITS_TEMPLATES.filter(t => t.isSensorBased),
+                    { id: 'separator', isSeparator: true },
+                    ...COMMON_HABITS_TEMPLATES.filter(t => !t.isSensorBased)
+                ] as any}
+                renderItem={(activeTab === 'my' ? renderHabit : ({ item }: { item: any }) => {
+                    if (item.isSeparator) {
+                        return (
+                            <View style={{ paddingVertical: 16, paddingHorizontal: 4 }}>
+                                <View style={{ height: 1, backgroundColor: theme.colors.border, opacity: 0.5 }} />
+                                <NothingText variant="bold" size={12} color={theme.colors.textSecondary} style={{ marginTop: 16, letterSpacing: 2 }}>REGULAR HABITS</NothingText>
                             </View>
-                        </NothingCard>
-                    </TouchableOpacity>
-                )) as any}
+                        );
+                    }
+
+                    const isSensor = item.isSensorBased;
+
+                    return (
+                        <TouchableOpacity onPress={() => handleTemplateSelect(item)}>
+                            <NothingCard
+                                margin="xs"
+                                style={[
+                                    styles.habitCard,
+                                    { padding: 12 },
+                                    isSensor && { borderColor: theme.colors.primary, borderWidth: 1, backgroundColor: theme.colors.surface1 }
+                                ]}
+                            >
+                                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                    <View style={[styles.templateIcon, { backgroundColor: item.color + '20', marginBottom: 0, marginRight: 16 }]}>
+                                        <Sparkles size={18} color={item.color} />
+                                    </View>
+                                    <View style={{ flex: 1 }}>
+                                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                            <NothingText variant="bold" size={16}>{item.title}</NothingText>
+                                            {isSensor && <View style={{ marginLeft: 8, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4, backgroundColor: theme.colors.primary + '30' }}>
+                                                <NothingText size={8} color={theme.colors.primary} variant="bold">SENSOR</NothingText>
+                                            </View>}
+                                        </View>
+                                        <NothingText size={12} color={theme.colors.textSecondary} numberOfLines={1}>{item.description}</NothingText>
+                                    </View>
+                                    <NothingText size={10} color={item.category === 'Bad Habit' ? '#EF4444' : theme.colors.primary} variant="bold">
+                                        {item.category.toUpperCase()}
+                                    </NothingText>
+                                </View>
+                            </NothingCard>
+                        </TouchableOpacity>
+                    );
+                }) as any}
                 keyExtractor={(item) => item.id}
                 contentContainerStyle={styles.listContainer}
                 ListEmptyComponent={
@@ -309,4 +339,3 @@ export const HabitsScreen = () => {
         </SafeAreaView>
     );
 };
-

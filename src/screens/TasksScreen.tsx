@@ -82,7 +82,7 @@ export const TasksScreen = () => {
     return (
         <>
             <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
-                <View style={{ paddingHorizontal: 24, paddingTop: 16 }}>
+                <View style={{ padding: 24 }}>
                     <NothingText variant="dot" style={{ fontFamily: 'ndot' }} size={32}>RISE TASKS</NothingText>
                 </View>
                 <View style={[styles.subTabs, { borderBottomColor: theme.colors.border }]}>
@@ -173,6 +173,7 @@ export const TasksScreen = () => {
                 )}
 
                 <FlatList
+                    showsVerticalScrollIndicator={false}
                     data={allFilteredTasks}
                     renderItem={({ item }) => (
                         <TaskItem

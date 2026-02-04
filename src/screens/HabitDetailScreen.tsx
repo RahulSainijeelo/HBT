@@ -47,7 +47,6 @@ export const HabitDetailScreen = ({ route, navigation }: any) => {
         if (habit.sensorType === 'pedometer' || habit.sensorType === 'movement') {
             sensorService.startPedometer((steps, activity) => {
                 setLiveData(prev => {
-                    // Persist steps to store if they increased
                     if (steps > prev.steps) {
                         useAppStore.getState().updateSensorProgress(habitId, today, steps);
                     }
@@ -55,26 +54,24 @@ export const HabitDetailScreen = ({ route, navigation }: any) => {
                 });
             });
         } else if (habit.sensorType === 'light') {
-            sensorService.startLightSensor((lux) => {
+            interval = sensorService.startLightSensor((lux) => {
                 setLiveData(prev => ({ ...prev, lux }));
-                // For light, maybe only update if it's a significant change or periodically
-                if (lux > 100) { // Simple threshold for "Morning Sunlight"
-                    // We could track "Minutes of Light" instead of raw lux in the store
-                }
             });
         } else if (habit.sensorType === 'noise') {
-            interval = sensorService.startNoiseSensor((noise) => {
-                setLiveData(prev => {
-                    // Update noise level (simulate tracking for now)
-                    return { ...prev, noise };
-                });
+            sensorService.startNoiseSensor((noise) => {
+                setLiveData(prev => ({ ...prev, noise }));
+            });
+        } else if (habit.sensorType === 'gps') {
+            sensorService.startLocationTracking((lat, lng) => {
+                setLiveData(prev => ({ ...prev, location: { latitude: lat, longitude: lng } }));
             });
         }
 
         return () => {
             sensorService.stopPedometer();
-            sensorService.stopLightSensor();
-            if (interval) clearInterval(interval);
+            sensorService.stopLightSensor(interval);
+            sensorService.stopNoiseSensor();
+            sensorService.stopLocationTracking();
         };
     }, [habit?.id]);
 
@@ -202,6 +199,19 @@ export const HabitDetailScreen = ({ route, navigation }: any) => {
                         </View>
                         <NothingText size={12} color={theme.colors.textSecondary}>AMBIENT NOISE LEVEL</NothingText>
                     </View>
+                ) : habit.sensorType === 'gps' ? (
+                    <View>
+                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <View>
+                                <NothingText variant="dot" size={16}>LAT: {(liveData as any).location?.latitude?.toFixed(4) || '0.0000'}</NothingText>
+                                <NothingText variant="dot" size={16}>LNG: {(liveData as any).location?.longitude?.toFixed(4) || '0.0000'}</NothingText>
+                                <NothingText size={12} color={theme.colors.textSecondary} style={{ marginTop: 8 }}>CURRENT COORDINATES</NothingText>
+                            </View>
+                            <View style={{ width: 60, height: 60, borderRadius: 30, backgroundColor: theme.colors.primary + '20', alignItems: 'center', justifyContent: 'center' }}>
+                                <View style={{ width: 12, height: 12, borderRadius: 6, backgroundColor: theme.colors.primary }} />
+                            </View>
+                        </View>
+                    </View>
                 ) : null}
             </NothingCard>
         );
@@ -283,24 +293,36 @@ export const HabitDetailScreen = ({ route, navigation }: any) => {
                     ) : habit.type === 'numeric' ? (
                         <View style={styles.checkContainer}>
                             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 32 }}>
-                                <TouchableOpacity
-                                    style={[styles.largeCheckBtn, { width: 80, height: 80, borderRadius: 40, borderColor: theme.colors.border }]}
-                                    onPress={() => useAppStore.getState().updateNumericProgress(habitId, today, -1)}
-                                >
-                                    <X size={32} color={theme.colors.error} />
-                                </TouchableOpacity>
+                                {!habit.isSensorBased && (
+                                    <TouchableOpacity
+                                        style={[styles.largeCheckBtn, { width: 80, height: 80, borderRadius: 40, borderColor: theme.colors.border }]}
+                                        onPress={() => useAppStore.getState().updateNumericProgress(habitId, today, -1)}
+                                    >
+                                        <X size={32} color={theme.colors.error} />
+                                    </TouchableOpacity>
+                                )}
 
                                 <View style={{ alignItems: 'center' }}>
-                                    <NothingText variant="dot" size={80}>{habit.numericProgress?.[today] || 0}</NothingText>
+                                    <NothingText variant="dot" size={80}>
+                                        {habit.isSensorBased ? (
+                                            habit.sensorType === 'pedometer' ? liveData.steps :
+                                                habit.sensorType === 'noise' ? liveData.noise :
+                                                    habit.numericProgress?.[today] || 0
+                                        ) : (
+                                            habit.numericProgress?.[today] || 0
+                                        )}
+                                    </NothingText>
                                     <NothingText color={theme.colors.textSecondary}>{habit.numericUnit?.toUpperCase()}</NothingText>
                                 </View>
 
-                                <TouchableOpacity
-                                    style={[styles.largeCheckBtn, { width: 80, height: 80, borderRadius: 40, borderColor: theme.colors.border, backgroundColor: (habit.numericProgress?.[today] || 0) >= (habit.numericGoal || 1) ? theme.colors.success + '20' : 'transparent' }]}
-                                    onPress={() => useAppStore.getState().updateNumericProgress(habitId, today, 1)}
-                                >
-                                    <Plus size={32} color={theme.colors.success} />
-                                </TouchableOpacity>
+                                {!habit.isSensorBased && (
+                                    <TouchableOpacity
+                                        style={[styles.largeCheckBtn, { width: 80, height: 80, borderRadius: 40, borderColor: theme.colors.border, backgroundColor: (habit.numericProgress?.[today] || 0) >= (habit.numericGoal || 1) ? theme.colors.success + '20' : 'transparent' }]}
+                                        onPress={() => useAppStore.getState().updateNumericProgress(habitId, today, 1)}
+                                    >
+                                        <Plus size={32} color={theme.colors.success} />
+                                    </TouchableOpacity>
+                                )}
                             </View>
                             <NothingText variant="bold" style={{ marginTop: 24 }}>GOAL: {habit.numericGoal} {habit.numericUnit}</NothingText>
                         </View>
