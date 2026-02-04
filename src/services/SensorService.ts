@@ -1,6 +1,6 @@
 import { accelerometer, SensorTypes, setUpdateIntervalForType } from 'react-native-sensors';
 import { map } from 'rxjs/operators';
-import { Platform, PermissionsAndroid } from 'react-native';
+import { Platform } from 'react-native';
 import Geolocation from 'react-native-geolocation-service';
 import RNSoundLevel from 'react-native-sound-level';
 import Pedometer from 'react-native-pedometer';
@@ -18,61 +18,112 @@ export interface SensorData {
 class SensorService {
     private accelerometerSubscription: any = null;
     private stepCount = 0;
+    private lastPosition: { latitude: number; longitude: number } | null = null;
+    private totalDistance = 0; // in meters
+    private lastStepPersisted = 0;
     private threshold = 12;
 
     // GPS Tracking
-    startLocationTracking(onData: (lat: number, lng: number) => void) {
+    startLocationTracking(onData: (lat: number, lng: number, distance: number) => void) {
+        if (!Geolocation) {
+            console.warn("Geolocation module not found");
+            return;
+        }
         Geolocation.watchPosition(
             (position) => {
-                onData(position.coords.latitude, position.coords.longitude);
+                const { latitude, longitude } = position.coords;
+
+                if (this.lastPosition) {
+                    const d = this.calculateDistance(
+                        this.lastPosition.latitude,
+                        this.lastPosition.longitude,
+                        latitude,
+                        longitude
+                    );
+                    this.totalDistance += d;
+                }
+
+                this.lastPosition = { latitude, longitude };
+                onData(latitude, longitude, this.totalDistance);
             },
             (error) => console.log(error),
             { enableHighAccuracy: true, distanceFilter: 10, interval: 5000, fastestInterval: 2000 }
         );
     }
 
+    private calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number) {
+        const R = 6371e3; // meters
+        const φ1 = lat1 * Math.PI / 180;
+        const φ2 = lat2 * Math.PI / 180;
+        const Δφ = (lat2 - lat1) * Math.PI / 180;
+        const Δλ = (lon2 - lon1) * Math.PI / 180;
+
+        const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+            Math.cos(φ1) * Math.cos(φ2) *
+            Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+        return R * c; // meters
+    }
+
     stopLocationTracking() {
-        Geolocation.stopObserving();
+        if (Geolocation) Geolocation.stopObserving();
     }
 
     // Sound Level (Real)
     startNoiseSensor(onData: (db: number) => void) {
-        RNSoundLevel.start();
-        const subscription = RNSoundLevel.onNewFrame = (data: any) => {
-            // RNSoundLevel returns value in dB relative to full scale (usually negative)
-            // We'll normalize it to a "noise level" 0-100 range for the UI
-            const level = Math.max(0, data.value + 100);
-            onData(Math.floor(level));
-        };
-        return subscription;
+        if (!RNSoundLevel) {
+            console.warn("SoundLevel module not found");
+            return null;
+        }
+        try {
+            RNSoundLevel.start();
+            RNSoundLevel.onNewFrame = (data: any) => {
+                const level = Math.max(0, data.value + 100);
+                onData(Math.floor(level));
+            };
+        } catch (e) {
+            console.warn("Failed to start noise sensor", e);
+        }
     }
 
     stopNoiseSensor() {
-        RNSoundLevel.stop();
+        if (RNSoundLevel) RNSoundLevel.stop();
     }
 
-    // Pedometer (Real System Count)
+    // Pedometer (Real System Count with Fallback)
     startPedometer(onData: (steps: number, activity: number) => void) {
-        // First, let's try to get initial steps for today
         const now = new Date();
         const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
-        Pedometer.queryPedometerDataBetweenDates(startOfDay.getTime(), now.getTime(), (error: any, data: any) => {
-            if (data) {
-                this.stepCount = data.numberOfSteps;
-                onData(this.stepCount, 50); // Initial activity
-            }
-        });
+        let usePedometer = false;
 
-        // Start real-time updates
-        Pedometer.startPedometerUpdatesFromDate(now.getTime(), (data: any) => {
-            if (data) {
-                const totalSteps = this.stepCount + data.numberOfSteps;
-                onData(totalSteps, 80);
-            }
-        });
+        // Guard against null Pedometer or internal failures
+        if (Pedometer && typeof Pedometer.queryPedometerDataBetweenDates === 'function') {
+            try {
+                Pedometer.queryPedometerDataBetweenDates(startOfDay.getTime(), now.getTime(), (error: any, data: any) => {
+                    if (data) {
+                        this.stepCount = data.numberOfSteps;
+                        onData(this.stepCount, 50);
+                    }
+                });
 
-        // Fallback to Accelerometer for "Activity Level" visualization
+                Pedometer.startPedometerUpdatesFromDate(now.getTime(), (data: any) => {
+                    if (data) {
+                        const totalSteps = this.stepCount + data.numberOfSteps;
+                        onData(totalSteps, 80);
+                    }
+                });
+                usePedometer = true;
+            } catch (e) {
+                console.warn("Pedometer failed to start, falling back to accelerometer", e);
+            }
+        } else {
+            console.warn("Pedometer module not available, using accelerometer fallback");
+        }
+
+        // Always run accelerometer for "Activity Level" visualization
+        // If pedometer is missing, also use it to increment steps (rough estimate)
         if (!this.accelerometerSubscription) {
             this.accelerometerSubscription = accelerometer
                 .pipe(
@@ -80,20 +131,30 @@ class SensorService {
                 )
                 .subscribe((acceleration: any) => {
                     const activity = Math.min(100, Math.max(0, (acceleration - 9.8) * 10));
+
+                    // Rough step detection if hardware pedometer is missing
+                    if (!usePedometer && acceleration > this.threshold) {
+                        this.stepCount++;
+                    }
+
                     onData(this.stepCount, activity);
                 });
         }
     }
 
     stopPedometer() {
-        Pedometer.stopPedometerUpdates();
+        if (Pedometer && typeof Pedometer.stopPedometerUpdates === 'function') {
+            try {
+                Pedometer.stopPedometerUpdates();
+            } catch (e) { }
+        }
         if (this.accelerometerSubscription) {
             this.accelerometerSubscription.unsubscribe();
             this.accelerometerSubscription = null;
         }
     }
 
-    // Light Sensor (Simulated for now as it's very device specific on Android)
+    // Light Sensor (Simulated)
     startLightSensor(onData: (lux: number) => void) {
         return setInterval(() => {
             onData(Math.floor(Math.random() * 500));
