@@ -44,11 +44,12 @@ class NotificationService {
         await notifee.createTriggerNotification(
             {
                 id: params.id,
-                title: params.title,
-                body: params.body,
+                title: params.title.toUpperCase(),
+                body: params.body.toUpperCase(),
                 android: {
                     channelId: this.channelId!,
                     smallIcon: 'ic_launcher',
+                    color: '#FFFFFF',
                     pressAction: {
                         id: 'default',
                     },
@@ -70,6 +71,7 @@ class NotificationService {
         reminders: string[];
     }) {
         if (!task.dueDate || !task.reminders || task.reminders.length === 0) {
+            console.log('No reminders to schedule - missing date or reminders');
             return;
         }
 
@@ -80,11 +82,23 @@ class NotificationService {
         const dueTimeStr = task.dueTime || '09:00'; // Default to 9 AM
         const dueDateTime = dayjs(`${task.dueDate} ${dueTimeStr}`, 'YYYY-MM-DD HH:mm');
 
-        for (const reminder of task.reminders) {
-            let triggerTime: dayjs.Dayjs;
+        console.log(`Scheduling reminders for "${task.title}" due at ${dueDateTime.format()}`);
 
-            // Parse reminder string (e.g., '10m', '1h', '1d')
-            if (reminder.endsWith('m')) {
+        for (const reminder of task.reminders) {
+            let triggerTime: dayjs.Dayjs | null = null;
+
+            // Parse human-readable reminder strings
+            if (reminder === 'At time of event') {
+                triggerTime = dueDateTime;
+            } else if (reminder === '10 minutes before' || reminder === '10m') {
+                triggerTime = dueDateTime.subtract(10, 'minute');
+            } else if (reminder === '30 minutes before' || reminder === '30m') {
+                triggerTime = dueDateTime.subtract(30, 'minute');
+            } else if (reminder === '1 hour before' || reminder === '1h') {
+                triggerTime = dueDateTime.subtract(1, 'hour');
+            } else if (reminder === '1 day before' || reminder === '1d') {
+                triggerTime = dueDateTime.subtract(1, 'day');
+            } else if (reminder.endsWith('m')) {
                 const minutes = parseInt(reminder);
                 triggerTime = dueDateTime.subtract(minutes, 'minute');
             } else if (reminder.endsWith('h')) {
@@ -93,21 +107,30 @@ class NotificationService {
             } else if (reminder.endsWith('d')) {
                 const days = parseInt(reminder);
                 triggerTime = dueDateTime.subtract(days, 'day');
-            } else {
-                continue; // Unknown format
+            }
+
+            if (!triggerTime) {
+                console.log(`Unknown reminder format: ${reminder}`);
+                continue;
             }
 
             // Only schedule if in the future
             if (triggerTime.isAfter(dayjs())) {
+                console.log(`Scheduling reminder "${reminder}" for ${triggerTime.format()}`);
                 await this.scheduleNotification({
-                    id: `task-${task.id}-${reminder}`,
+                    id: `task-${task.id}-${reminder.replace(/\s/g, '_')}`,
                     title: '⏰ Task Reminder',
                     body: task.title,
                     triggerTime: triggerTime.toDate(),
                     data: { taskId: task.id, type: 'task' },
                 });
+            } else {
+                console.log(`Skipping reminder "${reminder}" - time ${triggerTime.format()} is in the past`);
             }
         }
+
+        // Show immediate confirmation that reminders were set
+        await this.showNow('✅ Reminders Set', `${task.reminders.length} reminder(s) for "${task.title}"`);
     }
 
     // Schedule reminders for a habit
@@ -169,16 +192,17 @@ class NotificationService {
         await notifee.cancelAllNotifications();
     }
 
-    // Show an immediate notification (for testing)
+    // Show an immediate notification (Nothing UI style)
     async showNow(title: string, body: string) {
         await this.init();
 
         await notifee.displayNotification({
-            title,
-            body,
+            title: title.toUpperCase(),
+            body: body.toUpperCase(),
             android: {
                 channelId: this.channelId!,
                 smallIcon: 'ic_launcher',
+                color: '#FFFFFF',
             },
         });
     }
