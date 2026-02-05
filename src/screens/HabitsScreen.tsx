@@ -32,7 +32,23 @@ export const HabitsScreen = () => {
             setIsAddModalVisible(true);
             navigation.setParams({ openAdd: undefined });
         }
-    }, [route.params?.openAdd]);
+
+        // Handle deep link for specific sensor habit from widget
+        if (route.params?.templateId) {
+            const template = COMMON_HABITS_TEMPLATES.find(t => t.id === route.params.templateId);
+            if (template) {
+                // Check if already exists
+                const existing = habits.find(h => h.sensorType === template.sensorType);
+                if (existing) {
+                    navigation.navigate('HabitDetail', { habitId: existing.id });
+                } else {
+                    setActiveTab('explore');
+                    navigation.navigate('HabitKnowledge', { template });
+                }
+            }
+            navigation.setParams({ templateId: undefined });
+        }
+    }, [route.params?.openAdd, route.params?.templateId]);
 
     const [newNumericGoal, setNewNumericGoal] = useState('8');
     const [newNumericUnit, setNewNumericUnit] = useState('glasses');
@@ -87,7 +103,12 @@ export const HabitsScreen = () => {
                         </View>
                     </View>
 
-                    {item.type === 'numeric' ? (
+                    {item.isSensorBased ? (
+                        <View style={{ alignItems: 'flex-end', justifyContent: 'center', paddingRight: 8 }}>
+                            <NothingText size={10} color={theme.colors.primary} variant="bold">AUTO</NothingText>
+                            <Activity size={20} color={theme.colors.primary + '50'} />
+                        </View>
+                    ) : item.type === 'numeric' ? (
                         <View style={styles.numericControls}>
                             <TouchableOpacity
                                 style={[styles.numericBtn, { borderColor: theme.colors.border }]}
@@ -174,7 +195,17 @@ export const HabitsScreen = () => {
                     const isSensor = item.isSensorBased;
 
                     return (
-                        <TouchableOpacity onPress={() => handleTemplateSelect(item)}>
+                        <TouchableOpacity
+                            onPress={() => {
+                                const exists = isSensor && habits.some(h => h.sensorType === item.sensorType);
+                                if (exists) {
+                                    const habit = habits.find(h => h.sensorType === item.sensorType);
+                                    if (habit) navigation.navigate('HabitDetail', { habitId: habit.id });
+                                } else {
+                                    handleTemplateSelect(item);
+                                }
+                            }}
+                        >
                             <NothingCard
                                 margin="xs"
                                 style={[
@@ -206,8 +237,10 @@ export const HabitsScreen = () => {
                                         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                                             <NothingText variant="bold" size={16} color={isSensor ? theme.colors.text : theme.colors.text}>{item.title}</NothingText>
                                             {isSensor && (
-                                                <View style={{ marginLeft: 8, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 2, backgroundColor: theme.colors.primary + '20' }}>
-                                                    <NothingText size={7} color={theme.colors.primary} variant="bold" style={{ letterSpacing: 1 }}>AUTO-LINK</NothingText>
+                                                <View style={{ marginLeft: 8, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 2, backgroundColor: habits.some(h => h.sensorType === item.sensorType) ? theme.colors.success + '20' : theme.colors.primary + '20' }}>
+                                                    <NothingText size={7} color={habits.some(h => h.sensorType === item.sensorType) ? theme.colors.success : theme.colors.primary} variant="bold" style={{ letterSpacing: 1 }}>
+                                                        {habits.some(h => h.sensorType === item.sensorType) ? 'ADDED' : 'AUTO-LINK'}
+                                                    </NothingText>
                                                 </View>
                                             )}
                                         </View>

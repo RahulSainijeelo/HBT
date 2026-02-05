@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/widget_background"
+    android:orientation="vertical"
+    android:padding="12dp">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        
+        <ImageView
+            android:id="@+id/habit_icon"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_alignParentStart="true"
+            android:src="@drawable/widget_checkbox"
+            android:tint="#FFFFFF" />
+
+        <TextView
+            android:id="@+id/habit_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_toEndOf="@id/habit_icon"
+            android:layout_marginStart="8dp"
+            android:text="STEP LEGEND"
+            android:textColor="#FFFFFF"
+            android:textSize="12sp"
+            android:textStyle="bold" />
+            
+        <TextView
+            android:id="@+id/habit_status"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:text="LINKED"
+            android:textColor="#FFFFFF"
+            android:textSize="10sp"
+            android:alpha="0.6" />
+    </RelativeLayout>
+
+    <LinearLayout
+        android:id="@+id/habit_content"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:gravity="center"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/sensor_value"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0"
+            android:textColor="#FFFFFF"
+            android:textSize="32sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/sensor_unit"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="STEPS"
+            android:textColor="#AAAAAA"
+            android:textSize="10sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_marginTop="8dp">
+        
+        <ProgressBar
+            android:id="@+id/habit_progress"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="4dp"
+            android:progressDrawable="@drawable/widget_progress_bar" />
+            
+        <TextView
+            android:id="@+id/habit_goal_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end"
+            android:layout_marginTop="4dp"
+            android:text="GOAL: 10000"
+            android:textColor="#666666"
+            android:textSize="8sp" />
+    </LinearLayout>
+    
+    <TextView
+        android:id="@+id/habit_empty_btn"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:text="COMMITS"
+        android:textColor="#AAAAAA"
+        android:textSize="12sp"
+        android:visibility="gone" />
+
+</LinearLayout>

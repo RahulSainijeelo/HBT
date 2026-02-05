@@ -53,6 +53,31 @@
             android:name="android.appwidget.provider"
             android:resource="@xml/rise_widget_info" />
       </receiver>
+
+      <receiver android:name="com.rise.StepWidget" android:exported="true" android:label="Rise: Steps">
+        <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+        <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_step_info" />
+      </receiver>
+
+      <receiver android:name="com.rise.DistanceWidget" android:exported="true" android:label="Rise: Distance">
+        <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+        <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_distance_info" />
+      </receiver>
+
+      <receiver android:name="com.rise.SilenceWidget" android:exported="true" android:label="Rise: Silence">
+        <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+        <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_silence_info" />
+      </receiver>
+
+      <receiver android:name="com.rise.MovementWidget" android:exported="true" android:label="Rise: Movement">
+        <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+        <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_movement_info" />
+      </receiver>
+
+      <receiver android:name="com.rise.SunsetWidget" android:exported="true" android:label="Rise: Sunset">
+        <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+        <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_sunset_info" />
+      </receiver>
       <service
         android:name="com.rise.RiseWidgetService"
         android:permission="android.permission.BIND_REMOTEVIEWS"

@@ -1,9 +1,10 @@
 import { accelerometer, SensorTypes, setUpdateIntervalForType } from 'react-native-sensors';
 import { map } from 'rxjs/operators';
-import { Platform } from 'react-native';
+import { NativeModules, Platform } from 'react-native';
 import Geolocation from 'react-native-geolocation-service';
 import RNSoundLevel from 'react-native-sound-level';
-import Pedometer from 'react-native-pedometer';
+
+const { Pedometer } = NativeModules;
 
 setUpdateIntervalForType(SensorTypes.accelerometer, 100);
 
@@ -21,7 +22,8 @@ class SensorService {
     private lastPosition: { latitude: number; longitude: number } | null = null;
     private totalDistance = 0; // in meters
     private lastStepPersisted = 0;
-    private threshold = 12;
+    private threshold = 15; // Increased from 12 to 15 to reduce phantom shaking steps
+    private isNoiseSensorRunning = false;
 
     resetDistance() {
         this.totalDistance = 0;
@@ -40,7 +42,10 @@ class SensorService {
         }
         Geolocation.watchPosition(
             (position) => {
-                const { latitude, longitude } = position.coords;
+                const { latitude, longitude, accuracy } = position.coords;
+
+                // Filter out low accuracy updates or small drifts
+                if (accuracy > 30) return;
 
                 if (this.lastPosition) {
                     const d = this.calculateDistance(
@@ -49,14 +54,23 @@ class SensorService {
                         latitude,
                         longitude
                     );
-                    this.totalDistance += d;
+
+                    // Only add if movement is greater than 2 meters to avoid table drift
+                    if (d > 2) {
+                        this.totalDistance += d;
+                    }
                 }
 
                 this.lastPosition = { latitude, longitude };
                 onData(latitude, longitude, this.totalDistance);
             },
             (error) => console.log(error),
-            { enableHighAccuracy: true, distanceFilter: 10, interval: 5000, fastestInterval: 2000 }
+            {
+                enableHighAccuracy: true,
+                distanceFilter: 3, // Smaller filter but with accuracy check above
+                interval: 5000,
+                fastestInterval: 2000
+            }
         );
     }
 
@@ -86,7 +100,9 @@ class SensorService {
             return null;
         }
         try {
+            if (this.isNoiseSensorRunning) return;
             RNSoundLevel.start();
+            this.isNoiseSensorRunning = true;
             RNSoundLevel.onNewFrame = (data: any) => {
                 const level = Math.max(0, data.value + 100);
                 onData(Math.floor(level));
@@ -97,7 +113,14 @@ class SensorService {
     }
 
     stopNoiseSensor() {
-        if (RNSoundLevel) RNSoundLevel.stop();
+        if (RNSoundLevel && this.isNoiseSensorRunning) {
+            try {
+                RNSoundLevel.stop();
+                this.isNoiseSensorRunning = false;
+            } catch (e) {
+                console.warn("Error stopping sound level", e);
+            }
+        }
     }
 
     // Pedometer (Real System Count with Fallback)
@@ -111,7 +134,7 @@ class SensorService {
         if (Pedometer && typeof Pedometer.queryPedometerDataBetweenDates === 'function') {
             try {
                 Pedometer.queryPedometerDataBetweenDates(startOfDay.getTime(), now.getTime(), (error: any, data: any) => {
-                    if (data) {
+                    if (data && !error) {
                         this.stepCount = data.numberOfSteps;
                         onData(this.stepCount, 50);
                     }
@@ -128,7 +151,7 @@ class SensorService {
                 console.warn("Pedometer failed to start, falling back to accelerometer", e);
             }
         } else {
-            console.warn("Pedometer module not available, using accelerometer fallback");
+            console.log("Pedometer module not available, using accelerometer fallback");
         }
 
         // Always run accelerometer for "Activity Level" visualization
