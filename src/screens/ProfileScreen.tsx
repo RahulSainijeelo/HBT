@@ -77,15 +77,36 @@ export const ProfileScreen = ({ navigation }: any) => {
 
         const hasPermission = await requestStoragePermission();
         if (!hasPermission && Platform.OS === 'android') {
-            Alert.alert('Permission Denied', 'Storage permission is required to save the backup.');
+            setConfirmData({
+                title: 'PERMISSION DENIED',
+                message: 'Storage permission is required to save the backup. Please enable it in your device settings.',
+                type: 'danger',
+                onConfirm: () => {
+                    setConfirmVisible(false);
+                    Linking.openSettings();
+                }
+            });
+            setConfirmVisible(true);
             return;
         }
 
         try {
             const path = await StorageService.exportProfile(activeProfile.id);
-            Alert.alert('Backup Successful', `Your data report has been saved to the Downloads folder:\n\n${path}`);
+            setConfirmData({
+                title: 'BACKUP SUCCESSFUL',
+                message: `Your data has been saved to:\n\nDownloads/Rise/`,
+                type: 'info',
+                onConfirm: () => setConfirmVisible(false)
+            });
+            setConfirmVisible(true);
         } catch (e) {
-            Alert.alert('Backup Failed', 'An error occurred while creating the backup.');
+            setConfirmData({
+                title: 'BACKUP FAILED',
+                message: 'An error occurred while creating the backup. Please try again.',
+                type: 'danger',
+                onConfirm: () => setConfirmVisible(false)
+            });
+            setConfirmVisible(true);
         }
     };
 
@@ -162,7 +183,7 @@ export const ProfileScreen = ({ navigation }: any) => {
                         <View style={styles.row}>
                             <View style={styles.rowLeft}>
                                 <Check size={20} color={theme.colors.text} />
-                                <NothingText style={styles.actionText}>Auto-Login Default</NothingText>
+                                <NothingText style={styles.actionText}>Auto Login</NothingText>
                             </View>
                             <Switch
                                 value={isDefault}

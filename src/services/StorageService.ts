@@ -96,7 +96,13 @@ export class StorageService {
 
         let destPath: string;
         if (Platform.OS === 'android') {
-            destPath = `${RNFS.DownloadDirectoryPath}/${fileName}`;
+            // Create Rise folder in Downloads
+            const riseFolder = `${RNFS.DownloadDirectoryPath}/Rise`;
+            const folderExists = await RNFS.exists(riseFolder);
+            if (!folderExists) {
+                await RNFS.mkdir(riseFolder);
+            }
+            destPath = `${riseFolder}/${fileName}`;
         } else {
             destPath = `${RNFS.DocumentDirectoryPath}/${fileName}`;
         }

@@ -108,6 +108,14 @@ export const useAppStore = create<AppState>((set, get) => ({
     login: async (profile) => {
         set({ activeProfile: profile, currentUser: profile.name });
         await get().loadData(profile.id);
+
+        // Auto-set as default if no default exists
+        const { SettingsService } = await import('../services/SettingsService');
+        const settings = await SettingsService.getSettings();
+        if (!settings.defaultProfile) {
+            await SettingsService.updateSettings({ defaultProfile: profile.id });
+            console.log(`Auto-set ${profile.name} as default profile`);
+        }
     },
 
     createProfile: async (name) => {
