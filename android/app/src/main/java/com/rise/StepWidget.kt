@@ -30,7 +30,7 @@ class StepWidget : AppWidgetProvider() {
     companion object {
         fun updateWidget(context: Context, appWidgetManager: AppWidgetManager, appWidgetId: Int) {
             val views = RemoteViews(context.packageName, R.layout.widget_habit_sensor)
-            views.setImageViewResource(R.id.habit_icon, R.drawable.ic_steps)
+            // Icon removed from layout by user
             
             // Shared Prefs data
             val sharedPref = context.getSharedPreferences("RiseWidgetPrefs", Context.MODE_PRIVATE)

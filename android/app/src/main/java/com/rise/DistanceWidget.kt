@@ -30,7 +30,7 @@ class DistanceWidget : AppWidgetProvider() {
     companion object {
         fun updateWidget(context: Context, appWidgetManager: AppWidgetManager, appWidgetId: Int) {
             val views = RemoteViews(context.packageName, R.layout.widget_habit_sensor)
-            views.setImageViewResource(R.id.habit_icon, R.drawable.ic_distance)
+            // Icon removed from layout by user
             val sharedPref = context.getSharedPreferences("RiseWidgetPrefs", Context.MODE_PRIVATE)
             val sensorDataStr = sharedPref.getString("sensorData", "{}") ?: "{}"
             

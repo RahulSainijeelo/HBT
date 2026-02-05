@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import dayjs from 'dayjs';
 import { StorageService } from '../services/StorageService';
 import { WidgetService } from '../services/WidgetService';
+import { notificationService } from '../services/NotificationService';
 
 export interface Task {
     id: string;
@@ -170,15 +171,27 @@ export const useAppStore = create<AppState>((set, get) => ({
     },
 
     addTask: (task) => {
+        const newId = Math.random().toString(36).substr(2, 9);
         set((state) => ({
             tasks: [...state.tasks, {
                 ...task,
-                id: Math.random().toString(36).substr(2, 9),
+                id: newId,
                 completed: false,
                 subtasks: task.subtasks || []
             }]
         }));
         get().saveData();
+
+        // Schedule reminders for this task
+        if (task.reminders && task.reminders.length > 0) {
+            notificationService.scheduleTaskReminders({
+                id: newId,
+                title: task.title,
+                dueDate: task.dueDate,
+                dueTime: task.dueTime,
+                reminders: task.reminders
+            });
+        }
     },
 
     updateTask: (id, updates) => {
@@ -186,6 +199,12 @@ export const useAppStore = create<AppState>((set, get) => ({
             tasks: state.tasks.map(t => t.id === id ? { ...t, ...updates } : t)
         }));
         get().saveData();
+
+        // Re-schedule reminders if task details changed
+        const updatedTask = get().tasks.find(t => t.id === id);
+        if (updatedTask && updatedTask.reminders && updatedTask.reminders.length > 0) {
+            notificationService.scheduleTaskReminders(updatedTask);
+        }
     },
 
     toggleTask: (id) => {
@@ -196,6 +215,9 @@ export const useAppStore = create<AppState>((set, get) => ({
     },
 
     deleteTask: (id) => {
+        // Cancel reminders before deleting
+        notificationService.cancelTaskReminders(id);
+
         set((state) => ({
             tasks: state.tasks.filter((t) => t.id !== id)
         }));
@@ -217,10 +239,11 @@ export const useAppStore = create<AppState>((set, get) => ({
     },
 
     addHabit: (habit) => {
+        const newId = Math.random().toString(36).substr(2, 9);
         set((state) => ({
             habits: [...state.habits, {
                 ...habit,
-                id: Math.random().toString(36).substr(2, 9),
+                id: newId,
                 completedDates: [],
                 numericProgress: {},
                 timerProgress: {},
@@ -229,6 +252,16 @@ export const useAppStore = create<AppState>((set, get) => ({
             }]
         }));
         get().saveData();
+
+        // Schedule reminders for this habit
+        if (habit.reminders && habit.reminders.length > 0) {
+            notificationService.scheduleHabitReminders({
+                id: newId,
+                title: habit.title,
+                reminders: habit.reminders,
+                frequency: habit.frequency
+            });
+        }
     },
 
     toggleHabit: (id, date) => {
@@ -452,6 +485,9 @@ export const useAppStore = create<AppState>((set, get) => ({
     },
 
     deleteHabit: (id) => {
+        // Cancel reminders before deleting
+        notificationService.cancelHabitReminders(id);
+
         set((state) => ({
             habits: state.habits.filter((h) => h.id !== id)
         }));
