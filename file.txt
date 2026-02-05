@@ -29,3 +29,8 @@ adb logcat -d | grep -i "error\|exception\|RiseWidget" | grep -v "nothing\|aiwid
 
 That's fantastic. But one last ask. the label change modal is opening the app and than the modal opens, could you directly open the modal (like the finger print modal or other modal opens on any screen or even on the home page, without opening the app. 
 also clicking on the habit is 
+
+
+
+
+@src/assets/tabs could yo unow use these icons for the respective tabs. first create svgs (exact for same as the png and then use them as icon in the bottom tabbar)
