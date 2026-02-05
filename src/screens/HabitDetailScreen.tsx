@@ -53,7 +53,8 @@ export const HabitDetailScreen = ({ route, navigation }: any) => {
         let interval: any;
 
         if (habit.sensorType === 'pedometer' || habit.sensorType === 'movement') {
-            sensorService.startPedometer((steps, activity) => {
+            const initial = habit.numericProgress?.[today] || 0;
+            sensorService.startPedometer(initial, (steps, activity) => {
                 setLiveData(prev => ({ ...prev, steps, activity }));
             });
         } else if (habit.sensorType === 'light') {
@@ -65,7 +66,8 @@ export const HabitDetailScreen = ({ route, navigation }: any) => {
                 setLiveData(prev => ({ ...prev, noise }));
             });
         } else if (habit.sensorType === 'gps') {
-            sensorService.startLocationTracking((lat, lng, distance) => {
+            const initial = habit.numericProgress?.[today] ? habit.numericProgress[today] * 1000 : 0; // km to m
+            sensorService.startLocationTracking(initial, (lat, lng, distance) => {
                 setLiveData(prev => ({
                     ...prev,
                     location: { latitude: lat, longitude: lng },

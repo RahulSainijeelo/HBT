@@ -22,7 +22,7 @@ class SensorService {
     private lastPosition: { latitude: number; longitude: number } | null = null;
     private totalDistance = 0; // in meters
     private lastStepPersisted = 0;
-    private threshold = 15; // Increased from 12 to 15 to reduce phantom shaking steps
+    private threshold = 12.0; // Reduced from 15 to 12 to make it more sensitive
     private isNoiseSensorRunning = false;
 
     resetDistance() {
@@ -35,17 +35,18 @@ class SensorService {
     }
 
     // GPS Tracking
-    startLocationTracking(onData: (lat: number, lng: number, distance: number) => void) {
+    startLocationTracking(initialDistance: number, onData: (lat: number, lng: number, distance: number) => void) {
         if (!Geolocation) {
             console.warn("Geolocation module not found");
             return;
         }
+        this.totalDistance = initialDistance;
         Geolocation.watchPosition(
             (position) => {
                 const { latitude, longitude, accuracy } = position.coords;
 
-                // Filter out low accuracy updates or small drifts
-                if (accuracy > 30) return;
+                // Filter out low accuracy updates (be more lenient)
+                if (accuracy > 60) return;
 
                 if (this.lastPosition) {
                     const d = this.calculateDistance(
@@ -55,8 +56,8 @@ class SensorService {
                         longitude
                     );
 
-                    // Only add if movement is greater than 2 meters to avoid table drift
-                    if (d > 2) {
+                    // Only add if movement is greater than 1 meter to avoid table drift
+                    if (d > 1.5) {
                         this.totalDistance += d;
                     }
                 }
@@ -67,9 +68,9 @@ class SensorService {
             (error) => console.log(error),
             {
                 enableHighAccuracy: true,
-                distanceFilter: 3, // Smaller filter but with accuracy check above
-                interval: 5000,
-                fastestInterval: 2000
+                distanceFilter: 1,
+                interval: 2000,
+                fastestInterval: 1000
             }
         );
     }
@@ -124,38 +125,29 @@ class SensorService {
     }
 
     // Pedometer (Real System Count with Fallback)
-    startPedometer(onData: (steps: number, activity: number) => void) {
+    startPedometer(initialSteps: number, onData: (steps: number, activity: number) => void) {
+        this.stepCount = initialSteps;
         const now = new Date();
         const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
         let usePedometer = false;
+        let lastAcceleration = 9.8;
 
         // Guard against null Pedometer or internal failures
         if (Pedometer && typeof Pedometer.queryPedometerDataBetweenDates === 'function') {
             try {
-                Pedometer.queryPedometerDataBetweenDates(startOfDay.getTime(), now.getTime(), (error: any, data: any) => {
-                    if (data && !error) {
-                        this.stepCount = data.numberOfSteps;
-                        onData(this.stepCount, 50);
-                    }
-                });
-
                 Pedometer.startPedometerUpdatesFromDate(now.getTime(), (data: any) => {
                     if (data) {
-                        const totalSteps = this.stepCount + data.numberOfSteps;
-                        onData(totalSteps, 80);
+                        // Offset by initial steps if we just started
+                        onData(this.stepCount + data.numberOfSteps, 80);
                     }
                 });
                 usePedometer = true;
             } catch (e) {
-                console.warn("Pedometer failed to start, falling back to accelerometer", e);
+                console.warn("Pedometer hardware failed, using accelerometer");
             }
-        } else {
-            console.log("Pedometer module not available, using accelerometer fallback");
         }
 
-        // Always run accelerometer for "Activity Level" visualization
-        // If pedometer is missing, also use it to increment steps (rough estimate)
         if (!this.accelerometerSubscription) {
             this.accelerometerSubscription = accelerometer
                 .pipe(
@@ -164,11 +156,13 @@ class SensorService {
                 .subscribe((acceleration: any) => {
                     const activity = Math.min(100, Math.max(0, (acceleration - 9.8) * 10));
 
-                    // Rough step detection if hardware pedometer is missing
-                    if (!usePedometer && acceleration > this.threshold) {
-                        this.stepCount++;
+                    // Improved peak detection
+                    if (!usePedometer) {
+                        if (acceleration > this.threshold && lastAcceleration <= this.threshold) {
+                            this.stepCount++;
+                        }
                     }
-
+                    lastAcceleration = acceleration;
                     onData(this.stepCount, activity);
                 });
         }

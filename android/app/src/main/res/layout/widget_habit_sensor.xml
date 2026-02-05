@@ -29,15 +29,12 @@
             android:textSize="12sp"
             android:textStyle="bold" />
             
-        <TextView
-            android:id="@+id/habit_status"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+        <ImageView
+            android:id="@+id/app_logo"
+            android:layout_width="16dp"
+            android:layout_height="16dp"
             android:layout_alignParentEnd="true"
-            android:text="LINKED"
-            android:textColor="#FFFFFF"
-            android:textSize="10sp"
-            android:alpha="0.6" />
+            android:src="@mipmap/ic_launcher" />
     </RelativeLayout>
 
     <LinearLayout
