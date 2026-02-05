@@ -23,6 +23,15 @@ class SensorService {
     private lastStepPersisted = 0;
     private threshold = 12;
 
+    resetDistance() {
+        this.totalDistance = 0;
+        this.lastPosition = null;
+    }
+
+    resetSteps() {
+        this.stepCount = 0;
+    }
+
     // GPS Tracking
     startLocationTracking(onData: (lat: number, lng: number, distance: number) => void) {
         if (!Geolocation) {

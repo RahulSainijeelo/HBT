@@ -132,25 +132,6 @@ export const COMMON_HABITS_TEMPLATES: HabitTemplate[] = [
         howToApply: 'Law 1: Make it obvious. Add the Rise Step Widget to your home screen.'
     },
     {
-        id: 'lumen_guardian',
-        title: 'Lumen Guardian',
-        description: 'Get your daily dose of morning light for better circadian rhythm.',
-        type: 'timer',
-        category: 'Health',
-        color: '#FDE047',
-        icon: 'Sun',
-        goal: 1200, // 20 mins
-        unit: 'seconds',
-        isSensorBased: true,
-        sensorType: 'light',
-        requiredPermissions: [],
-        cue: 'Wait for the "Low Light" notification from Rise at 8:00 AM.',
-        craving: 'Desiring that mental "click" where your brain finally feels awake.',
-        response: 'Spend 20 minutes near a window or outside (Detected by sensor).',
-        reward: 'Consistent nightly sleep and morning alertness.',
-        howToApply: 'Law 2: Make it attractive. Sunlight + Podcast = The perfect combo.'
-    },
-    {
         id: 'digital_sunset',
         title: 'Digital Sunset',
         description: 'Ensure no phone usage after your sunset time.',
