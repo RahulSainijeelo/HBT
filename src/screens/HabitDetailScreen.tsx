@@ -149,7 +149,27 @@ export const HabitDetailScreen = ({ route, navigation }: any) => {
         };
     }, [isTimerRunning]);
 
-    if (!habit) return null;
+    if (!habit) {
+        return (
+            <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
+                <View style={[styles.header, { marginBottom: 20 }]}>
+                    <TouchableOpacity onPress={() => navigation.goBack()} style={[styles.backBtn, { backgroundColor: theme.colors.surface1 }]}>
+                        <ArrowLeft size={20} color={theme.colors.text} />
+                    </TouchableOpacity>
+                    <View style={{ flex: 1 }} />
+                </View>
+                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 24 }}>
+                    <NothingText variant="bold" size={18} style={{ marginBottom: 12, textAlign: 'center' }}>
+                        HABIT NOT FOUND
+                    </NothingText>
+                    <NothingText size={14} color={theme.colors.textSecondary} style={{ textAlign: 'center', marginBottom: 24 }}>
+                        This habit may have been deleted or you need to log in first.
+                    </NothingText>
+                    <NothingButton variant="primary" label="GO HOME" onPress={() => navigation.navigate('Main')} />
+                </View>
+            </SafeAreaView>
+        );
+    }
 
     const handleSaveSettings = () => {
         if (editTitle.trim()) {
@@ -245,14 +265,13 @@ export const HabitDetailScreen = ({ route, navigation }: any) => {
                                         : `${Math.floor(liveData.distance / 1000)}km ${Math.floor(liveData.distance % 1000)}m`
                                     }
                                 </NothingText>
-                                <NothingText size={12} color={theme.colors.textSecondary} style={{ marginTop: 4 }}>TOTAL DISTANCE TRACKED</NothingText>
                             </View>
                             <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: theme.colors.primary + '20', alignItems: 'center', justifyContent: 'center' }}>
                                 <Activity size={20} color={theme.colors.primary} />
                             </View>
                         </View>
-                        <View style={{ height: 1.5, backgroundColor: theme.colors.border, marginVertical: 12, opacity: 0.5 }} />
-                        <View style={{ width: '100%', height: 4, backgroundColor: theme.colors.border, borderRadius: 2 }}>
+                        {/* <View style={{ height: 1.5, backgroundColor: theme.colors.border, marginVertical: 12, opacity: 0.5 }} /> */}
+                        <View style={{ width: '100%', height: 4, backgroundColor: theme.colors.border, borderRadius: 2, marginVertical: 12 }}>
                             <View style={{ width: `${Math.min(100, (liveData.distance / 1000) / (habit.numericGoal || 1) * 100)}%`, height: '100%', backgroundColor: theme.colors.primary, borderRadius: 2 }} />
                         </View>
                     </View>
@@ -351,7 +370,7 @@ export const HabitDetailScreen = ({ route, navigation }: any) => {
                                         {habit.isSensorBased ? (
                                             habit.sensorType === 'pedometer' ? liveData.steps :
                                                 habit.sensorType === 'noise' ? liveData.noise :
-                                                    habit.numericProgress?.[today] || 0
+                                                    habit.numericProgress?.[today].toFixed(2) || 0
                                         ) : (
                                             habit.numericProgress?.[today] || 0
                                         )}

@@ -21,8 +21,9 @@ class SensorService {
     private stepCount = 0;
     private lastPosition: { latitude: number; longitude: number } | null = null;
     private totalDistance = 0; // in meters
-    private lastStepPersisted = 0;
-    private threshold = 12.0; // Reduced from 15 to 12 to make it more sensitive
+    private lastStepTime = 0; // Cooldown for step detection
+    private threshold = 14.5; // Higher threshold - requires actual walking motion
+    private stepCooldown = 400; // Minimum 400ms between steps (prevents shaking)
     private isNoiseSensorRunning = false;
 
     resetDistance() {
@@ -34,7 +35,7 @@ class SensorService {
         this.stepCount = 0;
     }
 
-    // GPS Tracking
+    // GPS Tracking - STRICT mode to prevent table drift
     startLocationTracking(initialDistance: number, onData: (lat: number, lng: number, distance: number) => void) {
         if (!Geolocation) {
             console.warn("Geolocation module not found");
@@ -43,10 +44,13 @@ class SensorService {
         this.totalDistance = initialDistance;
         Geolocation.watchPosition(
             (position) => {
-                const { latitude, longitude, accuracy } = position.coords;
+                const { latitude, longitude, accuracy, speed } = position.coords;
 
-                // Filter out low accuracy updates (be more lenient)
-                if (accuracy > 60) return;
+                // STRICT: Only accept high accuracy GPS readings (< 20m)
+                if (accuracy > 20) return;
+
+                // STRICT: Ignore if speed is essentially zero (stationary)
+                if (speed !== null && speed < 0.3) return; // less than 1 km/h
 
                 if (this.lastPosition) {
                     const d = this.calculateDistance(
@@ -56,21 +60,23 @@ class SensorService {
                         longitude
                     );
 
-                    // Only add if movement is greater than 1 meter to avoid table drift
-                    if (d > 1.5) {
+                    // STRICT: Only add if movement is greater than 5 meters
+                    if (d > 5) {
                         this.totalDistance += d;
+                        this.lastPosition = { latitude, longitude };
                     }
+                } else {
+                    this.lastPosition = { latitude, longitude };
                 }
 
-                this.lastPosition = { latitude, longitude };
                 onData(latitude, longitude, this.totalDistance);
             },
             (error) => console.log(error),
             {
                 enableHighAccuracy: true,
-                distanceFilter: 1,
-                interval: 2000,
-                fastestInterval: 1000
+                distanceFilter: 5, // Only trigger after 5m movement
+                interval: 5000,
+                fastestInterval: 3000
             }
         );
     }
@@ -127,18 +133,18 @@ class SensorService {
     // Pedometer (Real System Count with Fallback)
     startPedometer(initialSteps: number, onData: (steps: number, activity: number) => void) {
         this.stepCount = initialSteps;
+        this.lastStepTime = 0;
         const now = new Date();
-        const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
         let usePedometer = false;
         let lastAcceleration = 9.8;
+        let wasAboveThreshold = false;
 
         // Guard against null Pedometer or internal failures
         if (Pedometer && typeof Pedometer.queryPedometerDataBetweenDates === 'function') {
             try {
                 Pedometer.startPedometerUpdatesFromDate(now.getTime(), (data: any) => {
                     if (data) {
-                        // Offset by initial steps if we just started
                         onData(this.stepCount + data.numberOfSteps, 80);
                     }
                 });
@@ -156,11 +162,19 @@ class SensorService {
                 .subscribe((acceleration: any) => {
                     const activity = Math.min(100, Math.max(0, (acceleration - 9.8) * 10));
 
-                    // Improved peak detection
+                    // Step detection with COOLDOWN to prevent shaking
                     if (!usePedometer) {
-                        if (acceleration > this.threshold && lastAcceleration <= this.threshold) {
-                            this.stepCount++;
+                        const currentTime = Date.now();
+                        const isAboveThreshold = acceleration > this.threshold;
+
+                        // Count step only on rising edge AND if cooldown has passed
+                        if (isAboveThreshold && !wasAboveThreshold) {
+                            if (currentTime - this.lastStepTime > this.stepCooldown) {
+                                this.stepCount++;
+                                this.lastStepTime = currentTime;
+                            }
                         }
+                        wasAboveThreshold = isAboveThreshold;
                     }
                     lastAcceleration = acceleration;
                     onData(this.stepCount, activity);
