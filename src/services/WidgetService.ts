@@ -80,6 +80,44 @@ export const WidgetService = {
             if (typeof WidgetBridge.setWidgetLabels === 'function') {
                 WidgetBridge.setWidgetLabels(JSON.stringify(widgetLabels));
             }
+
+            // Dedicated payload for the 5 new sensor widgets
+            const sensorData: any = {};
+            const sensorTypes = ['pedometer', 'gps', 'noise', 'movement', 'screen'];
+
+            sensorTypes.forEach(type => {
+                const habit = (habits || []).find(h => h.sensorType === type);
+                if (habit) {
+                    let progress = habit.numericProgress?.[today] || 0;
+                    let goal = habit.numericGoal || 1;
+                    let unit = habit.numericUnit || '';
+
+                    // For Check habits like movement/screen, use steps or completion
+                    if (type === 'movement') {
+                        progress = habit.numericProgress?.[today] || 0;
+                        goal = 50;
+                        unit = 'steps';
+                    }
+
+                    sensorData[type] = {
+                        id: habit.id,
+                        title: habit.title,
+                        progress,
+                        goal,
+                        unit,
+                        isCompleted: habit.completedDates?.includes(today) || false
+                    };
+                } else {
+                    sensorData[type] = { exists: false };
+                }
+            });
+
+            if (typeof WidgetBridge.setSensorData === 'function') {
+                WidgetBridge.setSensorData(JSON.stringify(sensorData));
+            } else {
+                // Fallback: Store in general data if dedicated method not yet in native bridge
+                WidgetBridge.setWidgetData(JSON.stringify({ ...limitedItems, sensorData }));
+            }
         } catch (e) {
             console.error('WidgetService: Failed to update widget data', e);
         }

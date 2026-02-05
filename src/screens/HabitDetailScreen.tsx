@@ -38,51 +38,41 @@ export const HabitDetailScreen = ({ route, navigation }: any) => {
     });
 
     const timerRef = useRef<any>(null);
+    const today = dayjs().format('YYYY-MM-DD');
+    const isCompletedToday = habit?.completedDates.includes(today) || false;
 
     // Sensor Effect
     useEffect(() => {
-        if (!habit?.isSensorBased) return;
+        if (!habit?.isSensorBased || isCompletedToday) {
+            sensorService.stopPedometer();
+            sensorService.stopNoiseSensor();
+            sensorService.stopLocationTracking();
+            return;
+        }
 
         let interval: any;
-        const today = dayjs().format('YYYY-MM-DD');
 
         if (habit.sensorType === 'pedometer' || habit.sensorType === 'movement') {
-            sensorService.startPedometer((steps, activity) => {
-                setLiveData(prev => {
-                    if (steps > prev.steps) {
-                        useAppStore.getState().updateSensorProgress(habitId, today, steps);
-
-                        // Auto-complete for movement 'check' habits (Immediate Rise)
-                        if (habit.type === 'check' && steps >= 50 && !isCompletedToday) {
-                            toggleHabit(habitId, today);
-                            Vibration.vibrate(200);
-                        }
-                    }
-                    return { ...prev, steps, activity };
-                });
+            const initial = habit.numericProgress?.[today] || 0;
+            sensorService.startPedometer(initial, (steps, activity) => {
+                setLiveData(prev => ({ ...prev, steps, activity }));
             });
         } else if (habit.sensorType === 'light') {
             interval = sensorService.startLightSensor((lux) => {
                 setLiveData(prev => ({ ...prev, lux }));
-
-                // Auto-complete for light 'timer' or 'check' (simulated)
-                if (lux > 400 && habit.type === 'check' && !isCompletedToday) {
-                    toggleHabit(habitId, today);
-                }
             });
         } else if (habit.sensorType === 'noise') {
             sensorService.startNoiseSensor((noise) => {
                 setLiveData(prev => ({ ...prev, noise }));
             });
         } else if (habit.sensorType === 'gps') {
-            sensorService.startLocationTracking((lat, lng, distance) => {
-                setLiveData(prev => {
-                    const km = distance / 1000;
-                    if (km > (habit.numericProgress?.[today] || 0)) {
-                        useAppStore.getState().updateSensorProgress(habitId, today, km);
-                    }
-                    return { ...prev, location: { latitude: lat, longitude: lng }, distance };
-                });
+            const initial = habit.numericProgress?.[today] ? habit.numericProgress[today] * 1000 : 0; // km to m
+            sensorService.startLocationTracking(initial, (lat, lng, distance) => {
+                setLiveData(prev => ({
+                    ...prev,
+                    location: { latitude: lat, longitude: lng },
+                    distance
+                }));
             });
         }
 
@@ -92,7 +82,7 @@ export const HabitDetailScreen = ({ route, navigation }: any) => {
             sensorService.stopNoiseSensor();
             sensorService.stopLocationTracking();
         };
-    }, [habit?.id]);
+    }, [habit?.id, isCompletedToday]);
 
     // Sync state when habit updates or timer goal changes
     useEffect(() => {
@@ -105,6 +95,36 @@ export const HabitDetailScreen = ({ route, navigation }: any) => {
         }
     }, [habit?.id, habit?.timerGoal]);
 
+    // Separate effect for store updates to avoid render-phase updates
+    useEffect(() => {
+        if (!habit?.isSensorBased || isCompletedToday) return;
+
+        if (habit.sensorType === 'pedometer' || habit.sensorType === 'movement') {
+            const currentStoredSteps = habit.numericProgress?.[today] || 0;
+            if (liveData.steps > currentStoredSteps) {
+                useAppStore.getState().updateSensorProgress(habitId, today, liveData.steps);
+            }
+            if (habit.type === 'check' && liveData.steps >= 50) {
+                toggleHabit(habitId, today);
+                Vibration.vibrate(200);
+            }
+        } else if (habit.sensorType === 'gps') {
+            const km = liveData.distance / 1000;
+            const currentStoredKm = habit.numericProgress?.[today] || 0;
+            if (km > currentStoredKm) {
+                useAppStore.getState().updateSensorProgress(habitId, today, km);
+            }
+        } else if (habit.sensorType === 'noise' && habit.type === 'timer') {
+            if (liveData.noise > 0 && liveData.noise < 45) {
+                const timerId = setInterval(() => {
+                    const currentProgress = habit.numericProgress?.[today] || 0;
+                    useAppStore.getState().updateSensorProgress(habitId, today, currentProgress + 1);
+                }, 1000);
+                return () => clearInterval(timerId);
+            }
+        }
+    }, [liveData.steps, liveData.distance, liveData.noise, habit?.id, isCompletedToday]);
+
     useEffect(() => {
         if (isTimerRunning && timeLeft > 0) {
             timerRef.current = setInterval(() => {
@@ -112,7 +132,6 @@ export const HabitDetailScreen = ({ route, navigation }: any) => {
                     if (prev <= 1) {
                         setIsTimerRunning(false);
                         Vibration.vibrate([0, 500, 200, 500]);
-                        const today = dayjs().format('YYYY-MM-DD');
                         if (habit && !habit.completedDates.includes(today)) {
                             toggleHabit(habitId, today);
                         }
@@ -149,8 +168,6 @@ export const HabitDetailScreen = ({ route, navigation }: any) => {
     };
 
     const progress = habit.type === 'timer' ? (timeLeft / (habit.timerGoal || 1)) : 0;
-    const today = dayjs().format('YYYY-MM-DD');
-    const isCompletedToday = habit.completedDates.includes(today);
 
     const SensorInsight = () => {
         if (!habit.isSensorBased) return null;
@@ -222,13 +239,16 @@ export const HabitDetailScreen = ({ route, navigation }: any) => {
                     <View>
                         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                             <View>
-                                <NothingText variant="dot" size={16}>LAT: {(liveData as any).location?.latitude?.toFixed(4) || '0.0000'}</NothingText>
-                                <NothingText variant="dot" size={16}>LNG: {(liveData as any).location?.longitude?.toFixed(4) || '0.0000'}</NothingText>
-                                <NothingText size={12} color={theme.colors.textSecondary} style={{ marginTop: 8 }}>CURRENT COORDINATES</NothingText>
+                                <NothingText variant="dot" size={32}>
+                                    {liveData.distance < 1000
+                                        ? `${Math.floor(liveData.distance)}m`
+                                        : `${Math.floor(liveData.distance / 1000)}km ${Math.floor(liveData.distance % 1000)}m`
+                                    }
+                                </NothingText>
+                                <NothingText size={12} color={theme.colors.textSecondary} style={{ marginTop: 4 }}>TOTAL DISTANCE TRACKED</NothingText>
                             </View>
-                            <View style={{ alignItems: 'flex-end' }}>
-                                <NothingText variant="dot" size={24}>{(liveData.distance / 1000).toFixed(2)}km</NothingText>
-                                <NothingText size={10} color={theme.colors.textSecondary}>TOTAL DISTANCE</NothingText>
+                            <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: theme.colors.primary + '20', alignItems: 'center', justifyContent: 'center' }}>
+                                <Activity size={20} color={theme.colors.primary} />
                             </View>
                         </View>
                         <View style={{ height: 1.5, backgroundColor: theme.colors.border, marginVertical: 12, opacity: 0.5 }} />
@@ -348,7 +368,14 @@ export const HabitDetailScreen = ({ route, navigation }: any) => {
                                     </TouchableOpacity>
                                 )}
                             </View>
-                            <NothingText variant="bold" style={{ marginTop: 24 }}>GOAL: {habit.numericGoal} {habit.numericUnit}</NothingText>
+                            <NothingText variant="bold" style={{ marginTop: 24 }}>
+                                GOAL: {habit.sensorType === 'gps' && habit.numericUnit === 'km'
+                                    ? ((habit.numericGoal || 0) * 1000 >= 1000
+                                        ? `${habit.numericGoal}km`
+                                        : `${(habit.numericGoal || 0) * 1000}m`)
+                                    : `${habit.numericGoal} ${habit.numericUnit}`
+                                }
+                            </NothingText>
                         </View>
                     ) : (
                         <View style={styles.checkContainer}>

@@ -11,6 +11,7 @@ import { TabNavigator } from './TabNavigator';
 import { WidgetAddScreen } from '../screens/WidgetAddScreen';
 import { WidgetLabelPickerScreen } from '../screens/WidgetLabelPickerScreen';
 import { WidgetActionHandler } from '../screens/WidgetActionHandler';
+import { HabitsScreen } from '../screens/HabitsScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -43,6 +44,9 @@ const linking = {
             },
             WidgetHabitDetail: {
                 path: 'habit-detail/:itemId/:itemType',
+            },
+            AddSensorHabit: {
+                path: 'add-sensor-habit/:templateId',
             }
         }
     }
@@ -62,6 +66,11 @@ export const AppNavigator = () => {
                 <Stack.Screen name="LabelPicker" component={WidgetLabelPickerScreen} options={{ presentation: 'transparentModal', animation: 'fade' }} />
                 <Stack.Screen name="WidgetToggle" component={WidgetActionHandler} options={{ animation: 'none' }} />
                 <Stack.Screen name="WidgetHabitDetail" component={WidgetActionHandler} options={{ animation: 'none' }} />
+                <Stack.Screen
+                    name="AddSensorHabit"
+                    component={HabitsScreen}
+                    initialParams={{ activeTab: 'explore' }}
+                />
             </Stack.Navigator>
         </NavigationContainer>
     );
